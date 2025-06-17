@@ -3,7 +3,7 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supbaseClient";
-import { Button } from "./components/ui/button";
+import { Button } from "../components/ui/button";
 
 export default function LoginPage() {
   const supabase = getBrowserClient();

@@ -80,12 +80,12 @@ export async function GET(request) {
           }
         } else {
           console.error(`${uniqname} alredy has an email listed as: ${saved_email}`);
-            return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+          return NextResponse.redirect(`${origin}/auth/auth-code-error`);
         }
       }
     }
   }
-
+  console.log("help")
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }
