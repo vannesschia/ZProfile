@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, Command, UserPen, Handshake } from "lucide-react"
+import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +38,16 @@ const items = [
     title: "Family Tree",
     url: "#",
     icon: TreePine,
+  },
+  {
+    title: "Requirement Info",
+    url: "#",
+    icon: ClipboardCheck,
+  },
+  {
+    title: "Support",
+    url: "#",
+    icon: Info,
   }
 ]
 

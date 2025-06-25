@@ -1,6 +1,6 @@
 import { ChevronsUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { formatMonthDay } from "@/lib/utils"
+import { capitalizeFirstLetter } from "@/lib/utils"
 import { ProgressBlock } from "./progress-block"
 import { getServerClient } from "@/lib/supabaseServer"
 import { Separator } from "@/components/ui/separator"
@@ -18,17 +18,23 @@ async function getChapterAttendance(uniqname) {
 
   const { data: absences, error: absError } = await supabase
     .from('event_absences')
-    .select('event_id')
+    .select('event_id, absence_type')
     .eq('uniqname', uniqname)
 
   if (absError) throw absError
 
-  const absentSet = new Set(absences.map(a => a.event_id))
+  const absenceMap = new Map(
+    absences.map(a => [a.event_id, a.absence_type])
+  );
 
-  return chapterEvents.map(evt => ({
-    ...evt,
-    is_absent: absentSet.has(evt.id),
-  }))
+  return chapterEvents.map(evt => {
+    const absenceType = absenceMap.get(evt.id) ?? null;
+    return {
+      ...evt,
+      is_absent:    absenceType !== null,
+      absence_type: absenceType
+    };
+  });
 }
 
 async function getRushEvents(uniqname) {
@@ -49,7 +55,7 @@ async function getRushEvents(uniqname) {
     .eq('events.event_type', 'rush_event');
 
   if (error) throw error;
-  
+  console.log(data.map(({ events }) => events))
   return data.map(({ events }) => events);
 }
 
@@ -73,7 +79,7 @@ async function getAbsenceCounts(uniqname) {
   if (uErr) throw uErr;
 
   return {
-    excused:   excusedCount   || 0,
+    excused: excusedCount || 0,
     unexcused: unexcusedCount || 0,
   };
 }
@@ -90,30 +96,28 @@ export async function RequiredEvents({ uniqname }) {
     <>
       <ProgressBlock title={"Required Events"}>
         <div className="flex flex-row gap-1 mb-8">
-          <div className="w-full bg-background border-2 border-secondary p-4 rounded-md grid grid-cols-2 gap-4">
+          <div className="w-full bg-background border-2 border-secondary p-4 rounded-md grid grid-cols-2 gap-8">
             <div className="flex flex-col gap-4">
-              <p className="text-base font-semibold">Total Unexcused Absences</p>
-              <div className="flex flex-row gap-3 items-center">
-                <p className="font-semibold text-3xl">{absences.unexcused}</p>
-                {absences.unexcused ? 
-                  <div className="flex flex-row items-center gap-0.5">
-                    <ChevronsUp size={16} strokeWidth={2.5} color="red"/>
-                    <p className="text-red-600 text-sm">{3*absences.unexcused} AP</p>
-                  </div>
+              <div className="flex flex-col">
+                <p className="font-bold text-3xl">{absences.unexcused}</p>
+                <p className="font-semibold tracking-tight leading-tight">Unexcused Absences</p>
+                {absences.excused > 0 ? 
+                  <p className="text-sm leading-tight text-muted-foreground mt-2">This contributes to <span className="text-red-700">{3*absences.excused}+</span> additional committee points.</p>
                   : null
                 }
               </div>
             </div>
+            
             <div className="flex flex-col gap-4">
-              <p className="text-base font-semibold">Total Excused Absences</p>
-              <div className="flex flex-row gap-3 items-center">
+              <div className="flex flex-col">
                 <p className="font-semibold text-3xl">{absences.excused}</p>
-                {absences.excused ? 
+                <p className="font-semibold tracking-tight leading-tight">Excused Absences</p>
+                {absences.excused > 1 ? 
                   <Tooltip>
                     <TooltipTrigger>
                       <div className="flex flex-row items-center gap-0.5">
-                        <ChevronsUp size={16} strokeWidth={2.5} color="red"/>
-                        <p className="text-red-600 text-sm">{3*absences.excused} AP</p>
+                        <ChevronsUp size={16} strokeWidth={2.5} className="bg-red-800"/>
+                        <p className="text-red-800 text-sm">{3*absences.excused} AP</p>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -126,20 +130,20 @@ export async function RequiredEvents({ uniqname }) {
             </div>
           </div>
         </div>
-
+        
         <div className="flex flex-col gap-1">
           <div className="flex flex-row justify-between items-end gap-4">
             <p className="text-sm">Rush Event</p>
-            {rushEvents.is_absent ? <Badge className="bg-green-600">Completed</Badge> : <Badge variant="destructive">Incomplete</Badge>}
+            {rushEvents.length > 0 ? <Badge className="border-green-700 bg-green-700/30 text-green-700 px-1 py-0.5">Completed</Badge> : <Badge className="border-red-700 bg-red-700/30 text-red-700 px-1 py-0.5">Incomplete</Badge>}
           </div>
           <Separator className="my-2"/>
           {chapters.map((chapter) => {
             return (
               <div key={chapter.id} className="flex flex-row justify-between items-end gap-4">
                 <p className="text-sm">{chapter.name}</p>
-                <div className="flex flex-row gap-2 items-center">
-                  <p className="text-xs">{formatMonthDay(chapter.event_date)}</p>
-                  {chapter.is_absent ? <Badge className="bg-green-600">Present</Badge> : <Badge variant="destructive">Absent</Badge>}
+                <div className="flex flex-row gap-1">
+                  {chapter.absence_type ? <Badge className="border-primary bg-primary/20 text-primary px-1 py-0.5">{capitalizeFirstLetter(chapter.absence_type)}</Badge> : null}
+                  {!chapter.is_absent ? <Badge className="border-green-700 bg-green-700/30 text-green-700 px-1 py-0.5">Present</Badge> : <Badge className="border-red-700 bg-red-700/30 text-red-700 px-1 py-0.5">Absent</Badge>}
                 </div>
               </div>
             )
