@@ -28,7 +28,6 @@ export async function GET(request) {
       console.log(user)
       const email = user.email;
       const domain = email.split("@")[1];
-      // console.log(domain)
       if (domain != "umich.edu"){
         console.error('Please use their umich email');
         return NextResponse.redirect(`${origin}/auth/auth-code-error`);

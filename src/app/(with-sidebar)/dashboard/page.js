@@ -1,5 +1,4 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { redirect } from "next/navigation";
 import { AttendancePoints } from "@/app/components/attendance-points";
 import { RequiredEvents } from "@/app/components/required-eventsv2";
 
@@ -12,7 +11,7 @@ export default async function DashboardPage() {
   const uniqname = user.email.split("@")[0];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-5">
       <div className="flex flex-col gap-5">
         <AttendancePoints uniqname={ uniqname }/>
         <RequiredEvents uniqname={ uniqname }/>

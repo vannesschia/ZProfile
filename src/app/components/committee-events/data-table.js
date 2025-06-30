@@ -43,18 +43,20 @@ export function DataTable({ data }) {
     <div>
       <div className="border rounded-md">
         <Table className="table-fixed w-full">
-          <TableHeader>
+          <TableHeader className="table-fixed w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+                {headerGroup.headers.map((header, idx) => {
+                  // for three columns: first two get 2/5, last one gets 1/5
+                  const widths = ['w-3/6', 'w-2/6', 'w-1/6']
+                  const widthClass = widths[idx] ?? 'flex-1'
+
                   return (
-                    <TableHead key={header.id} className="w-1/3">
+                    <TableHead key={header.id} className={widthClass}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())
+                      }
                     </TableHead>
                   )
                 })}
@@ -88,7 +90,7 @@ export function DataTable({ data }) {
 
       <div className="flex items-center justify-between pt-4">
         <div>
-          <p className="text-sm text-muted-foreground">{data.length} total events attended.</p>
+          <p className="text-sm text-muted-foreground leading-tight">{data.length} total events attended.</p>
         </div>
         <div className="flex items-center gap-1">
           <Button
