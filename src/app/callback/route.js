@@ -59,11 +59,11 @@ export async function GET(request) {
         });
 
         if (isLocalEnv) {
-          return NextResponse.redirect(`${origin}/profile`);
+          return NextResponse.redirect(`${origin}/profile/setup`);
         } else if (forwardedHost) {
-          return NextResponse.redirect(`https://${forwardedHost}/profile`);
+          return NextResponse.redirect(`https://${forwardedHost}/profile/setup`);
         } else {
-          return NextResponse.redirect(`${origin}/profile`);
+          return NextResponse.redirect(`${origin}/profile/setup`);
         }
       } else {
         // data is an array of rows; if names are unique, you’ll get at most one row
