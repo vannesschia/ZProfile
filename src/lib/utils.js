@@ -7,7 +7,7 @@ export function cn(...inputs) {
 
 export function formatMonthDay(isoDateString) {
   const date = new Date(isoDateString);
-  return date.toLocaleString('en-US', { month: 'numeric', day: 'numeric'});
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric'});
 }
 
 export function capitalizeFirstLetter(str) {

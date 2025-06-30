@@ -1,16 +1,15 @@
-// column.js
-import { DataTableColumnHeader } from "./data-table-column-header"
-import { DataTableSortedHeader } from "./data-table-column-sort"
-import { Badge } from "@/components/ui/badge"
+import { DataTableColumnHeader } from "../data-table/data-table-column-header"
+import { DataTableSortedHeader } from "../data-table/data-table-column-sort"
 import { capitalizeFirstLetter, formatMonthDay } from "@/lib/utils"
 
-export function getColumns(data) {
+export const getColumns = (data) => {
   const uniqueCommittees = Array.from(new Set(data.map(row => row.committee)))
 
   return [
     {
       accessorKey: "name",
       header: "Name",
+      meta: { widthClass: "w-2/5" }
     },
     {
       accessorKey: "committee",
@@ -24,6 +23,7 @@ export function getColumns(data) {
       cell: ({ getValue }) => (
         <p>{capitalizeFirstLetter(getValue())}</p>
       ),
+      meta: { widthClass: "w-2/5" }
     },
     {
       accessorKey: "event_date",
@@ -35,6 +35,7 @@ export function getColumns(data) {
       ),
       cell: ({ getValue }) => <p>{formatMonthDay(getValue())}</p>,
       sortingFn: "datetime",
+      meta: { widthClass: "w-1/5" }
     }
   ]
 }

@@ -1,9 +1,7 @@
 "use client"
 import { ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { TestingDataTable } from "../data-table/data-table-template"
-import { Button } from "@/components/ui/button"
-import { getColumns } from "./columns"
 import {
+  flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
@@ -11,8 +9,12 @@ import {
   getSortedRowModel
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
+import { getColumns } from "./columns"
+import { TestingDataTable } from "../data-table/data-table-template"
 
-export function DataTable({ data }) {
+
+export function ChapterDataTable({ data }) {
   const columns = getColumns(data)
   
   const table = useReactTable({
@@ -22,7 +24,7 @@ export function DataTable({ data }) {
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: 7,
       },
     },
     getFilteredRowModel: getFilteredRowModel(),
@@ -33,7 +35,7 @@ export function DataTable({ data }) {
     <div>
       <TestingDataTable data={data} columns={columns}/>
 
-      <div className="flex items-center justify-between pt-4">
+      {/* <div className="flex items-center justify-between pt-4">
         <div>
           <p className="text-sm text-muted-foreground leading-tight">{data.length} total events attended.</p>
         </div>
@@ -60,7 +62,7 @@ export function DataTable({ data }) {
             <ChevronRight />
           </Button>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
