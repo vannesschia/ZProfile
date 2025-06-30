@@ -25,6 +25,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import Link from "next/link";
+
 export function NavUser({ user }) {
   const { isMobile } = useSidebar()
 
@@ -54,7 +56,8 @@ export function NavUser({ user }) {
             align="start"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
+            <Link href="/profile"> 
+            <DropdownMenuLabel className="p-0 font-normal rounded-md hover:bg-gray-300">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
@@ -66,6 +69,7 @@ export function NavUser({ user }) {
                 </div>
               </div>
             </DropdownMenuLabel>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
