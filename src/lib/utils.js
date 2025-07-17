@@ -10,6 +10,13 @@ export function formatMonthDay(isoDateString) {
   return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric'});
 }
 
+export function formatMonthDayNumeric(isoDateString) {
+  console.log("Parmeter: " + isoDateString)
+  const date = new Date(isoDateString);
+  console.log("Date: " + date)
+  return date.toLocaleString('en-US', { month: 'numeric', day: 'numeric'});
+}
+
 export function capitalizeFirstLetter(str) {
   if (!str) return str;
     return str

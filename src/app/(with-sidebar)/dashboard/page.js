@@ -1,27 +1,39 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { Overview } from "@/app/components/overview";
+import { Overview, PledgeOverview } from "@/app/components/overview";
 import { ProgressTab } from "@/app/components/progress-block";
 import AttendancePoints from "@/app/components/tabs/attendance-points.js";
 import Absences from "@/app/components/tabs/absences";
 import RushEvent from "@/app/components/tabs/rush-event";
 import PledgeProgress from "@/app/components/tabs/pledge-progress";
+import { nullable } from "zod";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const supabase = await getServerClient();
+
+  // get members's uniqname
   const { data: { user } } = await supabase.auth.getUser()
   const uniqname = user.email.split("@")[0];
 
+  // get member's role
+  const { data: role, error: rErr } = await supabase
+    .from('members')
+    .select('role')
+    .eq('uniqname', uniqname)
+    .maybeSingle();
+  if (rErr) throw rErr;
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-row gap-4 overflow-x-auto">
-        <PledgeProgress uniqname={ uniqname } />
-        <AttendancePoints uniqname={ uniqname }/>
-        <RushEvent uniqname={ uniqname }/>
+      <div className="flex flex-col md:flex-row gap-4 overflow-x-auto">
+        {role.role == "pledge" ? <PledgeProgress uniqname={ uniqname } /> : null}
+        {role.role != "pledge" ? <AttendancePoints uniqname={ uniqname }/> : null}
+        {role.role != "pledge" ? <RushEvent uniqname={ uniqname }/> : null }
         <Absences uniqname={ uniqname }/>
       </div>
-      <Overview uniqname={ uniqname }/>
+      {role.role == "pledge" ? <PledgeOverview uniqname={ uniqname } /> : null}
+      <Overview uniqname={ uniqname } role={ role.role } />
     </div>
   );
 }

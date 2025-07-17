@@ -1,9 +1,13 @@
-export function ProgressBlock({title, children}) {
+import { cn } from "@/lib/utils"
+
+export function ProgressBlock({title, subtext = "", children}) {
   return(
     <div className="w-full bg-background border-2 border-secondary p-6 rounded-lg">
       <div className="flex flex-col gap-8">
-        <h2 className="text-2xl font-bold tracking-tight">{ title }</h2>
-        {/* <p className="text-sm tracking-tight">{ subtext }</p> */}
+        <div className="flex flex-col gap-1">
+          <h2 className="text-2xl font-bold tracking-tight">{ title }</h2>
+          {subtext != "" ? <p className="text-sm tracking-tight">{ subtext }</p> : null}
+        </div>
         <div>
           { children }
         </div>
@@ -12,9 +16,9 @@ export function ProgressBlock({title, children}) {
   )
 }
 
-export function ProgressTab({title, children}) {
+export function ProgressTab({title, children, className}) {
   return(
-    <div className="w-fit bg-background border-2 border-secondary rounded-lg flex-shrink-0">
+    <div className={cn("w-full min-w-fit bg-background border-2 border-secondary rounded-lg flex-shrink-0", className)}>
       <div className="w-full border-b-2 border-muted px-6 py-4">
         <h2 className="text-2xl font-bold tracking-tight leading-tight">{ title }</h2>
       </div>
