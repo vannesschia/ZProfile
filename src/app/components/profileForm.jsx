@@ -42,9 +42,10 @@ const formSchema = z.object({
   minor: z.string().min(1).optional(),
   grade: z.string().min(1),
   graduation_year: z.coerce.number().int().min(2020),
-  current_class_number: z.string().min(1),  
+  current_class_number: z.string().min(1),
   email_address: z.string().min(1),
   phone_number: z.string().min(1),
+  profile_picture: z.any(),
   // pronouns: z.string().min(1).optional(),
   // preferred_name: z.string().min(1).optional(),
   // profile_picture: z.string().min(1)
@@ -76,13 +77,40 @@ export function MyForm({ initialData, userEmail }) {
   async function onSubmit(values) {
     const supabase = createClientComponentClient();
 
-    const { email_address, major, minor, ...rest } = values;
+    const file = values.profile_picture?.[0];
+    let imageUrl = initialData?.profile_picture_url || null;
+
+    if (file) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = fileName; // no subfolders
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-pictures")
+        .upload(filePath, file); 
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast.error("Image upload failed.");
+        return;
+      }
+
+      const { data: publicData } = supabase.storage
+        .from("profile-pictures")
+        .getPublicUrl(filePath);
+
+      imageUrl = publicData.publicUrl;
+    }
+
+
+    const { email_address, major, minor, profile_picture, ...rest } = values;
 
     const payload = {
       ...rest,
       email_address: userEmail,
-      major: [major],                 // wrap string as array
-      minor: minor ? [minor] : [],    // wrap optional string as array
+      major: [major],
+      minor: minor ? [minor] : [],
+      profile_picture_url: imageUrl,
     };
 
     const { error, data } = await supabase
@@ -91,23 +119,21 @@ export function MyForm({ initialData, userEmail }) {
       .eq("email_address", userEmail)
       .select();
 
-      console.log("Update result:", { error, data });
-
+    console.log("Update result:", { error, data });
 
     if (error) {
       console.error("Update error:", error.message);
       toast.error("Failed to update profile.");
     } else {
       toast.success("Profile updated successfully!");
-      form.reset(payload); // optional: reset to new values
-      router.refresh();     // refresh the page (optional)
-      setTimeout(() => {
-        router.push("/profile"); // ✅ redirect to profile page
-      }, 1000); // wait for toast to be readable before redirecting
+      form.reset(payload);
+      router.refresh();
+      setTimeout(() => router.push("/profile"), 1000);
     }
-    console.log("Submitting payload:", payload);
 
+    console.log("Submitting payload:", payload);
   }
+
 
   return (
     <Form {...form} className="px-12">
@@ -120,10 +146,10 @@ export function MyForm({ initialData, userEmail }) {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input 
-                placeholder=""
-                type="text"
-                {...field} />
+                <Input
+                  placeholder=""
+                  type="text"
+                  {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -141,12 +167,12 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem>
                   <FormLabel>Major</FormLabel>
                   <FormControl>
-                    <Input 
-                    placeholder=""
-                    type="text"
-                    {...field} />
+                    <Input
+                      placeholder=""
+                      type="text"
+                      {...field} />
                   </FormControl>
-                  {/* <FormDescription>enter your major(s)</FormDescription> */}
+                  <FormDescription> ** Separate by comma if double majoring</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -209,10 +235,10 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input 
-                    placeholder="(xxx) xxx-xxxx"
-                    type="tel"
-                    {...field} />
+                    <Input
+                      placeholder="(xxx) xxx-xxxx"
+                      type="tel"
+                      {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -229,12 +255,12 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem>
                   <FormLabel>Minor</FormLabel>
                   <FormControl>
-                    <Input 
-                    placeholder=""
-                    type="text"
-                    {...field} />
+                    <Input
+                      placeholder=""
+                      type="text"
+                      {...field} />
                   </FormControl>
-                  {/* <FormDescription>enter your minor(s)</FormDescription> */}
+                  <FormDescription>** Leave blank if N/A</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -247,10 +273,10 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem>
                   <FormLabel>Grade</FormLabel>
                   <FormControl>
-                    <Input 
-                    placeholder=""
-                    type="text"
-                    {...field} />
+                    <Input
+                      placeholder=""
+                      type="text"
+                      {...field} />
                   </FormControl>
                   {/* <FormDescription>enter your class</FormDescription> */}
                   <FormMessage />
@@ -283,13 +309,12 @@ export function MyForm({ initialData, userEmail }) {
               )}
             />
 
-            
           </div>
         </div>
-        {/* <InputFile /> */}
+
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Saving..." : "Submit"}
-        </Button>      
+        </Button>
       </form>
     </Form>
   )
