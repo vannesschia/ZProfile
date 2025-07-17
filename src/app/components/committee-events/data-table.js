@@ -31,36 +31,7 @@ export function DataTable({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns}/>
-
-      <div className="flex items-center justify-between pt-4">
-        <div>
-          <p className="text-sm text-muted-foreground leading-tight">{data.length} total events attended.</p>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon" className="size-7"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft />
-          </Button>
-
-        <span className="text-sm text-muted-foreground mx-1">
-          {table.getState().pagination.pageIndex + 1}/{table.getPageCount()}
-        </span>
-
-          <Button
-            variant="outline"
-            size="icon" className="size-7"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight />
-          </Button>
-        </div>
-      </div>
+      <TestingDataTable data={data} columns={columns} setPagination={true} />
     </div>
   )
 }

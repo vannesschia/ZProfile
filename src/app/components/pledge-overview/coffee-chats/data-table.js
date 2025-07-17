@@ -11,10 +11,10 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { getColumns } from "./columns"
-import { TestingDataTable } from "../data-table/data-table-template"
+import { TestingDataTable } from "../../data-table/data-table-template"
 
 
-export function ChapterDataTable({ data }) {
+export function CoffeeChatsTable({ data }) {
   const columns = getColumns(data)
   
   const table = useReactTable({
@@ -33,7 +33,7 @@ export function ChapterDataTable({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20}/>
+      <TestingDataTable data={data} columns={columns} setPagination={true} />
     </div>
   )
 }

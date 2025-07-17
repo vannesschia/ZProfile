@@ -3,12 +3,10 @@ import { formatMonthDay, capitalizeFirstLetter } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 
 export function getColumns(data) {
-  const uniqueCommittees = Array.from(new Set(data.map(row => row.committee)))
-
   return [
     {
       accessorKey: "name",
-      header: "Chapter",
+      header: "Name",
       meta: { widthClass: "w-2/5" }
     },
     {

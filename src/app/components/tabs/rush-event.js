@@ -4,9 +4,9 @@ import { UserCheck } from "lucide-react";
 
 export default async function RushEvent({ uniqname }) {
   const rush_event = await getRushEvents(uniqname)
-  
+
   return (
-    <ProgressTab title={"Rush Event"}>
+    <ProgressTab title={"Rush Event"} className="md:max-w-[17rem]">
       <div className="flex flex-col gap-4">
         <p className="text-sm tracking-tight leading-tight">Attendance</p>
         <div className="flex flex-col gap-2">

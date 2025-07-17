@@ -72,7 +72,6 @@ export function MyForm({ initialData, userEmail }) {
     }
   });
 
-
   async function onSubmit(values) {
     const supabase = createClientComponentClient();
 

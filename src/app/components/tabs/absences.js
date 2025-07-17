@@ -6,7 +6,7 @@ export default async function Absences({ uniqname }) {
   const absences = await getAbsenceCounts(uniqname);
   console.log(absences)
   return (
-    <ProgressTab title={"Absences"}>
+    <ProgressTab title={"Absences"} className="max-w-[25rem]">
       <div className="flex flex-row gap-6">
         <div className="flex flex-col gap-4">
           <p className="text-sm tracking-tight leading-tight">Unexcused Absences</p>

@@ -8,7 +8,7 @@ export default async function AttendancePoints({ uniqname }) {
   console.log(attendanceRequirements)
 
   return (
-    <ProgressTab title={"Attendance Requirements"}>
+    <ProgressTab title={"Attendance Requirements"} className="max-w-[25rem]">
       <div className="flex flex-row gap-12">
         <div className="flex flex-col gap-4">
           <p className="text-sm tracking-tight leading-tight">Committee Points</p>
