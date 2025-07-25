@@ -1,5 +1,6 @@
 import { Host_Grotesk, Geist } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function RootLayout({ children }) {
         className={`${geist.className} antialiased`}
       >
         {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
