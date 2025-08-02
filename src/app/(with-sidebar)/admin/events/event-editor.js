@@ -9,6 +9,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Command as CommandPrimitive } from "cmdk"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -17,6 +41,13 @@ import EditChapterEvent from "@/app/components/events/chapter"
 import EditPledgeEvent from "@/app/components/events/pledge-event"
 import EditStudyTableEvent from "@/app/components/events/study-table"
 import EditRushEvent from "@/app/components/events/rush-event"
+import { Button } from "@/components/ui/button"
+import { ChevronDown, Layers2, Loader2Icon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import CustomCheckbox from "@/app/components/customcheckbox"
+import { useRouter } from "next/router"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { toast } from "sonner";
 
 export default function EventEditor({ mode, initialData = null, id = null }) {
   const [event, setEvent] = useState(initialData?.event_type ?? "");
@@ -35,10 +66,10 @@ export default function EventEditor({ mode, initialData = null, id = null }) {
       <div className="flex flex-col mt-8 mb-8 gap-1">
         <span className="font-flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive mb-1">Event Type</span>
         <Select value={event} onValueChange={(value) => setEvent(value)}>
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder="Choose an event type" />
+          <SelectTrigger className="w-full sm:w-[300px]">
+            <SelectValue placeholder="Select an event type" />
           </SelectTrigger>
-          <SelectContent className="w-[300px] p-0">
+          <SelectContent className="box-border p-0">
             {events.map((event) => (
               <SelectItem
                 key={event.name}
@@ -63,15 +94,322 @@ export default function EventEditor({ mode, initialData = null, id = null }) {
 
 export function CustomCommandItem({
   className,
+  disabled,
+  onSelect,
   ...props
 }) {
   return (
     <CommandPrimitive.Item
       data-slot="command-item"
+      onSelect={(value) => {
+        if (disabled) return;
+        onSelect?.(value);
+      }}
       className={cn(
-        "data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "cursor-pointer relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none",
+        {
+          "opacity-50 cursor-not-allowed": disabled,
+          "hover:bg-secondary": !disabled,
+        },
         className
       )}
-      {...props} />
+      {...props}
+    />
   );
+}
+
+export function SelectDate({
+  value,
+  dateOpen,
+  setDateOpen,
+  form,
+}) {
+  return (
+    <Popover open={dateOpen} onOpenChange={setDateOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={`${value ? "text-popover-foreground" : "text-muted-foreground"} font-normal w-full justify-between`}
+          type="button"
+        >
+          {value
+            ? value.toLocaleDateString()
+            : "Select a date"}
+          <ChevronDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value}
+          captionLayout="dropdown"
+          onSelect={(date) => {
+            form.setValue("event_date", date);
+            setDateOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+export function AttendanceToggle({
+  selectAll,
+  toggleAll,
+  toggle,
+  people,
+  selectedPeople,
+}) {
+  return (
+    <Command className="border shadow-xs">
+      <div className="relative flex flex-row gap-1 justify-between">
+        <CommandInput
+          className="w-[564px] pr-36"
+          placeholder="Search by name"
+        />
+        {selectAll &&
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer size-fit p-1 absolute top-1/2 -translate-y-1/2 right-1.5 opacity-50"
+            onClick={toggleAll}
+          >
+            <Layers2 />Select all
+          </Button>
+        }
+      </div>
+      <CommandList>
+        {people.map((person) => {
+          const isSelected = selectedPeople.includes(person.uniqname);
+          return (
+            <CustomCommandItem
+              key={person.uniqname}
+              onSelect={() => toggle(person.uniqname)}
+              className="cursor-pointer hover:bg-gray-100"
+            >
+              <CustomCheckbox checked={isSelected}/>
+              {person.name}
+            </CustomCommandItem>
+          )
+        })}
+      </CommandList>
+    </Command>
+  )
+}
+
+export async function SubmitEdit({ event_type, values, id, router }) {
+  const { name, event_date, committee, attendance, unexcused_absences, excused_absences } = values;
+
+  const supabase = createClientComponentClient();
+
+  const payload = Object.fromEntries(
+    Object.entries({ name, event_date, event_type, committee, })
+    .filter(value => value !== null)
+  );
+  
+  const { error: eventsError } = await supabase
+    .from('events')
+    .update(payload)
+    .eq('id', id)
+
+  if (eventsError) {
+    console.error(`Failed to update payload for event with ID ${id}:`, eventsError.message);
+    toast.error("Failed to update event.");
+    return;
+  }
+
+  if (attendance) {
+    const { error: eventAttendanceDeleteError } = await supabase
+      .from('event_attendance')
+      .delete()
+      .eq('event_id', id)
+
+    if (eventAttendanceDeleteError) {
+      console.error(`Failed to delete attendance for event with ID ${id}:`, eventAttendanceDeleteError.message);
+      toast.error("Failed to update event.");
+      return;
+    }
+
+    const { error: eventAttendanceInsertError } = await supabase
+      .from('event_attendance')
+      .insert(attendance.map(mem => ({ event_id: id, uniqname: mem })))
+    
+    if (eventAttendanceInsertError) {
+      console.error(`Failed to insert attendance for event with ID ${id}:`, eventAttendanceInsertError.message);
+      toast.error("Failed to update event.");
+      return;
+    }
+  }
+
+  if (unexcused_absences) {
+    const { error: eventAbsencesDeleteError } = await supabase
+      .from('event_absences')
+      .delete()
+      .eq('event_id', id)
+
+    if (eventAbsencesDeleteError) {
+      console.error(`Failed to delete absences for event with ID ${id}:`, eventAbsencesDeleteError.message);
+      toast.error("Failed to update event.");
+      return;
+    }
+
+    const absences = [
+      ...unexcused_absences.map(x => ({ event_id: id, uniqname: x, absence_type: "unexcused" })),
+      ...excused_absences.map(x => ({ event_id: id, uniqname: x, absence_type: "excused" })),
+    ];
+
+    const { error: eventAbsencesInsertError } = await supabase
+      .from('event_absences')
+      .insert(absences)
+    
+    if (eventAbsencesInsertError) {
+      console.error(`Failed to insert absences for event with ID ${id}:`, eventAbsencesInsertError.message);
+      toast.error("Failed to update event.");
+      return;
+    }
+  }
+
+  console.log("Event saved successfully!");
+  toast.success("Event saved successfully!");
+
+  setTimeout(() => {
+    router.push("/admin/events");
+  }, 1000);
+}
+
+export async function SubmitCreate({ event_type, values, router }) {
+  const { name, event_date, committee, attendance, unexcused_absences, excused_absences } = values;
+
+  const supabase = createClientComponentClient();
+
+  const id = crypto.randomUUID();
+
+  const payload = Object.fromEntries(
+    Object.entries({ id, name, event_date, event_type, committee, })
+    .filter(value => value !== null)
+  );
+
+  const { error: eventsError } = await supabase
+    .from('events')
+    .insert(payload)
+
+  if (eventsError) {
+    console.error(`Failed to insert payload:`, eventsError.message);
+    toast.error("Failed to create event.");
+    return;
+  }
+
+  if (attendance) {
+    const { error: eventAttendanceInsertError } = await supabase
+      .from('event_attendance')
+      .insert(attendance.map(mem => ({ event_id: id, uniqname: mem })))
+    
+    if (eventAttendanceInsertError) {
+      console.error(`Failed to insert attendance:`, eventAttendanceInsertError.message);
+      toast.error("Failed to create event.");
+      return;
+    }
+  }
+
+  if (unexcused_absences) {
+    const absences = [
+      ...unexcused_absences.map(x => ({ event_id: id, uniqname: x, absence_type: "unexcused" })),
+      ...excused_absences.map(x => ({ event_id: id, uniqname: x, absence_type: "excused" })),
+    ];
+
+    const { error: eventAbsencesInsertError } = await supabase
+      .from('event_absences')
+      .insert(absences)
+    
+    if (eventAbsencesInsertError) {
+      console.error("Failed to insert absences:", eventAbsencesInsertError.message);
+      toast.error("Failed to create event.");
+      return;
+    }
+  }
+
+  console.log("Event created successfully!");
+  toast.success("Event created successfully!");
+
+  setTimeout(() => {
+    router.push("/admin/events");
+  }, 1000);
+}
+
+export async function DeleteEvent({ id, router }) {
+  const supabase = createClientComponentClient();
+
+  const { error } = await supabase
+    .from('events')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error(`Failed to delete event with ID ${id}:`, error.message);
+    toast.error("Failed to delete event.");
+    return;
+  }
+  
+  console.log("Event deleted successfully!");
+  toast.success("Event deleted successfully!");
+
+  setTimeout(() => {
+    router.push("/admin/events");
+  }, 1000);
+}
+
+export function SaveEventButton({ submitting }) {
+  return (
+    submitting
+      ? <Button disabled className="w-[100px]">
+          <Loader2Icon className="animate-spin" />
+          Saving
+        </Button>
+      : <Button className="cursor-pointer" type="submit">Save</Button>
+  )
+}
+
+export function CreateEventButton({ submitting }) {
+  return (
+    submitting
+      ? <Button disabled className="w-[100px]">
+          <Loader2Icon className="animate-spin" />
+          Creating
+        </Button>
+      : <Button className="cursor-pointer" type="submit">Create</Button>
+  )
+}
+
+export function DeleteEventButton({ submitting, onDelete }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="destructive"
+          className="cursor-pointer w-[100px]"
+        >
+          Delete
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure you want to delete this event?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter> 
+          <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            className="cursor-pointer"
+            onClick={onDelete}
+          >
+            Delete
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }
