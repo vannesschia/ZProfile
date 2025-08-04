@@ -43,6 +43,7 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [selectedUnexcusedAbsence, setSelectedUnexcusedAbsence] = useState([]);
   const [selectedExcusedAbsence, setSelectedExcusedAbsence] = useState([]);
@@ -50,6 +51,7 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setMembersDataLoading(false);
     })
     setSelectedMembers(form.getValues("attendance"));
     setSelectedUnexcusedAbsence(form.getValues("unexcused_absences"));
@@ -163,7 +165,12 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
                 render={({ field }) => (
                   <FormItem className="w-full sm:w-[564px]">
                     <FormControl>
-                      <AttendanceToggle toggle={toggleUnexcusedAbsence} people={membersData.filter(member => member.role === "pledge")} selectedPeople={selectedUnexcusedAbsence} />
+                      <AttendanceToggle
+                        toggle={toggleUnexcusedAbsence}
+                        people={membersData.filter(member => member.role === "pledge")}
+                        selectedPeople={selectedUnexcusedAbsence}
+                        loading={membersDataLoading}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -177,7 +184,12 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
                 render={({ field }) => (
                   <FormItem className="mb-8 w-full sm:w-[564px]">
                     <FormControl>
-                      <AttendanceToggle toggle={toggleExcusedAbsence} people={membersData.filter(member => member.role === "pledge")} selectedPeople={selectedUnexcusedAbsence} />
+                      <AttendanceToggle
+                        toggle={toggleExcusedAbsence}
+                        people={membersData.filter(member => member.role === "pledge")}
+                        selectedPeople={selectedUnexcusedAbsence}
+                        loading={membersDataLoading}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -192,7 +204,12 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle toggle={toggleMember} people={membersData.filter(member => member.role === "brother")} selectedPeople={selectedUnexcusedAbsence} />
+                    <AttendanceToggle
+                      toggle={toggleMember}
+                      people={membersData.filter(member => member.role === "brother")}
+                      selectedPeople={selectedUnexcusedAbsence}
+                      loading={membersDataLoading}
+                    />
                   </FormControl>
                 </FormItem>
               )}

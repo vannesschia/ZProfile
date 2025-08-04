@@ -39,11 +39,13 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState([]);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setMembersDataLoading(false);
     })
     setSelectedMembers(form.getValues("attendance"));
   }, [])
@@ -75,8 +77,8 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
 
   async function onSubmit(values) {
     mode === "edit"
-      ? SubmitEdit({ event_type: "pledge_event", values, id, router })
-      : SubmitCreate({ event_type: "pledge_event", values, router })
+      ? SubmitEdit({ event_type: "study_table", values, id, router })
+      : SubmitCreate({ event_type: "study_table", values, router })
   }
 
   async function onDelete() {
@@ -126,7 +128,13 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle toggle={toggleMember} people={membersData} selectedPeople={selectedMembers} />
+                    <AttendanceToggle
+                      separate
+                      toggle={toggleMember}
+                      people={membersData}
+                      selectedPeople={selectedMembers} 
+                      loading={membersDataLoading}
+                    />
                   </FormControl>
                 </FormItem>
               )}

@@ -4,10 +4,11 @@ import EventEditor from "../event-editor"
 export const dynamic = "force-dynamic";
 
 export default async function EditEventPage({ id }) {
-  id="2ada9e9c-7486-412f-be0c-09090328db8b"
   if (!id) {
-    console.error("Failed to get event ID");
-    return;
+    console.error("Failed to get event ID.");
+    return (
+      <span>Failed to get event ID.</span>
+    )
   }
 
   const supabase = await getServerClient();
@@ -32,7 +33,9 @@ export default async function EditEventPage({ id }) {
   
   if (error) {
     console.error("Failed to get initial data:", error.message);
-    return;
+    return (
+      <span>Failed to get initial data for event.</span>
+    )
   }
 
   return (

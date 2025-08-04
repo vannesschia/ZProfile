@@ -1,42 +1,6 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Calendar } from "@/components/ui/calendar"
-import { ChevronDown, Layers2, Loader2Icon } from "lucide-react"
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import {
   AttendanceToggle,
   CreateEventButton,
@@ -61,10 +24,8 @@ import {
   SubmitCreate,
   SubmitEdit
 } from "@/app/(with-sidebar)/admin/events/event-editor";
-import { toast } from "sonner";
 import { getMembers } from "./members-data";
 import { useRouter } from "next/navigation";
-import CustomCheckbox from "../customcheckbox";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -79,11 +40,13 @@ export default function EditRushEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState([]);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setMembersDataLoading(false);
     })
     setSelectedMembers(form.getValues("attendance"));
   }, [])
@@ -131,8 +94,8 @@ export default function EditRushEvent({ mode, initialData, id }) {
 
   async function onSubmit(values) {
     mode === "edit"
-      ? SubmitEdit({ event_type: "pledge_event", values, id, router })
-      : SubmitCreate({ event_type: "pledge_event", values, router })
+      ? SubmitEdit({ event_type: "rush_event", values, id, router })
+      : SubmitCreate({ event_type: "rush_event", values, router })
   }
 
   async function onDelete() {
@@ -186,7 +149,14 @@ export default function EditRushEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle selectAll toggleAll={toggleAllMembers} toggle={toggleMember} people={membersData} selectedPeople={selectedMembers} />
+                    <AttendanceToggle
+                      selectAll
+                      toggleAll={toggleAllMembers}
+                      toggle={toggleMember}
+                      people={membersData}
+                      selectedPeople={selectedMembers} 
+                      loading={membersDataLoading}
+                    />
                   </FormControl>
                 </FormItem>
               )}

@@ -45,9 +45,9 @@ import { Button } from "@/components/ui/button"
 import { ChevronDown, Layers2, Loader2Icon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import CustomCheckbox from "@/app/components/customcheckbox"
-import { useRouter } from "next/router"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function EventEditor({ mode, initialData = null, id = null }) {
   const [event, setEvent] = useState(initialData?.event_type ?? "");
@@ -64,7 +64,7 @@ export default function EventEditor({ mode, initialData = null, id = null }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col mt-8 mb-8 gap-1">
-        <span className="font-flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive mb-1">Event Type</span>
+        <span className="text-sm font-medium select-none mb-1">Event Type</span>
         <Select value={event} onValueChange={(value) => setEvent(value)}>
           <SelectTrigger className="w-full sm:w-[300px]">
             <SelectValue placeholder="Select an event type" />
@@ -155,16 +155,18 @@ export function SelectDate({
 
 export function AttendanceToggle({
   selectAll,
+  separate,
   toggleAll,
   toggle,
   people,
   selectedPeople,
+  loading,
 }) {
   return (
     <Command className="border shadow-xs">
       <div className="relative flex flex-row gap-1 justify-between">
         <CommandInput
-          className="w-[564px] pr-36"
+          className={`w-full ${selectAll ? "pr-24" : ""}`}
           placeholder="Search by name"
         />
         {selectAll &&
@@ -180,19 +182,69 @@ export function AttendanceToggle({
         }
       </div>
       <CommandList>
-        {people.map((person) => {
-          const isSelected = selectedPeople.includes(person.uniqname);
-          return (
-            <CustomCommandItem
-              key={person.uniqname}
-              onSelect={() => toggle(person.uniqname)}
-              className="cursor-pointer hover:bg-gray-100"
-            >
-              <CustomCheckbox checked={isSelected}/>
-              {person.name}
-            </CustomCommandItem>
-          )
-        })}
+        {loading
+          ? <div className="p-2 flex flex-col gap-4">
+              <div className="flex flex-row gap-2">
+                <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                <Skeleton className="w-[150px] rounded-[4px]" />
+              </div>
+              <div className="flex flex-row gap-2">
+                <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                <Skeleton className="w-[200px] rounded-[4px]" />
+              </div>
+              <div className="flex flex-row gap-2">
+                <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                <Skeleton className="w-[100px] rounded-[4px]" />
+              </div>
+            </div>
+          : (separate
+              ? <>
+                  <CommandGroup heading="Pledge">
+                    {people.filter(people => people.role === "pledge").map((person) => {
+                      const isSelected = selectedPeople.includes(person.uniqname);
+                      return (
+                        <CustomCommandItem
+                          key={person.uniqname}
+                          onSelect={() => toggle(person.uniqname)}
+                          className="cursor-pointer hover:bg-gray-100"
+                        >
+                          <CustomCheckbox checked={isSelected}/>
+                          {person.name}
+                        </CustomCommandItem>
+                      )
+                    })}
+                  </CommandGroup>
+                  <CommandGroup heading="Brother">
+                    {people.filter(people => people.role === "brother").map((person) => {
+                      const isSelected = selectedPeople.includes(person.uniqname);
+                      return (
+                        <CustomCommandItem
+                          key={person.uniqname}
+                          onSelect={() => toggle(person.uniqname)}
+                          className="cursor-pointer hover:bg-gray-100"
+                        >
+                          <CustomCheckbox checked={isSelected}/>
+                          {person.name}
+                        </CustomCommandItem>
+                      )
+                    })}
+                  </CommandGroup>
+                </>
+              : (people.map((person) => {
+                  const isSelected = selectedPeople.includes(person.uniqname);
+                  return (
+                    <CustomCommandItem
+                      key={person.uniqname}
+                      onSelect={() => toggle(person.uniqname)}
+                      className="cursor-pointer hover:bg-gray-100"
+                    >
+                      <CustomCheckbox checked={isSelected}/>
+                      {person.name}
+                    </CustomCommandItem>
+                  )
+                }))
+            )
+        }
       </CommandList>
     </Command>
   )
@@ -382,8 +434,17 @@ export function CreateEventButton({ submitting }) {
 }
 
 export function DeleteEventButton({ submitting, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const handleClose = () => {
+    if (!open) {
+      setOpen(true);
+    }
+    else if (!submitting) {
+      setOpen(false);
+    }
+  }
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={handleClose}>
       <AlertDialogTrigger asChild>
         <Button
           variant="destructive"
@@ -399,15 +460,39 @@ export function DeleteEventButton({ submitting, onDelete }) {
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter> 
-          <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
-          <Button
-            variant="destructive"
-            className="cursor-pointer"
-            onClick={onDelete}
-          >
-            Delete
-          </Button>
+        <AlertDialogFooter>
+          {submitting
+            ? <>
+                <AlertDialogCancel
+                  disabled
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <Button
+                  disabled
+                  variant="destructive"
+                  onClick={onDelete}
+                >
+                  <Loader2Icon className="animate-spin" />
+                  Deleting
+                </Button>
+              </>
+            : <>
+                <AlertDialogCancel
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  className="cursor-pointer"
+                  onClick={onDelete}
+                >
+                  Delete
+                </Button>
+              </>
+          }
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

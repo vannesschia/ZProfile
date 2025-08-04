@@ -59,11 +59,14 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
     { name: "fundraising", label: "Fundraising" },
   ];
   const [membersData, setMembersData] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setMembersDataLoading(false);
     })
     setSelectedMembers(form.getValues("attendance"));
   }, [])
@@ -112,12 +115,14 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
 
   async function onSubmit(values) {
     mode === "edit"
-      ? SubmitEdit({ event_type: "committee", values, id, router })
-      : SubmitCreate({ event_type: "committee", values, router })
+      ? await SubmitEdit({ event_type: "committee", values, id, router })
+      : await SubmitCreate({ event_type: "committee", values, router })
   }
 
   async function onDelete() {
-    DeleteEvent(id, router);
+    setIsDeleting(true);
+    await DeleteEvent({id, router});
+    setIsDeleting(false);
   }
 
   return (
@@ -194,7 +199,14 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle selectAll toggleAll={toggleAllMembers} toggle={toggleMember} people={membersData} selectedPeople={selectedMembers} />
+                    <AttendanceToggle
+                      selectAll
+                      toggleAll={toggleAllMembers}
+                      toggle={toggleMember}
+                      people={membersData}
+                      selectedPeople={selectedMembers} 
+                      loading={membersDataLoading}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -206,7 +218,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               : <CreateEventButton submitting={form.formState.isSubmitting} />
             }
             {mode === "edit" &&
-              <DeleteEventButton submitting={form.formState.isSubmitting} onDelete={onDelete}/>
+              <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
             }
           </div>
         </div>

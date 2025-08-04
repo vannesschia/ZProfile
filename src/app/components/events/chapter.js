@@ -41,6 +41,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [selectedUnexcusedAbsence, setSelectedUnexcusedAbsence] = useState([]);
   const [selectedExcusedAbsence, setSelectedExcusedAbsence] = useState([]);
 
@@ -62,6 +63,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setMembersDataLoading(false);
     })
     setSelectedUnexcusedAbsence(form.getValues("unexcused_absences"));
     setSelectedExcusedAbsence(form.getValues("excused_absences"));
@@ -143,7 +145,12 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                 render={({ field }) => (
                   <FormItem className="w-full sm:w-[564px]">
                     <FormControl>
-                      <AttendanceToggle toggle={toggleUnexcusedAbsence} people={membersData} selectedPeople={selectedUnexcusedAbsence} />
+                      <AttendanceToggle
+                        toggle={toggleUnexcusedAbsence}
+                        people={membersData}
+                        selectedPeople={selectedUnexcusedAbsence}
+                        loading={membersDataLoading}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -157,7 +164,12 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                 render={({ field }) => (
                   <FormItem className="mb-8 w-full sm:w-[564px]">
                     <FormControl>
-                      <AttendanceToggle toggle={toggleExcusedAbsence} people={membersData} selectedPeople={selectedExcusedAbsence} />
+                      <AttendanceToggle
+                        toggle={toggleExcusedAbsence}
+                        people={membersData}
+                        selectedPeople={selectedExcusedAbsence}
+                        loading={membersDataLoading}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
