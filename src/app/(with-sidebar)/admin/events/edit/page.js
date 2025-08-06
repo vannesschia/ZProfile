@@ -4,7 +4,6 @@ import EventEditor from "../event-editor"
 export const dynamic = "force-dynamic";
 
 export default async function EditEventPage({ id }) {
-  id="35a8b92d-008c-41d3-8afc-2d4e2b8618c6"
   if (!id) {
     console.error("Failed to get event ID.");
     return (

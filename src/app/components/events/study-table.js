@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import {
-  AttendanceToggle,
+  AttendanceDualListbox,
   CreateEventButton,
   DeleteEvent,
   DeleteEventButton,
@@ -39,16 +39,19 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
-  const [membersDataLoading, setMembersDataLoading] = useState(true);
+  const [availableMembers, setAvailableMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setAvailableMembers(newMembersData.filter(mem => mem.role === "pledge" && !form.getValues("attendance").includes(mem.uniqname)));
+      setSelectedMembers(newMembersData.filter(mem => mem.role === "pledge" && form.getValues("attendance").includes(mem.uniqname)));
       setMembersDataLoading(false);
     })
-    setSelectedMembers(form.getValues("attendance"));
-  }, [])
+  }, []);
 
   const form = useForm({
     mode: "onSubmit",
@@ -82,23 +85,21 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
   }
 
   async function onDelete() {
-    DeleteEvent(id, router);
+    setIsDeleting(true);
+    DeleteEvent({id, router});
   }
   
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
-          <div className="justify-between sm:justify-normal flex flex-row gap-2 sm:gap-16">
-            <FormLabel className="w-1/2 sm:w-[200px]">Date</FormLabel>
-            {form.getValues("event_date") && <FormLabel className="w-1/2 sm:w-auto">Name</FormLabel>}
-          </div>
-          <div className="flex flex-row gap-2 sm:gap-16 mb-8">
+          <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
               control={form.control}
               name="event_date"
               render={({ field }) => (
-                <FormItem className="w-1/2 sm:w-[200px] flex flex-col">
+                <FormItem className={`${form.getValues("event_date") ? "w-1/2" : "w-[calc(50%-4px)] lg:w-[calc(50%-16px)]"}`}>
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form}/>
                   </FormControl>
@@ -109,18 +110,21 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
             {form.getValues("event_date") &&
               (() => {
                 const date = new Date(form.getValues("event_date"));
-                const lastMonday = new Date(date.setDate(date.getDate() - ((date.getDay() + 6) % 7))).toLocaleDateString();
-                form.setValue("name", `Week of ${lastMonday} Study Table`);
+                const lastSunday = new Date(date.setDate(date.getDate() - (date.getDay() % 7))).toLocaleDateString();
+                const nextSaturday = new Date(date.setDate(date.getDate() + ((date.getDay() + 6) % 7))).toLocaleDateString();
+                form.setValue("name", `${lastSunday} - ${nextSaturday} Study Table`);
                 return (
-                  <span 
-                    className="w-1/2 sm:w-[300px] text-sm items-center border-input flex h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive">
-                    Week of {lastMonday} Study Table
-                  </span>
+                  <div className="w-1/2 flex flex-col gap-2">
+                    <FormLabel>Name</FormLabel>
+                    <span className="items-center border-input flex h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 shadow-xs text-sm">
+                      {lastSunday} - {nextSaturday} Study Table
+                    </span>
+                  </div>
                 )
               })()
             }
           </div>
-          <div className="flex flex-col gap-2 w-full sm:w-[564px]">
+          <div className="flex flex-col gap-1">
             <FormLabel>Attendance</FormLabel>
             <FormField
               control={form.control}
@@ -128,11 +132,14 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle
-                      separate
-                      toggle={toggleMember}
-                      people={membersData}
-                      selectedPeople={selectedMembers} 
+                    <AttendanceDualListbox
+                      allPeople={membersData}
+                      availablePeople={availableMembers}
+                      setAvailablePeople={setAvailableMembers}
+                      selectedPeople={selectedMembers}
+                      setSelectedPeople={setSelectedMembers}
+                      form={form}
+                      formItem="attendance"
                       loading={membersDataLoading}
                     />
                   </FormControl>
@@ -140,13 +147,13 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
               )}
             />
           </div>
-          <div className="w-full sm:w-[564px] flex flex-row gap-4 justify-between">
+          <div className="flex flex-row justify-between">
             {mode === "edit"
-              ? <SaveEventButton submitting={form.formState.isSubmitting}/>
+              ? <>
+                  <SaveEventButton submitting={form.formState.isSubmitting}/>
+                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
+                </>
               : <CreateEventButton submitting={form.formState.isSubmitting} />
-            }
-            {mode === "edit" &&
-              <DeleteEventButton submitting={form.formState.isSubmitting} onDelete={onDelete}/>
             }
           </div>
         </div>

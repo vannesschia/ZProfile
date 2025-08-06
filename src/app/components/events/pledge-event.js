@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import {
-  AttendanceToggle,
+  AttendanceDualListbox,
   CreateEventButton,
   DeleteEvent,
   DeleteEventButton,
@@ -43,20 +43,27 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
-  const [membersDataLoading, setMembersDataLoading] = useState(true);
+  const [availableMembers, setAvailableMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [selectedUnexcusedAbsence, setSelectedUnexcusedAbsence] = useState([]);
-  const [selectedExcusedAbsence, setSelectedExcusedAbsence] = useState([]);
+  const [availableUnexcusedAbsences, setAvailableUnexcusedAbsences] = useState([]);
+  const [selectedUnexcusedAbsences, setSelectedUnexcusedAbsences] = useState([]);
+  const [availableExcusedAbsences, setAvailableExcusedAbsences] = useState([]);
+  const [selectedExcusedAbsences, setSelectedExcusedAbsences] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setAvailableMembers(newMembersData.filter(mem => !form.getValues("attendance").includes(mem.uniqname)));
+      setSelectedMembers(newMembersData.filter(mem => form.getValues("attendance").includes(mem.uniqname)));
+      setAvailableUnexcusedAbsences(newMembersData.filter(mem => mem.role === "pledge" && !form.getValues("unexcused_absences").includes(mem.uniqname)));
+      setSelectedUnexcusedAbsences(newMembersData.filter(mem => mem.role === "pledge" && form.getValues("unexcused_absences").includes(mem.uniqname)));
+      setAvailableExcusedAbsences(newMembersData.filter(mem => mem.role === "pledge" && !form.getValues("excused_absences").includes(mem.uniqname)))
+      setSelectedExcusedAbsences(newMembersData.filter(mem => mem.role === "pledge" && form.getValues("excused_absences").includes(mem.uniqname)));
       setMembersDataLoading(false);
     })
-    setSelectedMembers(form.getValues("attendance"));
-    setSelectedUnexcusedAbsence(form.getValues("unexcused_absences"));
-    setSelectedExcusedAbsence(form.getValues("excused_absences"));
-  }, [])
+  }, []);
 
   const form = useForm({
     mode: "onSubmit",
@@ -74,39 +81,6 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
     },
   });
 
-  const toggleMember = (member) => {
-    const newSelectedMembers = selectedMembers.includes(member)
-      ? selectedMembers.filter((mem) => mem !== member)
-      : [...selectedMembers, member];
-    setSelectedMembers(newSelectedMembers);
-    form.setValue(`attendance`, newSelectedMembers, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-  }
-
-  const toggleUnexcusedAbsence = (pledge) => {
-    const newSelectedUnexcusedAbsence = selectedUnexcusedAbsence.includes(pledge)
-      ? selectedUnexcusedAbsence.filter((mem) => mem !== pledge)
-      : [...selectedUnexcusedAbsence, pledge];
-    setSelectedUnexcusedAbsence(newSelectedUnexcusedAbsence);
-    form.setValue(`unexcused_absences`, newSelectedUnexcusedAbsence, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-  }
-
-  const toggleExcusedAbsence = (pledge) => {
-    const newSelectedExcusedAbsence = selectedExcusedAbsence.includes(pledge)
-      ? selectedExcusedAbsence.filter((mem) => mem !== pledge)
-      : [...selectedExcusedAbsence, pledge];
-    setSelectedExcusedAbsence(newSelectedExcusedAbsence);
-    form.setValue(`excused_absences`, newSelectedExcusedAbsence, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-  }
-
   async function onSubmit(values) {
     mode === "edit"
       ? SubmitEdit({ event_type: "pledge_event", values, id, router })
@@ -114,29 +88,27 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
   }
 
   async function onDelete() {
-    DeleteEvent(id, router);
+    setIsDeleting(true);
+    DeleteEvent({id, router});
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
-          <div className="justify-between sm:justify-normal flex flex-row gap-2 sm:gap-16">
-            <FormLabel className="w-1/2 sm:w-[300px]">Name</FormLabel>
-            <FormLabel className="w-1/2 sm:w-auto">Date</FormLabel>
-          </div>
-          <div className="flex flex-row gap-2 sm:gap-16 mb-8">
+          <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="w-1/2 sm:w-[300px]">
+                <FormItem className="w-1/2">
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter a name"
                       type="text"
                       {...field}
-                      className="text-sm w-1/2 w-full"
+                      className="text-sm w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -147,7 +119,8 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
               control={form.control}
               name="event_date"
               render={({ field }) => (
-                <FormItem className="w-1/2 sm:w-[200px] flex flex-col">
+                <FormItem className="w-1/2">
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form}/>
                   </FormControl>
@@ -157,37 +130,23 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
             />
           </div>
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-2">
-              <FormLabel>Pledge Unexcused Absences</FormLabel>
-              <FormField
-                control={form.control}
-                name="unexcused_absences"
-                render={({ field }) => (
-                  <FormItem className="w-full sm:w-[564px]">
-                    <FormControl>
-                      <AttendanceToggle
-                        toggle={toggleUnexcusedAbsence}
-                        people={membersData.filter(member => member.role === "pledge")}
-                        selectedPeople={selectedUnexcusedAbsence}
-                        loading={membersDataLoading}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <FormLabel>Pledge Excused Absences</FormLabel>
               <FormField
                 control={form.control}
                 name="excused_absences"
                 render={({ field }) => (
-                  <FormItem className="mb-8 w-full sm:w-[564px]">
+                  <FormItem className="mb-8">
                     <FormControl>
-                      <AttendanceToggle
-                        toggle={toggleExcusedAbsence}
-                        people={membersData.filter(member => member.role === "pledge")}
-                        selectedPeople={selectedUnexcusedAbsence}
+                      <AttendanceDualListbox
+                        allPeople={membersData.filter(mem => mem.role === "pledge")}
+                        availablePeople={availableExcusedAbsences}
+                        setAvailablePeople={setAvailableExcusedAbsences}
+                        selectedPeople={selectedExcusedAbsences}
+                        setSelectedPeople={setSelectedExcusedAbsences}
+                        disable={selectedUnexcusedAbsences}
+                        form={form}
+                        formItem="excused_absences"
                         loading={membersDataLoading}
                       />
                     </FormControl>
@@ -196,18 +155,23 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-2 w-full sm:w-[564px]">
-            <FormLabel>Brother Attendance</FormLabel>
+          <div className="flex flex-col gap-1">
+            <FormLabel>Pledge Unexcused Absences</FormLabel>
             <FormField
               control={form.control}
-              name="attendance"
+              name="unexcused_absences"
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle
-                      toggle={toggleMember}
-                      people={membersData.filter(member => member.role === "brother")}
-                      selectedPeople={selectedUnexcusedAbsence}
+                    <AttendanceDualListbox
+                      allPeople={membersData.filter(mem => mem.role === "pledge")}
+                      availablePeople={availableUnexcusedAbsences}
+                      setAvailablePeople={setAvailableUnexcusedAbsences}
+                      selectedPeople={selectedUnexcusedAbsences}
+                      setSelectedPeople={setSelectedUnexcusedAbsences}
+                      disable={selectedExcusedAbsences}
+                      form={form}
+                      formItem="unexcused_absences"
                       loading={membersDataLoading}
                     />
                   </FormControl>
@@ -215,13 +179,36 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
               )}
             />
           </div>
-          <div className="w-full sm:w-[564px] flex flex-row gap-4 justify-between">
+          <div className="flex flex-col gap-1">
+            <FormLabel>Brother Attendance</FormLabel>
+            <FormField
+              control={form.control}
+              name="attendance"
+              render={({ field }) => (
+                <FormItem className="mb-8">
+                  <FormControl>
+                    <AttendanceDualListbox
+                      allPeople={membersData}
+                      availablePeople={availableMembers}
+                      setAvailablePeople={setAvailableMembers}
+                      selectedPeople={selectedMembers}
+                      setSelectedPeople={setSelectedMembers}
+                      form={form}
+                      formItem="attendance"
+                      loading={membersDataLoading}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex flex-row justify-between">
             {mode === "edit"
-              ? <SaveEventButton submitting={form.formState.isSubmitting}/>
+              ? <>
+                  <SaveEventButton submitting={form.formState.isSubmitting}/>
+                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
+                </>
               : <CreateEventButton submitting={form.formState.isSubmitting} />
-            }
-            {mode === "edit" &&
-              <DeleteEventButton submitting={form.formState.isSubmitting} onDelete={onDelete}/>
             }
           </div>
         </div>

@@ -42,9 +42,8 @@ import EditPledgeEvent from "@/app/components/events/pledge-event"
 import EditStudyTableEvent from "@/app/components/events/study-table"
 import EditRushEvent from "@/app/components/events/rush-event"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Layers2, Loader2Icon } from "lucide-react"
+import { ArrowLeftRight, ChevronDown, Loader2Icon, Plus, TrashIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
-import CustomCheckbox from "@/app/components/customcheckbox"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton"
@@ -62,11 +61,11 @@ export default function EventEditor({ mode, initialData = null, id = null }) {
   const EventComponent = events.find(eve => eve.name === event)?.component;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 w-full lg:w-[564px]">
       <div className="flex flex-col mt-8 mb-8 gap-1">
         <span className="text-sm font-medium select-none mb-1">Event Type</span>
         <Select value={event} onValueChange={(value) => setEvent(value)}>
-          <SelectTrigger className="w-full sm:w-[300px]">
+          <SelectTrigger disabled={mode === "edit"} className="w-full lg:w-[calc(50%-16px)]">
             <SelectValue placeholder="Select an event type" />
           </SelectTrigger>
           <SelectContent className="box-border p-0">
@@ -153,100 +152,146 @@ export function SelectDate({
   )
 }
 
-export function AttendanceToggle({
-  selectAll,
-  separate,
-  toggleAll,
-  toggle,
-  people,
+export function AttendanceDualListbox({
+  enableMoveAll,
+  allPeople,
+  availablePeople,
+  setAvailablePeople,
   selectedPeople,
+  setSelectedPeople,
+  disable,
+  form,
+  formItem,
   loading,
 }) {
+
+  const move = (person) => {
+    const isSelected = availablePeople.includes(person);
+    const newAvailablePeople = (isSelected
+      ? availablePeople.filter(mem => mem !== person)
+      : [...availablePeople, person]).sort((a, b) => {return a.name.localeCompare(b.name)});
+    setAvailablePeople(newAvailablePeople);
+    const newSelectedPeople = (isSelected
+      ? [...selectedPeople, person]
+      : selectedPeople.filter(mem => mem !== person)).sort((a, b) => {return a.name.localeCompare(b.name)});
+    setSelectedPeople(newSelectedPeople);
+    form.setValue(formItem, newSelectedPeople.map(mem => mem.uniqname), {
+      shouldValidate: false,
+      shouldDirty: true,
+    });
+  };
+
+  const moveAll = () => {
+    if (selectedPeople.length === allPeople.length) {
+      setAvailablePeople(allPeople.sort((a, b) => {return a.name.localeCompare(b.name)}));
+      setSelectedPeople([]);
+      form.setValue(formItem, [], {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    } else {
+      setAvailablePeople([]);
+      setSelectedPeople(allPeople.sort((a, b) => {return a.name.localeCompare(b.name)}));
+      form.setValue(formItem, allPeople.sort((a, b) => {return a.name.localeCompare(b.name)}).map(mem => mem.uniqname), {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    }
+  }
+
   return (
-    <Command className="border shadow-xs">
-      <div className="relative flex flex-row gap-1 justify-between">
-        <CommandInput
-          className={`w-full ${selectAll ? "pr-24" : ""}`}
-          placeholder="Search by name"
-        />
-        {selectAll &&
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer size-fit p-1 absolute top-1/2 -translate-y-1/2 right-1.5 opacity-50"
-            onClick={toggleAll}
-          >
-            <Layers2 />Select all
-          </Button>
-        }
-      </div>
-      <CommandList>
-        {loading
-          ? <div className="p-2 flex flex-col gap-4">
-              <div className="flex flex-row gap-2">
-                <Skeleton className="w-4 h-4 rounded-[4px]"/>
-                <Skeleton className="w-[150px] rounded-[4px]" />
-              </div>
-              <div className="flex flex-row gap-2">
-                <Skeleton className="w-4 h-4 rounded-[4px]"/>
-                <Skeleton className="w-[200px] rounded-[4px]" />
-              </div>
-              <div className="flex flex-row gap-2">
-                <Skeleton className="w-4 h-4 rounded-[4px]"/>
-                <Skeleton className="w-[100px] rounded-[4px]" />
-              </div>
-            </div>
-          : (separate
-              ? <>
-                  <CommandGroup heading="Pledge">
-                    {people.filter(people => people.role === "pledge").map((person) => {
-                      const isSelected = selectedPeople.includes(person.uniqname);
-                      return (
-                        <CustomCommandItem
-                          key={person.uniqname}
-                          onSelect={() => toggle(person.uniqname)}
-                          className="cursor-pointer hover:bg-gray-100"
-                        >
-                          <CustomCheckbox checked={isSelected}/>
-                          {person.name}
-                        </CustomCommandItem>
-                      )
-                    })}
-                  </CommandGroup>
-                  <CommandGroup heading="Brother">
-                    {people.filter(people => people.role === "brother").map((person) => {
-                      const isSelected = selectedPeople.includes(person.uniqname);
-                      return (
-                        <CustomCommandItem
-                          key={person.uniqname}
-                          onSelect={() => toggle(person.uniqname)}
-                          className="cursor-pointer hover:bg-gray-100"
-                        >
-                          <CustomCheckbox checked={isSelected}/>
-                          {person.name}
-                        </CustomCommandItem>
-                      )
-                    })}
-                  </CommandGroup>
-                </>
-              : (people.map((person) => {
-                  const isSelected = selectedPeople.includes(person.uniqname);
+    <div className="flex flex-col lg:flex-row gap-2 sm:gap-8">
+      <div className="flex flex-col w-full">
+        <span className="text-[12px] text-muted-foreground select-none mb-1">Available Names</span>
+        <Command className="border shadow-xs">
+          <div className="relative flex flex-row gap-1 justify-between">
+            <CommandInput
+              className={`${enableMoveAll ? "pr-24" : ""}`}
+              placeholder="Search by name"
+            />
+            {enableMoveAll &&
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="cursor-pointer size-fit p-1 absolute top-1/2 -translate-y-1/2 right-1.5 opacity-50"
+                onClick={moveAll}
+              >
+                <ArrowLeftRight />Move all
+              </Button>
+            }
+          </div>
+          <CommandList>
+            {loading
+              ? <div className="p-2 flex flex-col gap-4">
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[150px] rounded-[4px]" />
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[200px] rounded-[4px]" />
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[100px] rounded-[4px]" />
+                  </div>
+                </div>
+              : (availablePeople.map((person) => {
                   return (
                     <CustomCommandItem
+                      disabled={disable?.includes(person)}
                       key={person.uniqname}
-                      onSelect={() => toggle(person.uniqname)}
-                      className="cursor-pointer hover:bg-gray-100"
+                      onSelect={() => move(person)}
                     >
-                      <CustomCheckbox checked={isSelected}/>
+                      <Plus className="w-4 h-4"/>
                       {person.name}
                     </CustomCommandItem>
                   )
                 }))
-            )
-        }
-      </CommandList>
-    </Command>
+            }
+          </CommandList>
+        </Command>
+      </div>
+      <div className="flex flex-col w-full">
+        <span className="text-[12px] text-muted-foreground select-none mb-1">Selected Names</span>
+        <Command className="min-h-[36px] rounded-md border">
+          <CommandList>
+            {loading
+              ? <div className="p-2 flex flex-col gap-4">
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[150px] rounded-[4px]" />
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[200px] rounded-[4px]" />
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[100px] rounded-[4px]" />
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Skeleton className="w-4 h-4 rounded-[4px]"/>
+                    <Skeleton className="w-[75px] rounded-[4px]" />
+                  </div>
+                </div>
+              : (selectedPeople.map((person) => {
+                  return (
+                    <CustomCommandItem
+                      key={person.uniqname}
+                      onSelect={() => move(person)}
+                    >
+                      <TrashIcon className="w-4 h-4"/>
+                      {person.name}
+                    </CustomCommandItem>
+                  )
+                }))
+            }
+          </CommandList>
+        </Command>
+      </div>
+    </div>
   )
 }
 
@@ -418,7 +463,7 @@ export function SaveEventButton({ submitting }) {
           <Loader2Icon className="animate-spin" />
           Saving
         </Button>
-      : <Button className="cursor-pointer" type="submit">Save</Button>
+      : <Button className="cursor-pointer w-[100px]" type="submit">Save</Button>
   )
 }
 
@@ -429,7 +474,7 @@ export function CreateEventButton({ submitting }) {
           <Loader2Icon className="animate-spin" />
           Creating
         </Button>
-      : <Button className="cursor-pointer" type="submit">Create</Button>
+      : <Button className="cursor-pointer w-[100px]" type="submit">Create</Button>
   )
 }
 

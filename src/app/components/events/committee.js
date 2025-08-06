@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import {
-  AttendanceToggle,
+  AttendanceDualListbox,
   CreateEventButton,
   DeleteEvent,
   DeleteEventButton,
@@ -59,44 +59,19 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
     { name: "fundraising", label: "Fundraising" },
   ];
   const [membersData, setMembersData] = useState([]);
-  const [membersDataLoading, setMembersDataLoading] = useState(true);
+  const [availableMembers, setAvailableMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
+      setAvailableMembers(newMembersData.filter(mem => !form.getValues("attendance").includes(mem.uniqname)));
+      setSelectedMembers(newMembersData.filter(mem => form.getValues("attendance").includes(mem.uniqname)));
       setMembersDataLoading(false);
     })
-    setSelectedMembers(form.getValues("attendance"));
-  }, [])
-
-  const toggleMember = (member) => {
-    const newSelectedMembers = selectedMembers.includes(member)
-      ? selectedMembers.filter((mem) => mem !== member)
-      : [...selectedMembers, member];
-    setSelectedMembers(newSelectedMembers);
-    form.setValue(`attendance`, newSelectedMembers, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-  }
-
-  const toggleAllMembers = () => {
-    const newSelectedMembers = [];
-    if (selectedMembers.length === membersData.length) {
-      setSelectedMembers(newSelectedMembers);
-    } else {
-      for (const { uniqname } of membersData) {
-        newSelectedMembers.push(uniqname);
-      }
-      setSelectedMembers(newSelectedMembers);
-    }
-    form.setValue(`attendance`, newSelectedMembers, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-  }
+  }, []);
 
   const form = useForm({
     mode: "onSubmit",
@@ -122,23 +97,19 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
   async function onDelete() {
     setIsDeleting(true);
     await DeleteEvent({id, router});
-    setIsDeleting(false);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
-          <div className="justify-between sm:justify-normal flex flex-row gap-2 sm:gap-16">
-            <FormLabel className="w-1/2 sm:w-[300px]">Name</FormLabel>
-            <FormLabel className="w-1/2 sm:w-auto">Date</FormLabel>
-          </div>
-          <div className="justify-between flex flex-row gap-2 sm:gap-16 mb-8 sm:w-[564px]">
+          <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="w-1/2 sm:w-[300px]">
+                <FormItem className="w-1/2">
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter a name"
@@ -155,7 +126,8 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               control={form.control}
               name="event_date"
               render={({ field }) => (
-                <FormItem className="w-1/2 sm:w-[200px] flex flex-col">
+                <FormItem className="w-1/2">
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form}/>
                   </FormControl>
@@ -172,7 +144,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
                 <FormLabel>Committee</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full sm:w-[300px]">
+                    <SelectTrigger className="w-full lg:w-[calc(50%-16px)]">
                       <SelectValue placeholder="Select a committee"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -191,7 +163,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               </FormItem>
             )}
           />
-          <div className="flex flex-col gap-2 w-full sm:w-[564px]">
+          <div className="flex flex-col gap-1">
             <FormLabel>Attendance</FormLabel>
             <FormField
               control={form.control}
@@ -199,12 +171,15 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               render={({ field }) => (
                 <FormItem className="mb-8">
                   <FormControl>
-                    <AttendanceToggle
-                      selectAll
-                      toggleAll={toggleAllMembers}
-                      toggle={toggleMember}
-                      people={membersData}
-                      selectedPeople={selectedMembers} 
+                    <AttendanceDualListbox
+                      enableMoveAll
+                      allPeople={membersData}
+                      availablePeople={availableMembers}
+                      setAvailablePeople={setAvailableMembers}
+                      selectedPeople={selectedMembers}
+                      setSelectedPeople={setSelectedMembers}
+                      form={form}
+                      formItem="attendance"
                       loading={membersDataLoading}
                     />
                   </FormControl>
@@ -212,13 +187,13 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
               )}
             />
           </div>
-          <div className="w-full sm:w-[564px] flex flex-row gap-4 justify-between">
+          <div className="flex flex-row justify-between">
             {mode === "edit"
-              ? <SaveEventButton submitting={form.formState.isSubmitting}/>
+              ? <>
+                  <SaveEventButton submitting={form.formState.isSubmitting}/>
+                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
+                </>
               : <CreateEventButton submitting={form.formState.isSubmitting} />
-            }
-            {mode === "edit" &&
-              <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
             }
           </div>
         </div>
