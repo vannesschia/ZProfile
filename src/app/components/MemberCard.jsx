@@ -5,10 +5,17 @@ import { Button } from "@/components/ui/button";
 export default function MemberCard({ member }) {
     return (
         <Card className="flex flex-col gap-4 p-4 items-center shadow-sm rounded-xl border max-w-[260px]">
-            {/* Centered photo placeholder */}
-            <div className="w-[120px] h-[120px] bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
-                Photo
-            </div>
+            {member.profile_picture_url ? (
+                <img 
+                    src={member.profile_picture_url} 
+                    alt={`${member.name}'s profile picture`}
+                    className="w-[130px] h-[145px] rounded-lg object-cover border border-gray-200"
+                />
+            ) : (
+                <div className="w-[130px] h-[145px] bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
+                    ...
+                </div>
+            )}
 
             <div className="flex-1 space-y-2 w-full flex flex-col items-center">
                 {/* Name + Contact stacked vertically (centered) */}
