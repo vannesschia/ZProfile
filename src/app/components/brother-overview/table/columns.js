@@ -7,7 +7,6 @@ export function getColumns(data) {
     {
       accessorKey: "name",
       header: "Name",
-      sortingFn: "text",
       meta: { widthClass: "w-auto" }
     },
     {
@@ -24,8 +23,23 @@ export function getColumns(data) {
           </>
         )
       },
-      sortingFn: "basic",
+      sortingFn: (rowA, rowB, columnId) => {
+        const activeA = rowA.original.active ? 1 : 0;
+        const activeB = rowB.original.active ? 1 : 0;
+        if (activeA !== activeB) {
+          return activeB - activeA;
+        }
+        return rowA.original.name.toLowerCase().localeCompare(rowB.original.name.toLowerCase());
+      },
       meta: { widthClass: "w-1/12" }
+    },
+    {
+      header: "Total",
+      cell: ({ row }) => {
+        const total = row.original.committee_points;
+        return <span>{total}</span>
+      },
+      meta: { widthClass: "w-auto" }
     },
     {
       accessorKey: "committee_points",
@@ -48,6 +62,10 @@ export function getColumns(data) {
       },
       meta: { widthClass: "w-auto" }
     },
+    {
+      header: "Chapter 1",
+      
+    }
     // {
     //   accessorKey: "attendance",
     //   header: "Attendance",

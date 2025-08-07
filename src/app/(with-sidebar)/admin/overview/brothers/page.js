@@ -26,14 +26,12 @@ export default async function BrothersOverviewPage() {
     return;
   }
 
-  console.log(brotherInfo)
-
   return (
     <div className="flex flex-col gap-4 m-4">
       <div className="flex flex-row gap-1">
         Progress for <span className="flex flex-row font-bold gap-1">Brothers</span><ChevronDown />
       </div>
-      <BrotherOverviewSummary />
+      <BrotherOverviewSummary data={brotherInfo}/>
       <Separator />
       <BrotherOverviewTable data={brotherInfo}/>
     </div>
