@@ -63,8 +63,8 @@ export function getColumns(data) {
       meta: { widthClass: "w-auto" }
     },
     {
-      header: "Chapter 1",
-      
+      header: "Chapters",
+
     }
     // {
     //   accessorKey: "attendance",
