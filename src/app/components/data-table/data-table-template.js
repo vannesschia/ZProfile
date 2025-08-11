@@ -1,14 +1,14 @@
 "use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, ChevronLeft } from "lucide-react"
+import { ChevronRight, ChevronLeft, ChevronsUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
   getFilteredRowModel,
-  getSortedRowModel
+  getSortedRowModel,
 } from "@tanstack/react-table"
 import {
   Table,
@@ -18,12 +18,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useState } from "react"
 
-export function TestingDataTable({ data, columns, setPagination = false, setPageSize = 7 }) {
-  
+export function TestingDataTable({
+  data,
+  columns,
+  setPagination = false,
+  setPageSize = 7,
+  emptyStateMessage = "No events.",
+  defaultSorting = [],
+}) {
+  const [sorting, setSorting] = useState(defaultSorting)
+
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
@@ -37,19 +50,28 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
 
   return (
     <div>
-      <div className="border rounded-md">
-        <Table className="table-auto w-full">
-          <TableHeader className="table-fixed w-full">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header, idx) => {
-                  const widthClass = header.column.columnDef.meta?.widthClass ?? "flex-1"
+      <div className="border rounded-md overflow-x-auto w-full">
+        <Table className="table-auto min-w-max">
+          <TableHeader>
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id}>
+                {hg.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className={cn(widthClass, "truncate")}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())
-                      }
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        header.column.columnDef.meta?.widthClass ?? "min-w-[100px]",
+                        "truncate cursor-pointer select-none"
+                      )}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      <div className="flex items-center gap-1">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {{
+                          asc: <ArrowUp size={14} />,
+                          desc: <ArrowDown size={14} />,
+                        }[header.column.getIsSorted()] ?? <ChevronsUpDown size={14} />}
+                      </div>
                     </TableHead>
                   )
                 })}
@@ -73,7 +95,7 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-10 text-center">
-                  No events.
+                  {emptyStateMessage}
                 </TableCell>
               </TableRow>
             )}
@@ -81,10 +103,12 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
         </Table>
       </div>
 
-      {setPagination ? 
+      {setPagination && (
         <div className="flex items-center justify-between pt-4">
           <div>
-            <p className="text-sm text-muted-foreground leading-tight">{data.length} total events attended.</p>
+            <p className="text-sm text-muted-foreground leading-tight">
+              {data.length} total events attended.
+            </p>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -96,9 +120,9 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
               <ChevronLeft />
             </Button>
 
-          <span className="text-sm text-muted-foreground mx-1">
-            {table.getState().pagination.pageIndex + 1}/{table.getPageCount()}
-          </span>
+            <span className="text-sm text-muted-foreground mx-1">
+              {table.getState().pagination.pageIndex + 1}/{table.getPageCount()}
+            </span>
 
             <Button
               variant="outline"
@@ -110,8 +134,7 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
             </Button>
           </div>
         </div>
-        : null
-      }
+      )}
     </div>
   )
 }

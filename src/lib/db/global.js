@@ -1,6 +1,11 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { formatMonthDayNumeric } from "../utils";
 
+/**
+ * Fetches all committee and rush events attended by a user, excluding pledge events and study tables.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Array>} - Array of event objects.
+ */
 export async function getCommitteeAndRushEvents(uniqname) {
   const supabase = await getServerClient();
   const { data, error } = await supabase
@@ -30,6 +35,21 @@ export async function getCommitteeAndRushEvents(uniqname) {
   return events;
 }
 
+export async function getAllCommitteesAttendance() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('committee_events_with_attendance')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data;
+}
+
+/**
+ * Calculates the total attendance requirements for a user, including extra committee points.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<number>} - Total required committee points.
+ */
 export async function getAttendanceRequirements(uniqname) {
   const supabase = await getServerClient();
 
@@ -50,12 +70,49 @@ export async function getAttendanceRequirements(uniqname) {
   return req.brother_committee_pts_req + member.extra_committee_points;
 }
 
+export async function getMilestones() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('requirements')
+    .select(`
+      first_milestone_cc,
+      first_milestone_cp,
+      second_milestone_cc,
+      second_milestone_cp,
+      final_milestone_cc,
+      final_milestone_cp,
+      first_milestone_due_date,
+      second_milestone_due_date,
+      final_milestone_due_date
+    `)
+    .eq('id', true)
+    .maybeSingle();
+  if (error) throw error;
+  console.log(data);
+
+  return data;
+}
+
+export async function getPledgeProgressMilestones() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('pledge_milestone_status')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data;
+}
+
+/**
+ * Retrieves pledge progress milestones and calculates days left for each, including extra coffee chats.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Object>} - Milestone progress details.
+ */
 export async function getPledgeProgress(uniqname) {
   const supabase = await getServerClient();
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US');
-  // console.log(formattedDate);
 
   const { data: req, error: rErr } = await supabase
     .from('requirements')
@@ -137,6 +194,11 @@ export async function getPledgeProgress(uniqname) {
   }
 }
 
+/**
+ * Fetches all coffee chats for a pledge, including brother names.
+ * @param {string} uniqname - The pledge's uniqname.
+ * @returns {Promise<Array>} - Array of coffee chat records.
+ */
 export async function getCoffeeChats(uniqname) {
   const supabase = await getServerClient();
 
@@ -155,6 +217,11 @@ export async function getCoffeeChats(uniqname) {
   return cc
 }
 
+/**
+ * Returns the count of coffee chats for a pledge.
+ * @param {string} uniqname - The pledge's uniqname.
+ * @returns {Promise<number>} - Number of coffee chats.
+ */
 export async function getCoffeeChatsCount(uniqname) {
   const supabase = await getServerClient();
 
@@ -172,6 +239,11 @@ export async function getCoffeeChatsCount(uniqname) {
   return count
 }
 
+/**
+ * Retrieves all pledge events and marks attendance/absence for a user.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Array>} - Array of pledge event objects with attendance info.
+ */
 export async function getPledgeEvents(uniqname) {
   const supabase = await getServerClient();
   const { data: chapterEvents, error: eventsError } = await supabase
@@ -205,6 +277,11 @@ export async function getPledgeEvents(uniqname) {
   });
 }
 
+/**
+ * Fetches all study table events attended by a user.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Array>} - Array of study table event objects.
+ */
 export async function getStudyTables(uniqname) {
   const supabase = await getServerClient();
   const { data, error } = await supabase
@@ -228,6 +305,11 @@ export async function getStudyTables(uniqname) {
   return events;
 }
 
+/**
+ * Retrieves all chapter events and marks attendance/absence for a user.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Array>} - Array of chapter event objects with attendance info.
+ */
 export async function getChapterAttendance(uniqname) {
   const supabase = await getServerClient();
   const { data: chapterEvents, error: eventsError } = await supabase
@@ -261,6 +343,11 @@ export async function getChapterAttendance(uniqname) {
   });
 }
 
+/**
+ * Returns the count of excused and unexcused absences for a user.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Object>} - Object with excused and unexcused absence counts.
+ */
 export async function getAbsenceCounts(uniqname) {
   const supabase = await getServerClient();
 
@@ -286,6 +373,11 @@ export async function getAbsenceCounts(uniqname) {
   };
 }
 
+/**
+ * Fetches all rush events attended by a user.
+ * @param {string} uniqname - The user's uniqname.
+ * @returns {Promise<Array>} - Array of rush event objects.
+ */
 export async function getRushEvents(uniqname) {
   const supabase = await getServerClient();
 
@@ -306,31 +398,4 @@ export async function getRushEvents(uniqname) {
   if (error) throw error;
 
   return data.map(({ events }) => events);
-}
-
-export function tallyCategories(events) {
-  return events.reduce((acc, e) => {
-    const key = e.event_type === 'rush_event'
-      ? 'rush_event'
-      : e.committee;
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-}
-
-export async function getBreakPoints() {
-  const supabase = await getServerClient();
-  const { data, error } = await supabase
-    .from('event_attendance')
-    .select(`
-      events (
-        id,
-        name,
-        event_type,
-        committee,
-        event_date
-      )
-    `)
-    .eq('uniqname', uniqname);
-  if (error) throw error;
 }

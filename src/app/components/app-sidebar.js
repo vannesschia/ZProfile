@@ -21,7 +21,7 @@ import { NavUser } from "./nav-user"
 const items = [
   {
     title: "Dashboard",
-    url: "#",
+    url: "/dashboard",
     icon: Home,
   },
   {
@@ -63,7 +63,7 @@ const admin_items = [
       },
       {
         title: "Pledges",
-        url: "#",
+        url: "/admin/pledges",
       },
       {
         title: "Events",
