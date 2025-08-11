@@ -64,7 +64,10 @@ export function getColumns(data) {
     },
     {
       header: "Chapters",
-
+      cell: ({ row }) => {
+        const count = row.original.event_absences.filter(x => x.absence_type === "excused").length + row.original.event_absences.filter(x => x.absence_type === "unexcused").length;
+        return <span>{`${4 - count}/4`}</span>
+      }
     }
     // {
     //   accessorKey: "attendance",

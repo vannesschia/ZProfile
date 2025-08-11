@@ -12,11 +12,9 @@ export default async function BrotherOverviewSummary({ data }) {
     return;
   }
 
-  console.log(data)
+  // console.log(data)
   
-  const numCompleted = () => {
-    
-  }
+  const completed = data.filter((person) => person.committee_points >= requirements.brother_committee_pts_req).length;
 
   return (
     <div className="flex flex-row gap-8 w-fit">
@@ -29,11 +27,11 @@ export default async function BrotherOverviewSummary({ data }) {
         <span className="text-sm font-light text-muted-foreground">Due by</span>
       </div>
       <div className="flex flex-col">
-        <span className="font-bold">{numCompleted()}</span>
+        <span className="font-bold">{completed}</span>
         <span className="text-sm font-light text-muted-foreground">Completed</span>
       </div>
       <div className="flex flex-col">
-        <span className="font-bold">1</span>
+        <span className="font-bold">{data.filter(person => person.active).length - completed}</span>
         <span className="text-sm font-light text-muted-foreground">On track</span>
       </div>
     </div>
