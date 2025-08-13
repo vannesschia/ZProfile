@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/form"
 import { Button } from "@/components/ui/button";
 import { Loader2Icon } from "lucide-react";
+import handleIssuePost from "./issues-api";
 
 const formSchema = z.object({
+  title: z.string().min(1),
   description: z.string().min(1),
-  steps: z.string().min(1),
 });
 
 export default function BugReportForm() {
@@ -28,14 +29,14 @@ export default function BugReportForm() {
     reValidateMode: "onSubmit",
     resolver: zodResolver(formSchema),
     defaultValues: {
+      title: "",
       description: "",
-      steps: "",
     },
   });
 
   async function onSubmit(values) {
-    const { description, steps } = values;
-    
+    const { title, description } = values;
+    await handleIssuePost(title, description);
   }
 
   return (
@@ -44,7 +45,7 @@ export default function BugReportForm() {
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="description"
+            name="title"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
@@ -61,7 +62,7 @@ export default function BugReportForm() {
           />
           <FormField
             control={form.control}
-            name="steps"
+            name="description"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Steps</FormLabel>
