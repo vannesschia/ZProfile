@@ -1,8 +1,10 @@
 'use client'
 
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -24,6 +26,8 @@ const formSchema = z.object({
 });
 
 export default function BugReportForm() {
+  const router = useRouter();
+
   const form = useForm({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -36,7 +40,17 @@ export default function BugReportForm() {
 
   async function onSubmit(values) {
     const { title, description } = values;
-    await handleIssuePost(title, description);
+    const success = await handleIssuePost(title, description);
+
+    if (success) {
+      toast.success("Report submitted successfully!");
+    } else {
+      toast.error("Failed to submit report.");
+    }
+
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1000);
   }
 
   return (
