@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/core";
 
 export async function POST(req) {
-  const { title, description } = await req.json();
+  const { title, description, name } = await req.json();
 
   const octokit = new Octokit({
     auth: process.env.GITHUB_PAT
@@ -11,7 +11,7 @@ export async function POST(req) {
     await octokit.request('POST /repos/vannesschia/ZProfile/issues', {
       owner: 'vannesschia',
       repo: 'ZProfile',
-      title: title,
+      title: `${title}: ${name}`,
       body: description,
     })
     return new Response(`Successfully posted issue`, { status: 201 });
