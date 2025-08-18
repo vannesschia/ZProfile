@@ -1,4 +1,5 @@
 import { getServerClient } from "@/lib/supabaseServer";
+import { getBrowserClient } from "@/lib/supbaseClient";
 import { formatMonthDayNumeric } from "../utils";
 
 /**
@@ -31,7 +32,34 @@ export async function getCommitteeAndRushEvents(uniqname) {
     .filter(e =>
       e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
     );
-  // console.log(events)
+  return events;
+}
+
+export async function getCommitteeAndRushEventsBrowser(uniqname) {
+  const supabase = getBrowserClient();
+  const { data, error } = await supabase
+  .from('event_attendance')
+  .select(`
+    events (
+      id,
+      name,
+      event_type,
+      committee,
+      event_date
+    )
+  `)
+  .eq('uniqname', uniqname);
+  if (error) throw error;
+  const events = data
+    .map(({ events }) => ({
+      ...events,
+      committee: events.event_type === 'rush_event'
+        ? 'rush_event'
+        : events.committee
+    }))
+    .filter(e =>
+      e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
+    );
   return events;
 }
 
@@ -43,6 +71,46 @@ export async function getAllCommitteesAttendance() {
   if (error) console.error(error);
   else console.log(data);
   return data;
+}
+
+export async function getAllChapterAttendance() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('chapter_events')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data
+}
+
+export async function getAllPledgeEventsAttendance() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('pledge_events')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data
+}
+
+export async function getAllRushEventsAttendance() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('rush_events')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data
+}
+
+export async function getAllStudyTablesAttendance() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('study_tables')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data
 }
 
 /**
@@ -92,6 +160,18 @@ export async function getMilestones() {
 
   return data;
 }
+
+export async function getInvCommitteeEventCount() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_indv_committee_event_count');
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  console.log(data);
+  return data;
+}
+
 
 export async function getPledgeProgressMilestones() {
   const supabase = await getServerClient();
@@ -165,31 +245,6 @@ export async function getPledgeProgress(uniqname) {
       cp: req.final_milestone_cp,
       dueDate: formatMonthDayNumeric(req.final_milestone_due_date),
       daysLeft: getDaysLeft(req.final_milestone_due_date)
-    }
-  }
-  const dueDate = new Date(req.final_milestone_due_date);
-  const daysLeft = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
-
-  if (today < new Date(req.first_milestone_due_date)) {
-    return {
-      cc: req.first_milestone_cc + extra.extra_coffee_chats,
-      cp: req.first_milestone_cp,
-      dueDate: formatMonthDayNumeric(req.first_milestone_due_date),
-      daysLeft: daysLeft
-    }
-  } else if (today < new Date(req.second_milestone_due_date)) {
-    return {
-      cc: req.second_milestone_cc + extra.extra_coffee_chats,
-      cp: req.second_milestone_cp,
-      dueDate: formatMonthDayNumeric(req.second_milestone_due_date),
-      days_left: daysLeft
-    }
-  } else {
-    return {
-      cc: req.final_milestone_cc + extra.extra_coffee_chats,
-      cp: req.final_milestone_cp,
-      dueDate: formatMonthDayNumeric(req.final_milestone_due_date),
-      daysLeft: daysLeft
     }
   }
 }
@@ -312,6 +367,39 @@ export async function getStudyTables(uniqname) {
  */
 export async function getChapterAttendance(uniqname) {
   const supabase = await getServerClient();
+  const { data: chapterEvents, error: eventsError } = await supabase
+    .from('events')
+    .select('id, name, event_date')
+    .eq('event_type', 'chapter')
+    .order('event_date', { ascending: true })
+
+  if (eventsError) throw eventsError
+
+  const { data: absences, error: absError } = await supabase
+    .from('event_absences')
+    .select('event_id, absence_type')
+    .eq('uniqname', uniqname)
+
+  if (absError) throw absError
+
+  const absenceMap = new Map(
+    absences.map(a => [a.event_id, a.absence_type])
+  );
+
+  return chapterEvents.map(evt => {
+    const absenceType = absenceMap.get(evt.id) ?? null;
+    return {
+      ...evt,
+      attendance: {
+        is_absent:    absenceType !== null,
+        absence_type: absenceType
+      }
+    };
+  });
+}
+
+export async function getChapterAttendanceBrowser(uniqname) {
+  const supabase = await getBrowserClient();
   const { data: chapterEvents, error: eventsError } = await supabase
     .from('events')
     .select('id, name, event_date')

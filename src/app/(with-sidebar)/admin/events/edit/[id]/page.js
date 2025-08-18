@@ -1,9 +1,10 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import EventEditor from "../event-editor"
+import EventEditor from "../../event-editor"
 
 export const dynamic = "force-dynamic";
 
-export default async function EditEventPage({ id }) {
+export default async function EditEventPage({ params }) {
+  const { id } = params;
   if (!id) {
     console.error("Failed to get event ID.");
     return (
