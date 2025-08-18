@@ -47,9 +47,24 @@ export default async function ProfilePage() {
       
         <Card className="max-w-8xl">
           <CardHeader className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-xl">{member?.name || "Full Name"}</CardTitle>
-              <CardDescription>{member?.grade || "Grade"}</CardDescription>
+            <div className="flex items-start gap-4">
+              {/* Profile Picture */}
+              {member?.profile_picture_url ? (
+                <img 
+                  src={member.profile_picture_url} 
+                  alt={`${member.name || 'User'}'s profile picture`}
+                  className="w-32 h-36 rounded-sm object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-32 h-36 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                  No Photo
+                </div>
+              )}
+              
+              <div>
+                <CardTitle className="text-xl pt-2 pl-2">{member?.name || "Full Name"}</CardTitle>
+                <CardDescription className="pl-2">{member?.grade || "Grade"}</CardDescription>
+              </div>
             </div>
 
             <Link href="/profile/setup">

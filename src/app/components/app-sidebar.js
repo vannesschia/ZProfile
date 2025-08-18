@@ -31,8 +31,12 @@ const items = [
   },
   {
     title: "Brothers Directory",
-    url: "#",
+    url: "/brothers/active",
     icon: Handshake,
+    items: [
+      { title: "Active Brothers", url: "/brothers/active" },
+      { title: "Alumni", url: "/brothers/alumni" },
+    ]
   },
   {
     title: "Family Tree",
@@ -41,7 +45,7 @@ const items = [
   },
   {
     title: "Requirement Info",
-    url: "#",
+    url: "/requirements",
     icon: ClipboardCheck,
   },
   {
@@ -78,7 +82,7 @@ export function AppSidebar({ user }) {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
-            <SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
@@ -102,13 +106,26 @@ export function AppSidebar({ user }) {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <a href={item.url || "#"}>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
+
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                            <a href={subItem.url || "#"}>{subItem.title}</a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
                 </SidebarMenuItem>
               ))}
+
             </SidebarMenu>
           </SidebarGroupContent>
           <SidebarMenu>
@@ -141,7 +158,7 @@ export function AppSidebar({ user }) {
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user = {user}/>
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )
