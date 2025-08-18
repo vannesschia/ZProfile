@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react"
 import { ProgressTabAdmin } from "@/app/components/progress-block"
 import { PledgeOverviewAdminTable } from "@/app/components/admin-view/pledge/data-table"
+import { BrotherOverviewAdminTable } from "@/app/components/admin-view/brother/data-table"
 import { CommitteeEventsWithAttendance, ChapterWithAttendance, DefaultEventsWithAttendance } from "@/app/components/admin-view/events/data-table"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs2"
 import {
@@ -18,7 +19,7 @@ import { ChevronDown, Milestone, Search, CalendarSearch, Plus } from "lucide-rea
 import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
-export default function AdminPledgeViewTable({ 
+export default function AdminViewTable({ 
   milestones, 
   pledgeProgress, 
   committeesAttendance, 
@@ -26,7 +27,9 @@ export default function AdminPledgeViewTable({
   chapterAttendance,
   pledgeEventAttendance,
   rushEventsAttendance,
-  studyTableAttendance
+  studyTableAttendance,
+  brotherView,
+  brotherRequirement
 }) {
   const [activeTab, setActiveTab] = useState("pledge")
   const router = useRouter();
@@ -181,37 +184,39 @@ export default function AdminPledgeViewTable({
           )}
 
           {activeTab === "events" && (
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <CalendarSearch /> {capitalizeFirstLetter(eventType)} <ChevronDown />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuRadioGroup value={eventType} onValueChange={(val) => setEventType(val)} className="min-w-[175px]">
-                    <DropdownMenuRadioItem value="committee_event">Committee Event</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="chapter">Chapter</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="rush_event">Rush Event</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="pledge_event">Pledge Event</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="pledge_table">Pledge Table</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div className="relative sm:w-64 w-full">
-                <Input
-                  placeholder="Search"
-                  value={searchByType[eventType]}
-                  onChange={(e) => setActiveSearch(e.target.value)}
-                  className="pl-10"
-                />
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-row gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <CalendarSearch /> {capitalizeFirstLetter(eventType)} <ChevronDown />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuRadioGroup value={eventType} onValueChange={(val) => setEventType(val)} className="min-w-[175px]">
+                      <DropdownMenuRadioItem value="committee_event">Committee Event</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="chapter">Chapter</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="rush_event">Rush Event</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="pledge_event">Pledge Event</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="pledge_table">Pledge Table</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="relative sm:w-64 w-full">
+                  <Input
+                    placeholder="Search"
+                    value={searchByType[eventType]}
+                    onChange={(e) => setActiveSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
               <Button onClick={() => {router.push("/admin/events/create")}}>
                 <Plus />
                 Create Event
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -235,7 +240,9 @@ export default function AdminPledgeViewTable({
         </div>
       </TabsContent>
 
-      <TabsContent value="brother">{/* Brother content here */}</TabsContent>
+      <TabsContent value="brother">
+        <BrotherOverviewAdminTable data={brotherView} requirement={brotherRequirement} />
+      </TabsContent>
       
       <TabsContent value="events">
         <div className="flex flex-col gap-4">

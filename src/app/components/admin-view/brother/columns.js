@@ -6,23 +6,13 @@ import { cn } from "@/lib/utils"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
 
-function getTargets(milestones, currentMilestone) {
-  const map = {
-    "1": { cc: milestones.first_milestone_cc,  cp: milestones.first_milestone_cp },
-    "2": { cc: milestones.second_milestone_cc, cp: milestones.second_milestone_cp },
-    "3": { cc: milestones.final_milestone_cc,  cp: milestones.final_milestone_cp },
-  }
-  return map[currentMilestone]
-}
-
 function levelBg(value, target) {
   if (value >= target) return "bg-green-50 border-green-200 text-green-800"
   // if (value >= Math.max(target - 1, 0)) return "bg-amber-50 border-amber-200 text-amber-800"
   return "bg-red-50 border-red-200 text-red-800"
 }
 
-export function getColumns({milestones, currentMilestone}) {
-  const { cc, cp } = getTargets(milestones, currentMilestone);
+export function getColumns({requirement}) {
   return [
     {
       accessorKey: "name",
@@ -34,12 +24,12 @@ export function getColumns({milestones, currentMilestone}) {
       },
     },
     {
-      accessorKey: "total_committee_points",
-      header: "Committee Points",
+      accessorKey: "total_attendance_points",
+      header: "Attendance Points",
       meta: { widthClass: "min-w-[100px]" },
       cell: ({ getValue }) => {
         const value = getValue()
-        const bg = levelBg(value, cp)
+        const bg = levelBg(value, requirement)
         return (
           <span className={cn("inline-block rounded-md border px-2 py-1 font-medium min-w-[150px] max-w-[150px] text-center", bg)}>
             {value}
@@ -48,24 +38,21 @@ export function getColumns({milestones, currentMilestone}) {
       },
     },
     {
-      accessorKey: "coffee_chats",
-      header: "Coffee Chats",
+      accessorKey: "committee_points",
+      header: "Committee Points",
       meta: { widthClass: "min-w-[100px]" },
       cell: ({ getValue }) => {
         const value = getValue();
-        const bg = levelBg(value.acquired, cc + value.extra_needed)
         return (
-          <div className="flex flex-row gap-1 min-w-[150px] max-w-[150px]">
-            <span className={cn("inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full", bg)}>
-              {value.acquired}
-            </span>
+          <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full">
+            {value.acquired}
             {value.extra_needed > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{value.extra_needed}</span>}
-          </div>
+          </span>
         )
       },
     },
     {
-      accessorKey: "chapter_events_attended",
+      accessorKey: "chapters_attended",
       header: "Chapters",
       meta: { widthClass: "min-w-[100px]" },
     },

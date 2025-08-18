@@ -172,12 +172,34 @@ export async function getInvCommitteeEventCount() {
   return data;
 }
 
-
-export async function getPledgeProgressMilestones() {
+export async function getPledgeAdminView() {
   const supabase = await getServerClient();
   const { data, error } = await supabase
-    .from('pledge_milestone_status')
+    .from('pledge_admin_view')
     .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data;
+}
+
+export async function getBrotherAdminView() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('brother_admin_view')
+    .select('*');
+  if (error) console.error(error);
+  else console.log(data);
+  return data;
+}
+
+export async function getBrotherRequirement() {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('requirements')
+    .select(`
+      semester_last_day,
+      brother_committee_pts_req
+      `);
   if (error) console.error(error);
   else console.log(data);
   return data;
