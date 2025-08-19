@@ -36,6 +36,10 @@ export default async function DashboardPage() {
       </div>
       {role.role == "pledge" ? <PledgeOverviewServer uniqname={ uniqname } /> : null}
       <OverviewServer uniqname={ uniqname } role={ role.role } />
+      <iframe
+        src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showCalendars=0&mode=WEEK&src=aGFsaG9mZkB1bWljaC5lZHU&src=Y19jODEzNzU2Yjc5MWZmNDk1YmM5NGRjNzA0MWQ3ZTAyYTEwMTM2YmU1NTczMGJkNjY5Mjg4ZWU4NzE3YTFiZmQ0QGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20&color=%23039be5&color=%234285f4" className="w-full h-[600px]">
+
+      </iframe>
     </div>
   );
 }
