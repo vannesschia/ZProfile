@@ -31,42 +31,17 @@ export default function AdminViewTable({
   brotherView,
   brotherRequirement
 }) {
+  // General Tabs Logic
   const [activeTab, setActiveTab] = useState("pledge")
   const router = useRouter();
+
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+  }
 
   // Pledge States
   const [currentMilestone, setcurrentMilestone] = useState("1")
   const [search, setSearch] = useState("")
-
-  // Events States
-  const EVENT_TYPES = ["committee_event","chapter","rush_event","pledge_event","pledge_table"];
-  const [eventType, setEventType] = useState("committee_event")
-  const [searchByType, setSearchByType] = useState({
-    committee_event: "",
-    chapter: "",
-    rush_event: "",
-    pledge_event: "",
-    pledge_table: "",
-  });
-
-  const setActiveSearch = (val) =>
-    setSearchByType((prev) => ({ ...prev, [eventType]: val }));
-
-  const eventMap = {
-    committee_event: committeesAttendance,
-    chapter: chapterAttendance,
-    rush_event: rushEventsAttendance,
-    pledge_event: pledgeEventAttendance,
-    pledge_table: studyTableAttendance,
-  };
-
-  const filterFns = {
-    committee_event: (row, t) => row.name?.toLowerCase().includes(t),
-    chapter:        (row, t) => row.name?.toLowerCase().includes(t),
-    rush_event:     (row, t) => row.name?.toLowerCase().includes(t),
-    pledge_event:   (row, t) => row.name?.toLowerCase().includes(t),
-    pledge_table:   (row, t) => row.name?.toLowerCase().includes(t),
-  };
 
   const stats = useMemo(() => {
     const keyMap = {
@@ -109,6 +84,36 @@ export default function AdminViewTable({
     )
   }, [withStatus, search])
 
+  // Events States
+  const EVENT_TYPES = ["committee_event","chapter","rush_event","pledge_event","study_table"];
+  const [eventType, setEventType] = useState("committee_event")
+  const [searchByType, setSearchByType] = useState({
+    committee_event: "",
+    chapter: "",
+    rush_event: "",
+    pledge_event: "",
+    study_table: "",
+  });
+
+  const setActiveSearch = (val) =>
+    setSearchByType((prev) => ({ ...prev, [eventType]: val }));
+
+  const eventMap = {
+    committee_event: committeesAttendance,
+    chapter: chapterAttendance,
+    rush_event: rushEventsAttendance,
+    pledge_event: pledgeEventAttendance,
+    study_table: studyTableAttendance,
+  };
+
+  const filterFns = {
+    committee_event: (row, t) => row.name?.toLowerCase().includes(t),
+    chapter:        (row, t) => row.name?.toLowerCase().includes(t),
+    rush_event:     (row, t) => row.name?.toLowerCase().includes(t),
+    pledge_event:   (row, t) => row.name?.toLowerCase().includes(t),
+    study_table:   (row, t) => row.name?.toLowerCase().includes(t),
+  };
+
   const filteredEventsMap = useMemo(() => {
     const out = {};
     for (const type of EVENT_TYPES) {
@@ -125,10 +130,28 @@ export default function AdminViewTable({
     studyTableAttendance,
     searchByType,
   ]);
+  
+  // Brother States
+  const [searchBrother, setSearchBrother] = useState("");
 
-  const handleTabChange = (value) => {
-    setActiveTab(value);
-  }
+  const filteredBrothers = useMemo(() => {
+    if (!searchBrother) return brotherView
+    const brother = searchBrother.toLowerCase()
+    return brotherView.filter(
+      (row) => row.name.toLowerCase().includes(brother) || row.uniqname.toLowerCase().includes(brother)
+    )
+  }, [brotherView, searchBrother])
+
+  const brotherStats = brotherView.reduce(
+    (acc, row) => {
+      const status = row.status;
+      if (status === "completed") acc.completed += 1;
+      if (status === "on_track") acc.onTrack += 1;
+      if (status === "late") acc.late += 1;
+      return acc;
+    },
+    { completed: 0, onTrack: 0, late: 0 }
+  );
 
   return (
     <Tabs defaultValue="pledge" className="gap-6" value={activeTab} onValueChange={handleTabChange}>
@@ -137,14 +160,16 @@ export default function AdminViewTable({
           <TabsTrigger value="pledge">Pledge 
             <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">{pledgeProgress.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="brother">Brother</TabsTrigger>
+          <TabsTrigger value="brother">Brother
+            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">{brotherView.length}</Badge>
+          </TabsTrigger>
           <TabsTrigger value="events">Events
             <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">
               {eventType === "committee_event" && committeesAttendance.length}
               {eventType === "chapter" && chapterAttendance.length}
               {eventType === "rush_event"  && rushEventsAttendance.length}
               {eventType === "pledge_event"  && pledgeEventAttendance.length}
-              {eventType === "pledge_table"  && pledgeEventAttendance.length}
+              {eventType === "study_table"  && pledgeEventAttendance.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -180,7 +205,15 @@ export default function AdminViewTable({
           )}
 
           {activeTab === "brother" && (
-            <Button variant="outline">Brother's Action</Button>
+            <div className="relative sm:w-64 w-full">
+              <Input
+                placeholder="Search"
+                value={searchBrother}
+                onChange={(e) => setSearchBrother(e.target.value)}
+                className="pl-10"
+              />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            </div>
           )}
 
           {activeTab === "events" && (
@@ -198,7 +231,7 @@ export default function AdminViewTable({
                       <DropdownMenuRadioItem value="chapter">Chapter</DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="rush_event">Rush Event</DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="pledge_event">Pledge Event</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="pledge_table">Pledge Table</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="study_table">Study Table</DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -241,7 +274,16 @@ export default function AdminViewTable({
       </TabsContent>
 
       <TabsContent value="brother">
-        <BrotherOverviewAdminTable data={brotherView} requirement={brotherRequirement} />
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
+            <ProgressTabAdmin title="Requirements">{brotherRequirement[0].brother_committee_pts_req}</ProgressTabAdmin>
+            <ProgressTabAdmin title="Due by">{formatMonthDayNumeric(brotherRequirement[0].semester_last_day)}</ProgressTabAdmin>
+            <ProgressTabAdmin title="Completed">{brotherStats.completed}</ProgressTabAdmin>
+            <ProgressTabAdmin title="On Track">{brotherStats.onTrack}</ProgressTabAdmin>
+            <ProgressTabAdmin title="Late">{brotherStats.late}</ProgressTabAdmin>
+          </div>
+          <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req} />
+        </div>
       </TabsContent>
       
       <TabsContent value="events">
@@ -260,7 +302,7 @@ export default function AdminViewTable({
           {eventType === "chapter" && <ChapterWithAttendance data={filteredEventsMap.chapter} />}
           {eventType === "rush_event"  && <DefaultEventsWithAttendance data={filteredEventsMap.rush_event} />}
           {eventType === "pledge_event"  && <DefaultEventsWithAttendance data={filteredEventsMap.pledge_event} />}
-          {eventType === "pledge_table"  && <DefaultEventsWithAttendance data={filteredEventsMap.pledge_table} />}
+          {eventType === "study_table"  && <DefaultEventsWithAttendance data={filteredEventsMap.study_table} />}
         </div>
       </TabsContent>
     </Tabs>
