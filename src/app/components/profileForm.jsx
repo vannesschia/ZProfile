@@ -231,8 +231,6 @@ export function MyForm({ initialData, userEmail }) {
     }, [initialData, form]);
 
   async function onSubmit(values) {
-
-
     const supabase = createClientComponentClient();
 
     const { email_address, major, minor, courses, ...rest } = values;
@@ -250,7 +248,7 @@ export function MyForm({ initialData, userEmail }) {
       .eq("email_address", userEmail)
       .select();
 
-    console.log("Update result:", { membersError, membersData });
+    // console.log("Update result:", { membersError, membersData });
 
     if (membersError) {
       console.error("Update error:", membersError.message);
@@ -260,7 +258,7 @@ export function MyForm({ initialData, userEmail }) {
 
     const uniqname = userEmail.split("@")[0];
     
-    console.log("Courses:", courses);
+    // console.log("Courses:", courses);
 
     const allCourses = new Set();
 
@@ -280,7 +278,7 @@ export function MyForm({ initialData, userEmail }) {
       })
     })
 
-    console.log("newCourses:", newCourses);
+    // console.log("newCourses:", newCourses);
 
     const { error: existingCoursesError, data: existingCoursesData } = await supabase
       .from("classes")
