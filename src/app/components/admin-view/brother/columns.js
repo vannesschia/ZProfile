@@ -1,0 +1,97 @@
+"use client"
+import dynamic from "next/dynamic"
+import { Badge } from "@/components/ui/badge"
+import { XCircle, CheckCircle2, CircleDashed } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
+
+function levelBg(value, target) {
+  if (value >= target) return "bg-green-50 border-green-200 text-green-800"
+  // if (value >= Math.max(target - 1, 0)) return "bg-amber-50 border-amber-200 text-amber-800"
+  return "bg-red-50 border-red-200 text-red-800"
+}
+
+export function getColumns({requirement}) {
+  return [
+    {
+      accessorKey: "name",
+      header: "Name",
+      meta: { widthClass: "min-w-[200px]" },
+      cell: ({ row }) => {
+        const { name, uniqname } = row.original
+        return <EventsModal uniqname={uniqname} name={name} role="pledge" />
+      },
+    },
+    {
+      accessorKey: "total_attendance_points",
+      header: "Attendance Points",
+      meta: { widthClass: "min-w-[100px]" },
+      cell: ({ getValue }) => {
+        const value = getValue()
+        const bg = levelBg(value, requirement)
+        return (
+          <span className={cn("inline-block rounded-md border px-2 py-1 font-medium min-w-[150px] max-w-[150px] text-center", bg)}>
+            {value}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "committee_points",
+      header: "Committee Points",
+      meta: { widthClass: "min-w-[100px]" },
+      cell: ({ getValue }) => {
+        const value = getValue();
+        return (
+          <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full">
+            {value.acquired}
+            {value.extra_needed > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{value.extra_needed}</span>}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "chapters_attended",
+      header: "Chapters",
+      meta: { widthClass: "min-w-[100px]" },
+    },
+    {
+      accessorKey: "excused_absences",
+      header: "Excused",
+      meta: { widthClass: "min-w-[100px]" },
+    },
+    {
+      accessorKey: "unexcused_absences",
+      header: "Unexcused",
+      meta: { widthClass: "min-w-[100px]" },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      meta: { widthClass: "min-w-[100px]" },
+      cell: ({ getValue }) => {
+        const status = getValue()
+        if (status === "late") {
+          return (
+            <Badge variant="outline">
+              <XCircle className="text-red-700" /> Late
+            </Badge>
+          )
+        } else if (status === "on_track") {
+          return (
+            <Badge variant="outline">
+              <CircleDashed className="text-neutral-700" /> On Track
+            </Badge>
+          )
+        } else {
+          return (
+            <Badge variant="outline">
+              <CheckCircle2 className="text-green-700" /> Completed
+            </Badge>
+          )
+        }
+      },
+    },
+  ]
+}

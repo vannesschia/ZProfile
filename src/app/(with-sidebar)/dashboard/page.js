@@ -5,6 +5,8 @@ import AttendancePoints from "@/app/components/tabs/attendance-points.js";
 import Absences from "@/app/components/tabs/absences";
 import RushEvent from "@/app/components/tabs/rush-event";
 import PledgeProgress from "@/app/components/tabs/pledge-progress";
+import OverviewServer from "@/app/components/event-overview/overview-server";
+import PledgeOverviewServer from "@/app/components/event-overview/pledge-overview-server";
 import { nullable } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -32,12 +34,8 @@ export default async function DashboardPage() {
         {role.role != "pledge" ? <RushEvent uniqname={ uniqname }/> : null }
         <Absences uniqname={ uniqname }/>
       </div>
-      {role.role == "pledge" ? <PledgeOverview uniqname={ uniqname } /> : null}
-      <Overview uniqname={ uniqname } role={ role.role } />
-      <iframe
-        src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showCalendars=0&src=Y19jODEzNzU2Yjc5MWZmNDk1YmM5NGRjNzA0MWQ3ZTAyYTEwMTM2YmU1NTczMGJkNjY5Mjg4ZWU4NzE3YTFiZmQ0QGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20&color=%234285f4"
-        className="w-full h-[600px]"
-      />
+      {role.role == "pledge" ? <PledgeOverviewServer uniqname={ uniqname } /> : null}
+      <OverviewServer uniqname={ uniqname } role={ role.role } />
     </div>
   );
 }

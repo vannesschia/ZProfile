@@ -72,7 +72,7 @@ export function TestingDataTable({ data, columns, setPagination = false, setPage
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-10 text-center">
+                <TableCell colSpan={columns.length} className="h-32 text-center">
                   No events.
                 </TableCell>
               </TableRow>

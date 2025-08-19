@@ -28,3 +28,16 @@ export function ProgressTab({title, children, className}) {
     </div>
   )
 }
+
+export function ProgressTabAdmin({title, children, className}) {
+  return(
+    <div className={cn("border-2 border-secondary rounded-lg", className)}>
+      <div className="w-full px-6 py-4">
+        <h2 className="text-base font-normal tracking-tight leading-tight text-muted-foreground">{ title }</h2>
+      </div>
+      <div className="px-6 pb-4 text-3xl font-semibold">
+        { children }
+      </div>
+    </div>
+  )
+}

@@ -11,7 +11,7 @@ export default async function Absences({ uniqname }) {
         <div className="flex flex-col gap-4">
           <p className="text-sm tracking-tight leading-tight">Unexcused Absences</p>
           <div className="flex flex-col gap-2">
-            <p className="font-bold text-3xl">{absences.unexcused}</p>
+            <p className="font-semibold text-3xl">{absences.unexcused}</p>
             {absences.unexcused > 0 ?
               <div className="flex flex-row items-center gap-0.5">
                 <ArrowUp className="size-3 text-red-700"/>
