@@ -11,7 +11,7 @@ export async function POST(req) {
     await octokit.request('POST /repos/vannesschia/ZProfile/issues', {
       owner: 'vannesschia',
       repo: 'ZProfile',
-      title: `${title}: ${name}`,
+      title: `${title} (Posted by ${name})`,
       body: description,
     })
     return new Response(`Successfully posted issue`, { status: 201 });
