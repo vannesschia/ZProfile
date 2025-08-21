@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import Link from "next/link";
+import { termCodeToWords } from "../course-directory/term-functions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,13 @@ export default async function ProfilePage() {
   const email = session.user.email;
   const { data: member, error } = await supabase
     .from("members")
-    .select("*")
+    .select(`*,
+      brother_classes (
+        *
+      )`
+    )
     .eq("email_address", email)
+    .order("term_code", { ascending: true, referencedTable: "brother_classes" })
     .single();
 
   if (error && error.code !== "PGRST116") {
@@ -41,10 +47,11 @@ export default async function ProfilePage() {
     );
   }
 
+  console.log(member)
+
   return (
     <main style={{ padding: "2rem" }}>
       <main className="min-h-screen">
-      
         <Card className="max-w-8xl">
           <CardHeader className="flex justify-between items-start">
             <div className="flex items-start gap-4">
@@ -60,13 +67,11 @@ export default async function ProfilePage() {
                   No Photo
                 </div>
               )}
-              
               <div>
                 <CardTitle className="text-xl pt-2 pl-2">{member?.name || "Full Name"}</CardTitle>
                 <CardDescription className="pl-2">{member?.grade || "Grade"}</CardDescription>
               </div>
             </div>
-
             <Link href="/profile/setup">
               <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700">
                 Edit Profile
@@ -103,8 +108,37 @@ export default async function ProfilePage() {
               </CardContent>
             </div>
           </div>
+          <CardContent>
+            <strong>Courses</strong>
+            {
+              member
+                ? <div className="flex flex-col">
+                    {(() => {
+                      const m = new Map();
+                      for (const {term_code: t, class_name: c} of member.brother_classes) {
+                        if (!m[t]) {
+                          m[t] = [c];
+                        } else {
+                          m[t].push(c);
+                        }
+                      }
+                      return Object.entries(m).map(([t, c]) => {
+                        const class_text = c.map(cc => cc.replace(/([A-Za-z]+)(\d+)/, "$1 $2")).join(", ");
+                        return (
+                          <div key={t} className="flex flex-row">
+                            <div className="italic">{`${termCodeToWords(t)}:`}</div>
+                            <div className="flex flex-row ml-1 gap-1">
+                              {class_text}
+                            </div>
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                : <p>Courses</p>
+            }
+          </CardContent>
         </Card>
-
       </main>
     </main>
   );
