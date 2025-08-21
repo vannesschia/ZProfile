@@ -26,7 +26,7 @@ const items = [
   },
   {
     title: "Course Directory",
-    url: "#",
+    url: "/course-directory",
     icon: Book,
   },
   {
@@ -40,7 +40,7 @@ const items = [
   },
   {
     title: "Family Tree",
-    url: "#",
+    url: "/family-tree",
     icon: TreePine,
   },
   {
@@ -50,7 +50,7 @@ const items = [
   },
   {
     title: "Support",
-    url: "#",
+    url: "/support",
     icon: Info,
   }
 ]
@@ -58,7 +58,7 @@ const items = [
 const admin_items = [
   {
     title: "Admin",
-    url: "#",
+    url: "/admin/dashboard",
     icon: UserPen,
     items: [
       {
