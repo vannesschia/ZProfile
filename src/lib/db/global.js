@@ -2,6 +2,13 @@ import { getServerClient } from "@/lib/supabaseServer";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { formatMonthDayNumeric } from "../utils";
 
+export async function getAttendancePointCount(uniqname) {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_attendance_points_count', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Fetches all committee and rush events attended by a user, excluding pledge events and study tables.
  * @param {string} uniqname - The user's uniqname.
@@ -61,6 +68,20 @@ export async function getCommitteeAndRushEventsBrowser(uniqname) {
       e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
     );
   return events;
+}
+
+export async function getOtherEvents(uniqname) {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_other_events', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
+}
+
+export async function getOtherEventsBrowser(uniqname) {
+  const supabase = await getBrowserClient();
+  const { data, error } = await supabase.rpc('get_other_events', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
 }
 
 export async function getAllCommitteesAttendance() {
@@ -130,12 +151,21 @@ export async function getAttendanceRequirements(uniqname) {
 
   const { data: req, error: rErr } = await supabase
     .from('requirements')
-    .select('brother_committee_pts_req')
+    .select(`
+      brother_committee_pts_req,
+      semester_last_day,
+      brother_multipler
+    `)
     .eq('id', true)
     .maybeSingle();
   if (rErr) throw rErr;
 
-  return req.brother_committee_pts_req + member.extra_committee_points;
+  const absences = await getAbsenceCounts(uniqname);
+
+  return {
+    pointsReq: req.brother_committee_pts_req + Math.max(absences.excused-1, 0) * req.brother_multipler + absences.unexcused * req.brother_multipler,
+    dueBy: req.semester_last_day
+  }
 }
 
 export async function getMilestones() {
@@ -294,6 +324,21 @@ export async function getCoffeeChats(uniqname) {
   return cc
 }
 
+export async function getCoffeeChatsBrowser(uniqname) {
+  const supabase = await getBrowserClient();
+  const { data: cc, error: cErr } = await supabase
+    .from('coffee_chats')
+    .select(`
+      *,
+      brother_name:brother (
+        name
+      )
+    `)
+    .eq('pledge', uniqname);
+  if (cErr) throw cErr;
+  return cc
+}
+
 /**
  * Returns the count of coffee chats for a pledge.
  * @param {string} uniqname - The pledge's uniqname.
@@ -354,6 +399,39 @@ export async function getPledgeEvents(uniqname) {
   });
 }
 
+export async function getPledgeEventsBrowser(uniqname) {
+  const supabase = await getBrowserClient();
+  const { data: chapterEvents, error: eventsError } = await supabase
+    .from('events')
+    .select('id, name, event_date')
+    .eq('event_type', 'pledge_event')
+    .order('event_date', { ascending: true })
+
+  if (eventsError) throw eventsError
+
+  const { data: absences, error: absError } = await supabase
+    .from('event_absences')
+    .select('event_id, absence_type')
+    .eq('uniqname', uniqname)
+
+  if (absError) throw absError
+
+  const absenceMap = new Map(
+    absences.map(a => [a.event_id, a.absence_type])
+  );
+
+  return chapterEvents.map(evt => {
+    const absenceType = absenceMap.get(evt.id) ?? null;
+    return {
+      ...evt,
+      attendance: {
+        is_absent:    absenceType !== null,
+        absence_type: absenceType
+      }
+    };
+  });
+}
+
 /**
  * Fetches all study table events attended by a user.
  * @param {string} uniqname - The user's uniqname.
@@ -361,6 +439,29 @@ export async function getPledgeEvents(uniqname) {
  */
 export async function getStudyTables(uniqname) {
   const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from('event_attendance')
+    .select(`
+      events (
+        id,
+        name,
+        event_type,
+        event_date
+      )
+    `)
+    .eq('uniqname', uniqname);
+  if (error) throw error;
+
+  const events = data
+  .map(({ events }) => events)
+  .filter(
+    e => e.event_type === 'study_table'
+  );
+  return events;
+}
+
+export async function getStudyTablesBrowser(uniqname) {
+  const supabase = await getBrowserClient();
   const { data, error } = await supabase
     .from('event_attendance')
     .select(`

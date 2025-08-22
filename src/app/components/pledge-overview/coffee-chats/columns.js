@@ -6,15 +6,15 @@ export function getColumns(data) {
   const statusBadgeMap = {
     approved: {
       text: "Approved",
-      className: "border-green-700 bg-green-700/30 text-green-700",
+      className: "bg-green-50 border-green-200 text-green-800",
     },
     pending: {
       text: "Pending",
-      className: "border-yellow-700 bg-yellow-700/30 text-yellow-700",
+      className: "bg-amber-50 border-amber-200 text-amber-800",
     },
     denied: {
       text: "Denied",
-      className: "border-red-700 bg-red-700/30 text-red-700",
+      className: "bg-red-50 border-red-200 text-red-800",
     },
   };
 
@@ -22,7 +22,7 @@ export function getColumns(data) {
     {
       accessorKey: "brother_name.name",
       header: "Name",
-      meta: { widthClass: "w-2/5" }
+      meta: { widthClass: "min-w-[250px]" }
     },
     {
       accessorKey: "approval",
@@ -36,7 +36,7 @@ export function getColumns(data) {
           </Badge>
         )
       },
-      meta: { widthClass: "w-1/5" }
+      meta: { widthClass: "min-w-[150px]" }
     },
     {
       accessorKey: "chat_date",
@@ -48,7 +48,7 @@ export function getColumns(data) {
       ),
       cell: ({ getValue }) => <p>{formatMonthDay(getValue())}</p>,
       sortingFn: "datetime",
-      meta: { widthClass: "w-1/5" }
+      meta: { widthClass: "min-w-[150px]" }
     },
     {
       accessorKey: "selfie",
@@ -59,7 +59,7 @@ export function getColumns(data) {
           <p>-</p>
         )
       },
-      meta: { widthClass: "w-1/5" }
+      meta: { widthClass: "min-w-[150px]" }
     }
   ]
 }

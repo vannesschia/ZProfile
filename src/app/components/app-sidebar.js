@@ -5,7 +5,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -62,17 +61,13 @@ const admin_items = [
     icon: UserPen,
     items: [
       {
-        title: "Brothers",
-        url: "#",
+        title: "Dashboard",
+        url: "/admin/dashboard",
       },
       {
-        title: "Pledges",
-        url: "/admin/pledges",
-      },
-      {
-        title: "Events",
+        title: "Coffee Chat Approval",
         url: "#",
-      },
+      }
     ]
   },
 ]
@@ -128,29 +123,31 @@ export function AppSidebar({ user }) {
 
             </SidebarMenu>
           </SidebarGroupContent>
-          <SidebarMenu>
-            {admin_items.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </a>
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <SidebarMenuSub>
-                    {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.title}>
-                        <SidebarMenuSubButton asChild isActive={item.isActive}>
-                          <a href={item.url}>{item.title}</a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                ) : null}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+          <SidebarGroupContent className="mt-8">
+            <SidebarMenu>
+              {admin_items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild isActive={item.isActive}>
+                            <a href={item.url}>{item.title}</a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>

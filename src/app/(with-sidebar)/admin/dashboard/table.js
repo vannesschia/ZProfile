@@ -1,5 +1,6 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { ProgressTabAdmin } from "@/app/components/progress-block"
 import { PledgeOverviewAdminTable } from "@/app/components/admin-view/pledge/data-table"
 import { BrotherOverviewAdminTable } from "@/app/components/admin-view/brother/data-table"
@@ -32,12 +33,19 @@ export default function AdminViewTable({
   brotherRequirement
 }) {
   // General Tabs Logic
-  const [activeTab, setActiveTab] = useState("pledge")
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") ?? "pledge";
+  const [activeTab, setActiveTab] = useState(initialTab)
+  
   const handleTabChange = (value) => {
     setActiveTab(value);
   }
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") ?? "pledge";
+    if (tab !== activeTab) setActiveTab(tab);
+  }, [searchParams]);
 
   // Pledge States
   const [currentMilestone, setcurrentMilestone] = useState("1")

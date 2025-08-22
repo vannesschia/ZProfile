@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
 
+
 function levelBg(value, target) {
   if (value >= target) return "bg-green-50 border-green-200 text-green-800"
   // if (value >= Math.max(target - 1, 0)) return "bg-amber-50 border-amber-200 text-amber-800"
@@ -13,6 +14,28 @@ function levelBg(value, target) {
 }
 
 export function getColumns({data, requirement}) {
+  const sortingFns = {
+    activeAttendanceName: (rowA, rowB) => {
+      const a = rowA.original
+      const b = rowB.original
+  
+      // 1. Active first
+      if (a.active !== b.active) {
+        return a.active ? -1 : 1
+      }
+  
+      // 2. Attendance under threshold first
+      const thresholdA = a.total_attendance_points < (a.committee_points.extra_needed + requirement)
+      const thresholdB = b.total_attendance_points < (b.committee_points.extra_needed + requirement)
+      if (thresholdA !== thresholdB) {
+        return thresholdA ? -1 : 1
+      }
+  
+      // 3. Alphabetical by name
+      return a.name.localeCompare(b.name)
+    },
+  }
+
   return [
     {
       accessorKey: "name",
@@ -26,10 +49,11 @@ export function getColumns({data, requirement}) {
               <div className="rounded-full h-2 w-2 bg-green-500"></div>
               : <div className="rounded-full h-2 w-2 bg-red-500"></div>
             }
-            <EventsModal uniqname={uniqname} name={name} role="pledge" />
+            <EventsModal uniqname={uniqname} name={name} role="brother" />
           </div>
         )
       },
+      sortingFns: 'activeAttendanceName'
     },
     {
       accessorKey: "total_attendance_points",

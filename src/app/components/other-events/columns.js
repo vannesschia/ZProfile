@@ -3,7 +3,7 @@ import { DataTableSortedHeader } from "../data-table/data-table-column-sort"
 import { capitalizeFirstLetter, formatMonthDay } from "@/lib/utils"
 
 export const getColumns = (data) => {
-  const uniqueCommittees = Array.from(new Set(data.map(row => row.committee)))
+  const uniqueCommittees = Array.from(new Set(data.map(row => row.event_type)))
 
   return [
     {
@@ -12,11 +12,11 @@ export const getColumns = (data) => {
       meta: { widthClass: "min-w-[250px]" }
     },
     {
-      accessorKey: "committee",
+      accessorKey: "event_type",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Committee"
+          title="Event"
           filterOptions={uniqueCommittees}
         />
       ),

@@ -8,7 +8,7 @@ export function PledgeOverviewAdminTable({ data, milestones, currentMilestone })
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No pledges."/>
+      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No pledges." initialSorting={[{ id: "name", desc: false }]}/>
     </div>
   )
 }

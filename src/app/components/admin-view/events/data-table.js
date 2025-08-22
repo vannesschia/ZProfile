@@ -8,7 +8,7 @@ export function CommitteeEventsWithAttendance({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events."/>
+      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events." initialSorting={[{ id: "event_date", desc: true }]}/>
     </div>
   )
 }
@@ -18,7 +18,7 @@ export function ChapterWithAttendance({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events."/>
+      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events." initialSorting={[{ id: "event_date", desc: true }]}/>
     </div>
   )
 }
@@ -29,7 +29,7 @@ export function DefaultEventsWithAttendance({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events."/>
+      <TestingDataTable data={data} columns={columns} setPageSize={20} emptyStateMessage="No events." initialSorting={[{ id: "event_date", desc: true }]}/>
     </div>
   )
 }

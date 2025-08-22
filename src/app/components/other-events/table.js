@@ -3,12 +3,12 @@ import { TestingDataTable } from "../data-table/data-table-template"
 import { getColumns } from "./columns"
 
 
-export function DataTable({ data }) {
+export function OtherEventsDataTable({ data }) {
   const columns = getColumns(data)
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPagination={true} />
+      <TestingDataTable data={data} columns={columns} setPagination={true} setPageSize={20}/>
     </div>
   )
 }

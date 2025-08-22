@@ -1,12 +1,13 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getCommitteeAndRushEventsBrowser, getChapterAttendanceBrowser } from "@/lib/db/global"
+import { getCommitteeAndRushEventsBrowser, getChapterAttendanceBrowser, getOtherEventsBrowser } from "@/lib/db/global"
 import { Skeleton } from "@/components/ui/skeleton"
 import OverviewView from "./overview-view"
 
 export default function OverviewBrowser({ uniqname, role = "brother" }) {
   const [committeeAndRush, setCommitteeAndRush] = useState(null)
   const [chapterAttendance, setChapterAttendance] = useState(null)
+  const [otherEvents, setOtherEvents] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -15,8 +16,10 @@ export default function OverviewBrowser({ uniqname, role = "brother" }) {
       try {
         const rows1 = await getCommitteeAndRushEventsBrowser(uniqname)
         const rows2 = await getChapterAttendanceBrowser(uniqname)
+        const rows3 = await getOtherEventsBrowser(uniqname)
         if (!ignore) setCommitteeAndRush(rows1)
         if (!ignore) setChapterAttendance(rows2)
+        if (!ignore) setOtherEvents(rows3)
       } catch (e) {
         if (!ignore) setError(e.message)
       }
@@ -34,5 +37,5 @@ export default function OverviewBrowser({ uniqname, role = "brother" }) {
       </div>
     </div>
   )
-  return <OverviewView className="w-6xl" role={role} events={committeeAndRush} chapter={chapterAttendance} />
+  return <OverviewView className="w-6xl" role={role} events={committeeAndRush} chapter={chapterAttendance} otherEvents={otherEvents}/>
 }
