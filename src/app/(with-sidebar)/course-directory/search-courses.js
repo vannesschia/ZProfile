@@ -11,14 +11,16 @@ export default async function searchCourses(query) {
     .from('classes')
     .select(`
       class_name,
-      brother_classes (
+      brother_classes!inner (
         term_code,
-        members (
-          name
+        members!inner (
+          name,
+          role
         )
       )
     `)
     .ilike('class_name', `${query}%`)
+    .filter('brother_classes.members.role', 'neq', 'alumni')
 
   if (error) {
     console.error("Supabase query error:", error.message);
