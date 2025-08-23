@@ -9,6 +9,13 @@ export async function getAttendancePointCount(uniqname) {
   return data;
 }
 
+export async function getCommitteePointCount(uniqname) {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_committee_points_count', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Fetches all committee and rush events attended by a user, excluding pledge events and study tables.
  * @param {string} uniqname - The user's uniqname.
@@ -235,6 +242,16 @@ export async function getBrotherRequirement() {
   return data;
 }
 
+export async function getPledgeProgressCounts(uniqname) {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_pledge_progress_counts', {p_uniqname: uniqname});
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  return data;
+}
+
 /**
  * Retrieves pledge progress milestones and calculates days left for each, including extra coffee chats.
  * @param {string} uniqname - The user's uniqname.
@@ -262,7 +279,6 @@ export async function getPledgeProgress(uniqname) {
     .eq('id', true)
     .maybeSingle();
   if (rErr) throw rErr;
-  console.log(req)
 
   const { data: extra, error: eErr } = await supabase
     .from('pledge_info')

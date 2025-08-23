@@ -32,7 +32,7 @@ export default async function DashboardPage() {
         {role.role == "pledge" ? <PledgeProgress uniqname={ uniqname } /> : null}
         {role.role != "pledge" ? <AttendancePoints uniqname={ uniqname }/> : null}
         {role.role != "pledge" ? <RushEvent uniqname={ uniqname }/> : null }
-        <Absences uniqname={ uniqname }/>
+        <Absences uniqname={ uniqname } role={ role }/>
       </div>
       {role.role == "pledge" ? <PledgeOverviewServer uniqname={ uniqname } /> : null}
       <OverviewServer uniqname={ uniqname } role={ role.role } />
