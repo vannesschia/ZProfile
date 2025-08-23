@@ -1,6 +1,7 @@
 import { DataTableSortedHeader } from "../../data-table/data-table-column-sort"
 import { formatMonthDay, capitalizeFirstLetter } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Link2 } from "lucide-react";
 
 export function getColumns(data) {
   const statusBadgeMap = {
@@ -51,15 +52,28 @@ export function getColumns(data) {
       meta: { widthClass: "min-w-[150px]" }
     },
     {
-      accessorKey: "selfie",
+      accessorKey: "image_proof",
       header: "Selfie",
       cell: ({ getValue }) => {
         const image = getValue();
+        if (image) {
+          return (
+            <a 
+              href={image} 
+              alt="Coffee Chat Selfie" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex flex-row items-center gap-1"
+            >
+              <Link2 className="h-4 w-4" />
+            </a>
+          )
+        }
         return (
           <p>-</p>
         )
       },
-      meta: { widthClass: "min-w-[150px]" }
+      meta: { widthClass: "min-w-[50px]" }
     }
   ]
 }

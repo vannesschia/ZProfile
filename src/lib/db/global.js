@@ -335,8 +335,6 @@ export async function getCoffeeChats(uniqname) {
     `)
     .eq('pledge', uniqname);
   if (cErr) throw cErr;
-  // console.log(cc)
-
   return cc
 }
 

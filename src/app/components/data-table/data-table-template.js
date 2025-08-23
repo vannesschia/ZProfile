@@ -16,7 +16,7 @@ export function TestingDataTable({
   data,
   columns,
   setPagination = false,
-  setPageSize = 7,
+  setPageSize = 10,
   initialSorting = [],
   sortingFns,
   emptyStateMessage = "No data available.",
