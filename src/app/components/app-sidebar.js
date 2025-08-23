@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info } from "lucide-react"
+import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info, Bug } from "lucide-react"
 
 import {
   Sidebar,
@@ -48,9 +48,9 @@ const items = [
     icon: ClipboardCheck,
   },
   {
-    title: "Support",
+    title: "Report Bug",
     url: "#",
-    icon: Info,
+    icon: Bug,
   }
 ]
 
@@ -155,6 +155,18 @@ export function AppSidebar({ user }) {
       </SidebarContent>
 
       <SidebarFooter>
+        {/* <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <a href='/support'>
+                  <Bug />
+                  <span>Support</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent> */}
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>

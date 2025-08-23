@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getCommitteeAndRushEventsBrowser, getChapterAttendanceBrowser, getOtherEventsBrowser } from "@/lib/db/global"
+import { getChapterAttendanceBrowser, getOtherEventsBrowser, getCommitteeEventsBrowser } from "@/lib/db/global"
 import { Skeleton } from "@/components/ui/skeleton"
 import OverviewView from "./overview-view"
 
@@ -14,7 +14,7 @@ export default function OverviewBrowser({ uniqname, role = "brother" }) {
     let ignore = false
     ;(async () => {
       try {
-        const rows1 = await getCommitteeAndRushEventsBrowser(uniqname)
+        const rows1 = await getCommitteeEventsBrowser(uniqname)
         const rows2 = await getChapterAttendanceBrowser(uniqname)
         const rows3 = await getOtherEventsBrowser(uniqname)
         if (!ignore) setCommitteeAndRush(rows1)

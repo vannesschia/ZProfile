@@ -3,7 +3,8 @@ import { DataTableSortedHeader } from "../data-table/data-table-column-sort"
 import { capitalizeFirstLetter, formatMonthDay } from "@/lib/utils"
 
 export const getColumns = (data) => {
-  const uniqueCommittees = Array.from(new Set(data.map(row => row.committee)))
+  const rows = Array.isArray(data) ? data : [];
+  const uniqueCommittees = [...new Set(rows.map(r => r.committee))];
 
   return [
     {

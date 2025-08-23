@@ -1,5 +1,4 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { Overview, PledgeOverview } from "@/app/components/overview";
 import { ProgressTab } from "@/app/components/progress-block";
 import AttendancePoints from "@/app/components/tabs/attendance-points.js";
 import Absences from "@/app/components/tabs/absences";

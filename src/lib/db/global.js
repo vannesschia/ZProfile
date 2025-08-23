@@ -16,66 +16,81 @@ export async function getCommitteePointCount(uniqname) {
   return data;
 }
 
+
+export async function getCommitteeEvents(uniqname) {
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.rpc('get_committee_events', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
+}
+
+export async function getCommitteeEventsBrowser(uniqname) {
+  const supabase = await getBrowserClient();
+  const { data, error } = await supabase.rpc('get_committee_events', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Fetches all committee and rush events attended by a user, excluding pledge events and study tables.
  * @param {string} uniqname - The user's uniqname.
  * @returns {Promise<Array>} - Array of event objects.
  */
-export async function getCommitteeAndRushEvents(uniqname) {
-  const supabase = await getServerClient();
-  const { data, error } = await supabase
-  .from('event_attendance')
-  .select(`
-    events (
-      id,
-      name,
-      event_type,
-      committee,
-      event_date
-    )
-  `)
-  .eq('uniqname', uniqname);
-  if (error) throw error;
-  const events = data
-    .map(({ events }) => ({
-      ...events,
-      committee: events.event_type === 'rush_event'
-        ? 'rush_event'
-        : events.committee
-    }))
-    .filter(e =>
-      e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
-    );
-  return events;
-}
+// export async function getCommitteeAndRushEvents(uniqname) {
+//   const supabase = await getServerClient();
+//   const { data, error } = await supabase
+//   .from('event_attendance')
+//   .select(`
+//     events (
+//       id,
+//       name,
+//       event_type,
+//       committee,
+//       event_date
+//     )
+//   `)
+//   .eq('uniqname', uniqname);
+//   if (error) throw error;
+//   const events = data
+//     .map(({ events }) => ({
+//       ...events,
+//       committee: events.event_type === 'rush_event'
+//         ? 'rush_event'
+//         : events.committee
+//     }))
+//     .filter(e =>
+//       e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
+//     );
+//   return events;
+// }
 
-export async function getCommitteeAndRushEventsBrowser(uniqname) {
-  const supabase = getBrowserClient();
-  const { data, error } = await supabase
-  .from('event_attendance')
-  .select(`
-    events (
-      id,
-      name,
-      event_type,
-      committee,
-      event_date
-    )
-  `)
-  .eq('uniqname', uniqname);
-  if (error) throw error;
-  const events = data
-    .map(({ events }) => ({
-      ...events,
-      committee: events.event_type === 'rush_event'
-        ? 'rush_event'
-        : events.committee
-    }))
-    .filter(e =>
-      e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
-    );
-  return events;
-}
+// export async function getCommitteeAndRushEventsBrowser(uniqname) {
+//   const supabase = getBrowserClient();
+//   const { data, error } = await supabase
+//   .from('event_attendance')
+//   .select(`
+//     events (
+//       id,
+//       name,
+//       event_type,
+//       committee,
+//       event_date
+//     )
+//   `)
+//   .eq('uniqname', uniqname);
+//   if (error) throw error;
+//   const events = data
+//     .map(({ events }) => ({
+//       ...events,
+//       committee: events.event_type === 'rush_event'
+//         ? 'rush_event'
+//         : events.committee
+//     }))
+//     .filter(e =>
+//       e.event_type !== 'pledge_event' && e.event_type !== 'study_table'
+//     );
+//   return events;
+// }
 
 export async function getOtherEvents(uniqname) {
   const supabase = await getServerClient();

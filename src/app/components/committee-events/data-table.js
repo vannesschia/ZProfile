@@ -8,7 +8,7 @@ export function DataTable({ data }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPagination={true} />
+      <TestingDataTable data={data} columns={columns} setPagination={true} emptyStateMessage="No events."/>
     </div>
   )
 }
