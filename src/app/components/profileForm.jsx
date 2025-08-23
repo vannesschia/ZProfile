@@ -677,6 +677,15 @@ export function MyForm({ initialData, userEmail }) {
           </Button>
         </div>
         {/* <InputFile /> */}
+        <Button
+          className="cursor-pointer mr-2"
+          type="button"
+          onClick={() => {
+            router.push("/profile");
+          }}
+        >
+          Cancel
+        </Button>
         <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Saving..." : "Submit"}
         </Button>
