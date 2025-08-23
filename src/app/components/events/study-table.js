@@ -101,7 +101,7 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
                 <FormItem className={`${form.getValues("event_date") ? "w-1/2" : "w-[calc(50%-4px)] lg:w-[calc(50%-16px)]"}`}>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form}/>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date"/>
                   </FormControl>
                   <FormMessage className="flex-grow"/>
                 </FormItem>

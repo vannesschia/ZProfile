@@ -109,7 +109,7 @@ export default function EditRushEvent({ mode, initialData, id }) {
                 <FormItem className="w-1/2">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form}/>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date"/>
                   </FormControl>
                   <FormMessage className="flex-grow"/>
                 </FormItem>

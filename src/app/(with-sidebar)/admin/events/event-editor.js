@@ -122,6 +122,7 @@ export function SelectDate({
   dateOpen,
   setDateOpen,
   form,
+  formItem,
 }) {
   return (
     <Popover open={dateOpen} onOpenChange={setDateOpen}>
@@ -143,7 +144,7 @@ export function SelectDate({
           selected={value}
           captionLayout="dropdown"
           onSelect={(date) => {
-            form.setValue("event_date", date);
+            form.setValue(formItem, date);
             setDateOpen(false);
           }}
         />
