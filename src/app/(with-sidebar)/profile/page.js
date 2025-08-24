@@ -56,7 +56,7 @@ export default async function ProfilePage() {
                   className="w-32 h-36 rounded-sm object-cover border-2 border-gray-200"
                 />
               ) : (
-                <div className="w-32 h-36 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                <div className="w-32 h-36 rounded-sm bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
                   No Photo
                 </div>
               )}

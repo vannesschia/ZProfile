@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, X, Calendar, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { getBrowserClient } from "@/lib/supbaseClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -64,90 +64,71 @@ export default function CoffeeChatApprovalClient({ initialData }) {
         <div className="space-y-6 max-w-4xl">
             {coffeeChatData.map((chat) => (
                 <Card key={chat.id} className="overflow-hidden">
-                    <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                                <CardTitle className="text-lg">Coffee Chat Submission</CardTitle>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
+                    <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Left Column: Info & Actions */}
+                            <div className="flex flex-col gap-6 justify-between">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <Calendar className="h-4 w-4" />
                                         {formatDate(chat.chat_date)}
+                                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 ml-2">Pending</Badge>
                                     </div>
-                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                        Pending
-                                    </Badge>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-                                    onClick={() => handleApproval(chat.id, 'rejected')}
-                                    disabled={loading[chat.id]}
-                                >
-                                    <X className="h-4 w-4" />
-                                    Reject
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={() => handleApproval(chat.id, 'approved')}
-                                    disabled={loading[chat.id]}
-                                >
-                                    <Check className="h-4 w-4" />
-                                    Approve
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Participant Information */}
-                            <div className="space-y-4">
-                                <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                         <User className="h-4 w-4 text-blue-500" />
                                         <span className="font-medium text-sm">Pledge:</span>
-                                        <span className="text-sm">
-                                            {chat.pledge_member?.name || chat.pledge}
-                                        </span>
+                                        <span className="text-sm">{chat.pledge_member?.name || chat.pledge}</span>
                                     </div>
-
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-green-500" />
                                         <span className="font-medium text-sm">Brother:</span>
-                                        <span className="text-sm">
-                                            {chat.brother_member?.name || chat.brother}
-                                        </span>
+                                        <span className="text-sm">{chat.brother_member?.name || chat.brother}</span>
                                     </div>
                                 </div>
+                                <div className="flex flex-col gap-4 mt-4">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                                        onClick={() => handleApproval(chat.id, 'denied')}
+                                        disabled={loading[chat.id]}
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Reject
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                        onClick={() => handleApproval(chat.id, 'approved')}
+                                        disabled={loading[chat.id]}
+                                    >
+                                        <Check className="h-4 w-4" />
+                                        Approve
+                                    </Button>
+                                </div>
                             </div>
-
-                            {/* Image Proof */}
-                            <div className="space-y-2">
-                                <span className="font-medium text-sm">Proof Image:</span>
+                            {/* Right Column: Image Proof */}
+                            <div className="flex flex-col items-center justify-center">
+                                <span className="font-medium text-sm mb-2">Proof Image:</span>
                                 {chat.image_proof ? (
-                                    <div className="relative">
+                                    <div className="relative w-full max-w-lg">
                                         <img
                                             src={chat.image_proof}
                                             alt="Coffee chat proof"
-                                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                                            className="w-full h-72 object-contain rounded-lg border border-gray-200 bg-white"
                                             onError={(e) => {
                                                 e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'block';
+                                                e.target.nextSibling.style.display = 'flex';
                                             }}
                                         />
                                         <div
-                                            className="hidden w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500"
+                                            className="hidden w-full h-72 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500"
                                         >
                                             Failed to load image
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500">
+                                    <div className="w-full h-72 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500">
                                         No image provided
                                     </div>
                                 )}
