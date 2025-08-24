@@ -94,7 +94,7 @@ export function RequirementsForm({ initialData }) {
     <Form {...form} >
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-8 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4 items-start w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4 items-start w-2/3">
             <FormField
               control={form.control}
               name="pledge_committee_pts_req"
@@ -147,7 +147,7 @@ export function RequirementsForm({ initialData }) {
               )}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4 items-start w-2/3">
             <FormField
               control={form.control}
               name="first_milestone_cc"
@@ -200,7 +200,7 @@ export function RequirementsForm({ initialData }) {
               )}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4 items-start w-2/3">
             <FormField
               control={form.control}
               name="first_milestone_cp"
@@ -253,7 +253,7 @@ export function RequirementsForm({ initialData }) {
               )}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4 items-start w-2/3">
             <FormField
               control={form.control}
               name="first_milestone_due_date"
@@ -327,7 +327,7 @@ export function RequirementsForm({ initialData }) {
               )}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4 items-start w-2/3">
             <FormField
               control={form.control}
               name="semester_last_day"
