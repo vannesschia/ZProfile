@@ -363,7 +363,7 @@ export function MyForm({ initialData, userEmail }) {
 
               {/* Current image preview */}
               {currentImageUrl && (
-                <div className="flex flex-col items-center space-y-2">
+                <div className="flex flex-col items-left pl-1 space-y-2">
                   <img
                     src={currentImageUrl}
                     alt="Current profile picture"
@@ -388,7 +388,7 @@ export function MyForm({ initialData, userEmail }) {
                 disabled={!selectedFile || uploadingImage}
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full justify-start"
               >
                 {uploadingImage ? "Uploading..." : "Upload Picture"}
               </Button>
