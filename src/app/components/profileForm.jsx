@@ -680,6 +680,7 @@ export function MyForm({ initialData, userEmail }) {
         <Button
           className="cursor-pointer mr-2"
           type="button"
+          variant="outline"
           onClick={() => {
             router.push("/profile");
           }}
