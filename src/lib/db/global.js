@@ -176,7 +176,7 @@ export async function getAttendanceRequirements(uniqname) {
     .select(`
       brother_committee_pts_req,
       semester_last_day,
-      brother_multipler
+      brother_multiplier
     `)
     .eq('id', true)
     .maybeSingle();
@@ -185,7 +185,7 @@ export async function getAttendanceRequirements(uniqname) {
   const absences = await getAbsenceCounts(uniqname);
 
   return {
-    pointsReq: req.brother_committee_pts_req + Math.max(absences.excused-1, 0) * req.brother_multipler + absences.unexcused * req.brother_multipler,
+    pointsReq: req.brother_committee_pts_req + Math.max(absences.excused-1, 0) * req.brother_multiplier + absences.unexcused * req.brother_multiplier,
     dueBy: req.semester_last_day
   }
 }
