@@ -6,30 +6,62 @@ import { cn } from "@/lib/utils"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
 
+
 function levelBg(value, target) {
   if (value >= target) return "bg-green-50 border-green-200 text-green-800"
   // if (value >= Math.max(target - 1, 0)) return "bg-amber-50 border-amber-200 text-amber-800"
   return "bg-red-50 border-red-200 text-red-800"
 }
 
-export function getColumns({requirement}) {
+export function getColumns({data, requirement}) {
+  const sortingFns = {
+    activeAttendanceName: (rowA, rowB) => {
+      const a = rowA.original
+      const b = rowB.original
+  
+      // 1. Active first
+      if (a.active !== b.active) {
+        return a.active ? -1 : 1
+      }
+  
+      // 2. Attendance under threshold first
+      const thresholdA = a.total_attendance_points < (a.committee_points.extra_needed + requirement)
+      const thresholdB = b.total_attendance_points < (b.committee_points.extra_needed + requirement)
+      if (thresholdA !== thresholdB) {
+        return thresholdA ? -1 : 1
+      }
+  
+      // 3. Alphabetical by name
+      return a.name.localeCompare(b.name)
+    },
+  }
+
   return [
     {
       accessorKey: "name",
       header: "Name",
       meta: { widthClass: "min-w-[200px]" },
       cell: ({ row }) => {
-        const { name, uniqname } = row.original
-        return <EventsModal uniqname={uniqname} name={name} role="pledge" />
+        const { name, uniqname, active } = row.original
+        return (
+          <div className="flex flex-row gap-3 items-center">
+            {active ? 
+              <div className="rounded-full h-2 w-2 bg-green-500"></div>
+              : <div className="rounded-full h-2 w-2 bg-red-500"></div>
+            }
+            <EventsModal uniqname={uniqname} name={name} role="brother" />
+          </div>
+        )
       },
+      sortingFns: 'activeAttendanceName'
     },
     {
       accessorKey: "total_attendance_points",
       header: "Attendance Points",
       meta: { widthClass: "min-w-[100px]" },
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
         const value = getValue()
-        const bg = levelBg(value, requirement)
+        const bg = levelBg(value, requirement + row.original.committee_points.extra_needed)
         return (
           <span className={cn("inline-block rounded-md border px-2 py-1 font-medium min-w-[150px] max-w-[150px] text-center", bg)}>
             {value}
@@ -44,10 +76,14 @@ export function getColumns({requirement}) {
       cell: ({ getValue }) => {
         const value = getValue();
         return (
-          <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full">
-            {value.acquired}
-            {value.extra_needed > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{value.extra_needed}</span>}
-          </span>
+          <div>
+            <span>
+              {value.acquired}
+            </span>
+            <span className="ml-1">
+              {value.extra_needed > 0 && <Badge variant="outline"> +{value.extra_needed}</Badge>}
+            </span>
+          </div>
         )
       },
     },

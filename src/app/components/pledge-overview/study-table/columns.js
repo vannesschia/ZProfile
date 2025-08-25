@@ -7,7 +7,7 @@ export function getColumns(data) {
     {
       accessorKey: "name",
       header: "Name",
-      meta: { widthClass: "w-4/5" }
+      meta: { widthClass: "min-w-[250px]" }
     },
     {
       accessorKey: "event_date",
@@ -19,7 +19,7 @@ export function getColumns(data) {
       ),
       cell: ({ getValue }) => <p>{formatMonthDay(getValue())}</p>,
       sortingFn: "datetime",
-      meta: { widthClass: "w-1/5" }
+      meta: { widthClass: "min-w-[150px]" }
     }
   ]
 }

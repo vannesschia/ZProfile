@@ -1,39 +1,14 @@
 "use client"
-import { ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react"
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel
-} from "@tanstack/react-table"
-
-import { Button } from "@/components/ui/button"
 import { getColumns } from "./columns"
 import { TestingDataTable } from "../data-table/data-table-template"
 
 
 export function ChapterDataTable({ data }) {
   const columns = getColumns(data)
-  
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 7,
-      },
-    },
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20}/>
+      <TestingDataTable data={data} setPagination={true} columns={columns} setPageSize={20}/>
     </div>
   )
 }

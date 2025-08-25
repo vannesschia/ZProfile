@@ -1,4 +1,7 @@
 import { formatMonthDay, capitalizeFirstLetter } from "@/lib/utils"
+import EventOptions from "../event-options"
+import AttendanceQuickView from "../attendance-quick-view"
+
 
 export function getColumns(data) {
   return [
@@ -23,13 +26,25 @@ export function getColumns(data) {
           <p>{formatMonthDay(getValue())}</p>
         )
       },
+      sortingFns: "datetime",
       meta: { widthClass: "min-w-[200px]" },
     },
     {
       accessorKey: "attendance_count",
       header: "Attendance",  
-      meta: { widthClass: "min-w-[200px]" }
+      meta: { widthClass: "min-w-[150px]" }
     },
+    {
+      header: " ",
+      meta: { widthClass: "min-w-[10px]" },
+      cell: ({ row }) => {
+        return (
+          <>
+            <EventOptions eventId={row.original.id} eventName={row.original.name}/>
+          </>
+        )
+      }
+    }
   ]
 }
 
@@ -48,6 +63,7 @@ export function getChapterColumns(data) {
           <p>{formatMonthDay(getValue())}</p>
         )
       },
+      sortingFns: "datetime",
       meta: { widthClass: "min-w-[200px]" },
     },
     {
@@ -60,6 +76,17 @@ export function getChapterColumns(data) {
       header: "Attendance",  
       meta: { widthClass: "min-w-[200px]" }
     },
+    {
+      header: " ",
+      meta: { widthClass: "min-w-[10px]" },
+      cell: ({ row }) => {
+        return (
+          <>
+            <EventOptions eventId={row.original.id} eventName={row.original.name}/>
+          </>
+        )
+      }
+    }
   ]
 }
 
@@ -78,6 +105,7 @@ export function getDefaultColumns() {
           <p>{formatMonthDay(getValue())}</p>
         )
       },
+      sortingFns: "datetime",
       meta: { widthClass: "min-w-[200px]" },
     },
     {
@@ -85,5 +113,16 @@ export function getDefaultColumns() {
       header: "Attendance",  
       meta: { widthClass: "min-w-[200px]" }
     },
+    {
+      header: " ",
+      meta: { widthClass: "min-w-[10px]" },
+      cell: ({ row }) => {
+        return (
+          <>
+            <EventOptions eventId={row.original.id} eventName={row.original.name}/>
+          </>
+        )
+      }
+    }
   ]
 }

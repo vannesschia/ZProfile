@@ -372,7 +372,7 @@ export async function SubmitEdit({ event_type, values, id, router }) {
   toast.success("Event saved successfully!");
 
   setTimeout(() => {
-    router.push("/admin/events");
+    router.push("/admin/dashboard?tab=events");
   }, 1000);
 }
 
@@ -431,7 +431,7 @@ export async function SubmitCreate({ event_type, values, router }) {
   toast.success("Event created successfully!");
 
   setTimeout(() => {
-    router.push("/admin/events");
+    router.push("/admin/dashboard?tab=events");
   }, 1000);
 }
 
@@ -453,7 +453,7 @@ export async function DeleteEvent({ id, router }) {
   toast.success("Event deleted successfully!");
 
   setTimeout(() => {
-    router.push("/admin/events");
+    router.push("/admin/dashboard?tab=events");
   }, 1000);
 }
 

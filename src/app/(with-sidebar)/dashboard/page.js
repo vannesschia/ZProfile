@@ -1,5 +1,4 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { Overview, PledgeOverview } from "@/app/components/overview";
 import { ProgressTab } from "@/app/components/progress-block";
 import AttendancePoints from "@/app/components/tabs/attendance-points.js";
 import Absences from "@/app/components/tabs/absences";
@@ -32,7 +31,7 @@ export default async function DashboardPage() {
         {role.role == "pledge" ? <PledgeProgress uniqname={ uniqname } /> : null}
         {role.role != "pledge" ? <AttendancePoints uniqname={ uniqname }/> : null}
         {role.role != "pledge" ? <RushEvent uniqname={ uniqname }/> : null }
-        <Absences uniqname={ uniqname }/>
+        <Absences uniqname={ uniqname } role={ role }/>
       </div>
       {role.role == "pledge" ? <PledgeOverviewServer uniqname={ uniqname } /> : null}
       <OverviewServer uniqname={ uniqname } role={ role.role } />

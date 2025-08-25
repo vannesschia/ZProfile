@@ -19,7 +19,7 @@ export function ProgressBlock({title, subtext = "", children}) {
 export function ProgressTab({title, children, className}) {
   return(
     <div className={cn("w-full min-w-fit bg-background border-2 border-secondary rounded-lg flex-shrink-0", className)}>
-      <div className="w-full border-b-2 border-muted px-6 py-4">
+      <div className="w-full border-b-2 border-inherit px-6 py-4">
         <h2 className="text-2xl font-bold tracking-tight leading-tight">{ title }</h2>
       </div>
       <div className="p-6">

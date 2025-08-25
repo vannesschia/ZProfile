@@ -1,11 +1,11 @@
 'use client'
 
-import { Laugh, Coffee, ChevronRight, ChevronLeft } from "lucide-react";
+import { Laugh, Coffee, ChevronRight, ChevronLeft, Frown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 
-export default function MilestoneTabs({ events, numCoffeeChats, pledgeProgress }) {
+export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommitteePoints }) {
   const [milestone, setMilestone] = useState(0);
   const keys = Object.keys(pledgeProgress);
   const today = new Date();
@@ -16,7 +16,7 @@ export default function MilestoneTabs({ events, numCoffeeChats, pledgeProgress }
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       const currMilestone = pledgeProgress[key];
-      if(currMilestone.daysLeft < 0 && (numCoffeeChats < currMilestone.cc || events.length < currMilestone.cp)) {
+      if(currMilestone.daysLeft < 0 && (numCoffeeChats < currMilestone.cc || numCommitteePoints < currMilestone.cp)) {
         setMilestone(i);
         break;
       } else if(currMilestone.daysLeft >= 0) {
@@ -28,8 +28,8 @@ export default function MilestoneTabs({ events, numCoffeeChats, pledgeProgress }
 
   return (
     <>
-      <div className="bg-background border-2 border-secondary rounded-lg flex-shrink-0 w-full max-w-[30rem] min-w-fit">
-        <div className="w-full border-b-2 border-muted px-6 py-4 flex flex-row justify-between">
+      <div className={`border-2 rounded-lg border-muted flex-shrink-0 w-full max-w-[30rem] min-w-fit`}>
+        <div className="w-full border-b-2 border-inherit px-6 py-4 flex flex-row justify-between">
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
             <h2 className="text-2xl font-bold tracking-tight leading-tight w-fit">Pledge Progress</h2>
             <Badge 
@@ -60,23 +60,26 @@ export default function MilestoneTabs({ events, numCoffeeChats, pledgeProgress }
         </div>
 
         <div className="flex flex-row justify-between md:justify-normal md:gap-12 p-6">
-          <div className="flex flex-col gap-4">
-            <p className="text-sm tracking-tight leading-tight">Coffee Chats</p>
+          <div className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && numCoffeeChats < pledgeProgress[keys[milestone]].cc ? "text-red-800" : "text-primary" } flex flex-col gap-4`}>
+            <p className="not-first:text-sm tracking-tight leading-tight">Coffee Chats</p>
             <div className="flex flex-col gap-2 items-start">
               <div className="flex flex-row items-end">
                 <Coffee className="w-8 h-8 mr-2"/>
-                <p className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && numCoffeeChats < pledgeProgress[keys[milestone]].cc ? "text-red-700" : "text-primary" } font-medium text-3xl`}>{ numCoffeeChats }</p>
+                <p className={`font-medium text-3xl`}>{ numCoffeeChats }</p>
                 <p className="font-medium text-base text-muted-foreground">/{ pledgeProgress[keys[milestone]].cc }</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && numCommitteePoints < pledgeProgress[keys[milestone]].cp ? "text-red-800" : "text-primary" } flex flex-col gap-4`}>
             <p className="text-sm tracking-tight leading-tight">Committee Points</p>
             <div className="flex flex-col gap-2 items-start">
               <div className="flex flex-row items-end">
-                <Laugh className="w-8 h-8 mr-2"/>
-                <p className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && events.length < pledgeProgress[keys[milestone]].cp ? "text-red-700" : "text-primary" } font-medium text-3xl`}>{ events.length }</p>
+                {pledgeProgress[keys[milestone]].daysLeft < 0 && numCommitteePoints < pledgeProgress[keys[milestone]].cp 
+                  ? <Frown className="w-8 h-8 mr-2"/>
+                  : <Laugh className="w-8 h-8 mr-2"/>
+                }
+                <p className={`font-medium text-3xl`}>{ numCommitteePoints }</p>
                 <p className="font-medium text-base text-muted-foreground">/{ pledgeProgress[keys[milestone]].cp }</p>
               </div>
             </div>

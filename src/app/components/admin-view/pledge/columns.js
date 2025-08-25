@@ -23,11 +23,45 @@ function levelBg(value, target) {
 
 export function getColumns({milestones, currentMilestone}) {
   const { cc, cp } = getTargets(milestones, currentMilestone);
+
+  function makeNeedsThenNameSorter({ cc, cp }) {
+    return (rowA, rowB) => {
+      const a = rowA.original || {}
+      const b = rowB.original || {}
+
+      // Committee Points
+      const aCP = Number(a.total_committee_points ?? 0)
+      const bCP = Number(b.total_committee_points ?? 0)
+      const needsCPA = aCP < cp
+      const needsCPB = bCP < cp
+
+      // Coffee Chats (target = cc + extra_needed)
+      const aCC = a.coffee_chats || {}
+      const bCC = b.coffee_chats || {}
+      const aCCAcq = Number(aCC.acquired ?? 0)
+      const bCCAcq = Number(bCC.acquired ?? 0)
+      const needsCCA = aCCAcq < (cc + Number(aCC.extra_needed ?? 0))
+      const needsCCB = bCCAcq < (cc + Number(bCC.extra_needed ?? 0))
+
+      // Priority: both unmet (2) > one unmet (1) > none (0)
+      const prioA = (needsCPA ? 1 : 0) + (needsCCA ? 1 : 0)
+      const prioB = (needsCPB ? 1 : 0) + (needsCCB ? 1 : 0)
+      if (prioA !== prioB) return prioB - prioA // higher first
+
+      // Tie-break: alphabetical by name
+      const nameA = a.name ?? ""
+      const nameB = b.name ?? ""
+      return nameA.localeCompare(nameB, undefined, { sensitivity: "base" })
+    }
+  }
+
+
   return [
     {
       accessorKey: "name",
       header: "Name",
       meta: { widthClass: "min-w-[200px]" },
+      sortingFn: makeNeedsThenNameSorter( { cc, cp }),
       cell: ({ row }) => {
         const { name, uniqname } = row.original
         return <EventsModal uniqname={uniqname} name={name} role="pledge" />
