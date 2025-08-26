@@ -6,8 +6,8 @@ import { getServerClient } from "@/lib/supabaseServer";
 const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
 
 function safeNext(next) {
-  let path = next || "/login";
-  if (!path.startsWith("/")) path = "/login";
+  let path = next || "/";
+  if (!path.startsWith("/")) path = "/";
   return new URL(path, BASE_URL).toString();
 }
 
