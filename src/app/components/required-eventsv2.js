@@ -55,7 +55,6 @@ async function getRushEvents(uniqname) {
     .eq('events.event_type', 'rush_event');
 
   if (error) throw error;
-  console.log(data.map(({ events }) => events))
   return data.map(({ events }) => events);
 }
 
@@ -88,9 +87,6 @@ export async function RequiredEvents({ uniqname }) {
   const chapters = await getChapterAttendance(uniqname);
   const rushEvents = await getRushEvents(uniqname);
   const absences = await getAbsenceCounts(uniqname);
-  console.log(chapters)
-  console.log(rushEvents)
-  console.log(absences)
 
   return(
     <>

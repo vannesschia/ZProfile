@@ -55,8 +55,6 @@ export default function ProfileForm({ initialData, userEmail }) {
       .eq("user_id", user.id)                 // <-- matches common RLS
       .select("uniqname, onboarding_completed") // RETURNING to confirm
       .maybeSingle();
-    
-    console.log(data);
 
     if (error) {
       setErrorMsg(error.message);

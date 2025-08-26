@@ -9,7 +9,6 @@ export default async function handleIssuePost(title, description, name) {
     console.error("Failed to post");
     return false;
   } else {
-    console.log("Successfully posted issue")
     return true;
   }
 }

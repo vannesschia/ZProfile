@@ -87,7 +87,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.error("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField

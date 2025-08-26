@@ -119,7 +119,6 @@ export function MyForm({ initialData, userEmail }) {
       try {
         // Get current user to ensure authentication
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        console.log("Auth check:", { user, userError }); // Debug log
 
         if (userError) {
           console.error("Auth error:", userError);
@@ -249,8 +248,6 @@ export function MyForm({ initialData, userEmail }) {
       .eq("email_address", userEmail)
       .select();
 
-    // console.log("Update result:", { membersError, membersData });
-
     if (membersError) {
       console.error("Update error:", membersError.message);
       toast.error("Failed to update profile.");
@@ -258,8 +255,6 @@ export function MyForm({ initialData, userEmail }) {
     }
 
     const uniqname = userEmail.split("@")[0];
-    
-    // console.log("Courses:", courses);
 
     const allCourses = new Set();
 
@@ -278,8 +273,6 @@ export function MyForm({ initialData, userEmail }) {
         }
       })
     })
-
-    // console.log("newCourses:", newCourses);
 
     const { error: existingCoursesError, data: existingCoursesData } = await supabase
       .from("classes")
@@ -317,8 +310,6 @@ export function MyForm({ initialData, userEmail }) {
       .insert(newCourses)
       .select()
 
-    console.log("Update result:", { classesError, classesData });
-
     if (classesError) {
       console.error("Update error:", classesError.message);
       toast.error("Failed to update profile.");
@@ -331,7 +322,6 @@ export function MyForm({ initialData, userEmail }) {
     setTimeout(() => {
       router.push("/profile"); // ✅ redirect to profile page
     }, 1000); // wait for toast to be readable before redirecting
-    console.log("Submitting payload:", payload);
   }
 
   return (

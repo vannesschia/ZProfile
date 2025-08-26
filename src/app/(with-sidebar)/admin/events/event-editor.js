@@ -368,7 +368,6 @@ export async function SubmitEdit({ event_type, values, id, router }) {
     }
   }
 
-  console.log("Event saved successfully!");
   toast.success("Event saved successfully!");
 
   setTimeout(() => {
@@ -427,7 +426,6 @@ export async function SubmitCreate({ event_type, values, router }) {
     }
   }
 
-  console.log("Event created successfully!");
   toast.success("Event created successfully!");
 
   setTimeout(() => {
@@ -449,7 +447,6 @@ export async function DeleteEvent({ id, router }) {
     return;
   }
   
-  console.log("Event deleted successfully!");
   toast.success("Event deleted successfully!");
 
   setTimeout(() => {

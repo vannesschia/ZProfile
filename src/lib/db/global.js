@@ -112,7 +112,6 @@ export async function getAllCommitteesAttendance() {
     .from('committee_events_with_attendance')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data;
 }
 
@@ -122,7 +121,6 @@ export async function getAllChapterAttendance() {
     .from('chapter_events')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data
 }
 
@@ -132,7 +130,6 @@ export async function getAllPledgeEventsAttendance() {
     .from('pledge_events')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data
 }
 
@@ -142,7 +139,6 @@ export async function getAllRushEventsAttendance() {
     .from('rush_events')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data
 }
 
@@ -152,7 +148,6 @@ export async function getAllStudyTablesAttendance() {
     .from('study_tables')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data
 }
 
@@ -201,8 +196,6 @@ export async function getMilestones() {
     .eq('id', true)
     .maybeSingle();
   if (error) throw error;
-  console.log(data);
-
   return data;
 }
 
@@ -213,7 +206,6 @@ export async function getInvCommitteeEventCount() {
     console.error(error);
     return null;
   }
-  console.log(data);
   return data;
 }
 
@@ -223,7 +215,6 @@ export async function getPledgeAdminView() {
     .from('pledge_admin_view')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data;
 }
 
@@ -233,7 +224,6 @@ export async function getBrotherAdminView() {
     .from('brother_admin_view')
     .select('*');
   if (error) console.error(error);
-  else console.log(data);
   return data;
 }
 
@@ -246,7 +236,6 @@ export async function getBrotherRequirement() {
       brother_committee_pts_req
       `);
   if (error) console.error(error);
-  else console.log(data);
   return data;
 }
 
@@ -379,7 +368,6 @@ export async function getCoffeeChatsCount(uniqname) {
     `, { count: 'exact', head: true })
     .eq('pledge', uniqname);
   if (error) throw error;
-  console.log(count)
   return count
 }
 

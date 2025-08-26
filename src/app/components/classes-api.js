@@ -22,7 +22,6 @@ export default async function handleCourseSearch(term, input) {
   }
 
   const courses = await result.json();
-  // console.log(courses)
   return courses.map(course => ({
     className: `${subjectCode} ${course.CatalogNumber}`,
     classDescription: course.CourseDescr,

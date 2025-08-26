@@ -4,7 +4,7 @@ import { ArrowUp } from "lucide-react";
 
 export default async function Absences({ uniqname, role }) {
   const absences = await getAbsenceCounts(uniqname);
-  // console.log(role)
+  
   return (
     <ProgressTab title={"Absences"} className="md:max-w-[20rem]">
       <div className="flex flex-row gap-8">

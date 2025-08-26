@@ -8,9 +8,6 @@ import { useState, useEffect } from "react";
 export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommitteePoints }) {
   const [milestone, setMilestone] = useState(0);
   const keys = Object.keys(pledgeProgress);
-  const today = new Date();
-  console.log(keys);
-  console.log(pledgeProgress);
 
   useEffect(() => {
     for (let i = 0; i < keys.length; i++) {

@@ -11,9 +11,7 @@ export function formatMonthDay(isoDateString) {
 }
 
 export function formatMonthDayNumeric(isoDateString) {
-  console.log("Parmeter: " + isoDateString)
   const date = new Date(isoDateString);
-  console.log("Date: " + date)
   return date.toLocaleString('en-US', { month: 'numeric', day: 'numeric'});
 }
 

@@ -47,8 +47,6 @@ export default async function ProfilePage() {
     );
   }
 
-  console.log(member)
-
   return (
     <main style={{ padding: "2rem" }}>
       <main className="min-h-screen">
