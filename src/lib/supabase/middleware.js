@@ -39,7 +39,7 @@ export async function updateSession(request) {
   } = await supabase.auth.getUser()
 
   if (
-    !user && request.nextUrl.pathname != '/' && request.nextUrl.pathname != '/callback'
+    !user && request.nextUrl.pathname != '/' && request.nextUrl.pathname != '/auth/sign-in'
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()

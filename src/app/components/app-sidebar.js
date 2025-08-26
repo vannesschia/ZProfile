@@ -26,6 +26,7 @@ const items = [
   {
     title: "Course Directory",
     url: "/course-directory",
+    url: "/course-directory",
     icon: Book,
   },
   {
@@ -49,7 +50,7 @@ const items = [
   },
   {
     title: "Report Bug",
-    url: "#",
+    url: "/support",
     icon: Bug,
   }
 ]

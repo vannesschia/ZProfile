@@ -26,29 +26,53 @@ export default function ProfileForm({ initialData, userEmail }) {
     setErrorMsg("");
     setSubmitting(true);
 
-    const row = {
-      uniqname: formValues.uniqname,       // text
-      name: formValues.name,               // text
-      major: formValues.major,             // text[]
-      minor: formValues.minor,             // text[]
+    // make sure we’re authed and get the owner key RLS expects
+    const {
+      data: { user },
+      error: userErr,
+    } = await supabase.auth.getUser();
+    if (userErr || !user) {
+      setErrorMsg("Not authenticated.");
+      setSubmitting(false);
+      return;
+    }
+
+    const update = {
+      // profile fields
+      name: formValues.name,
+      major: formValues.major,
+      minor: formValues.minor,
       grade: Number(formValues.grade) || null,
       graduation_year: Number(formValues.graduation_year) || null,
       phone_number: formValues.phone_number,
-      email_address: userEmail,            // already set
+      email_address: userEmail,
+      onboarding_completed: Boolean(true),
     };
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("members")
-      .update(row)
-      .eq("uniqname", formValues.uniqname);
+      .update(update)
+      .eq("user_id", user.id)                 // <-- matches common RLS
+      .select("uniqname, onboarding_completed") // RETURNING to confirm
+      .maybeSingle();
+    
+    console.log(data);
 
     if (error) {
       setErrorMsg(error.message);
       setSubmitting(false);
-    } else {
-      router.push("/dashboard");
+      return;
     }
+    if (!data) {
+      setErrorMsg("No rows updated (RLS blocked or row not found).");
+      setSubmitting(false);
+      return;
+    }
+
+    const next = new URLSearchParams(window.location.search).get("next") || "/dashboard";
+    router.push(next);
   }
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

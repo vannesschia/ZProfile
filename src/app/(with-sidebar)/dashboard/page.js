@@ -1,11 +1,10 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { ProgressTab } from "@/app/components/progress-block";
 import AttendancePoints from "@/app/components/tabs/attendance-points.js";
 import Absences from "@/app/components/tabs/absences";
 import RushEvent from "@/app/components/tabs/rush-event";
 import PledgeProgress from "@/app/components/tabs/pledge-progress";
-import OverviewServer from "@/app/components/event-overview/overview-server";
-import PledgeOverviewServer from "@/app/components/event-overview/pledge-overview-server";
+import OverviewServer from "../../components/event-overview/overview-server";
+import PledgeOverviewServer from "../../components/event-overview/pledge-overview-server";
 import { nullable } from "zod";
 
 export const dynamic = "force-dynamic";

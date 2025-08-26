@@ -240,6 +240,7 @@ export function MyForm({ initialData, userEmail }) {
       email_address: userEmail,
       major: [major],                 // wrap string as array
       minor: minor ? [minor] : [],    // wrap optional string as array
+      onboarding_completed: true
     };
 
     const { error: membersError, data: membersData } = await supabase
