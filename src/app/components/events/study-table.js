@@ -33,9 +33,6 @@ const formSchema = z.object({
 });
 
 export default function EditStudyTableEvent({ mode, initialData, id }) {
-  if (mode === "edit" && !id) {
-    return;
-  }
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
@@ -67,15 +64,8 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
     },
   });
 
-  const toggleMember = (member) => {
-    const newSelectedMembers = selectedMembers.includes(member)
-      ? selectedMembers.filter((mem) => mem !== member)
-      : [...selectedMembers, member];
-    setSelectedMembers(newSelectedMembers);
-    form.setValue(`attendance`, newSelectedMembers, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
+  if (mode === "edit" && !id) {
+    return;
   }
 
   async function onSubmit(values) {

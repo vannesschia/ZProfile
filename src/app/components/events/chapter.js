@@ -34,10 +34,6 @@ const formSchema = z.object({
 });
 
 export default function EditChapterEvent({ mode, initialData, id }) {
-  if (mode === "edit" && !id) {
-    return;
-  }
-  
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
@@ -48,6 +44,17 @@ export default function EditChapterEvent({ mode, initialData, id }) {
   const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  useEffect(() => {
+    getMembers().then((newMembersData) => {
+      setMembersData(newMembersData);
+      setAvailableUnexcusedAbsences(newMembersData.filter(mem => !form.getValues("unexcused_absences").includes(mem.uniqname)));
+      setSelectedUnexcusedAbsences(newMembersData.filter(mem => form.getValues("unexcused_absences").includes(mem.uniqname)));
+      setAvailableExcusedAbsences(newMembersData.filter(mem => !form.getValues("excused_absences").includes(mem.uniqname)))
+      setSelectedExcusedAbsences(newMembersData.filter(mem => form.getValues("excused_absences").includes(mem.uniqname)));
+      setMembersDataLoading(false);
+    })
+  }, []);
+  
   const form = useForm({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -63,16 +70,9 @@ export default function EditChapterEvent({ mode, initialData, id }) {
     },
   });
 
-  useEffect(() => {
-    getMembers().then((newMembersData) => {
-      setMembersData(newMembersData);
-      setAvailableUnexcusedAbsences(newMembersData.filter(mem => !form.getValues("unexcused_absences").includes(mem.uniqname)));
-      setSelectedUnexcusedAbsences(newMembersData.filter(mem => form.getValues("unexcused_absences").includes(mem.uniqname)));
-      setAvailableExcusedAbsences(newMembersData.filter(mem => !form.getValues("excused_absences").includes(mem.uniqname)))
-      setSelectedExcusedAbsences(newMembersData.filter(mem => form.getValues("excused_absences").includes(mem.uniqname)));
-      setMembersDataLoading(false);
-    })
-  }, []);
+  if (mode === "edit" && !id) {
+    return;
+  }
 
   async function onSubmit(values) {
     mode === "edit"

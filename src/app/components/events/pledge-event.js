@@ -36,10 +36,6 @@ const formSchema = z.object({
 });
 
 export default function EditPledgeEvent({ mode, initialData, id }) {
-  if (mode === "edit" && !id) {
-    return;
-  }
-
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
   const [membersData, setMembersData] = useState([]);
@@ -51,7 +47,7 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
   const [selectedExcusedAbsences, setSelectedExcusedAbsences] = useState([]);
   const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-
+  
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
@@ -80,6 +76,10 @@ export default function EditPledgeEvent({ mode, initialData, id }) {
       attendance: initialData?.event_attendance.map(attendee => attendee.uniqname) ?? [],
     },
   });
+
+  if (mode === "edit" && !id) {
+    return;
+  }
 
   async function onSubmit(values) {
     mode === "edit"

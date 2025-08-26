@@ -44,26 +44,14 @@ const formSchema = z.object({
 });
 
 export default function EditCommitteeEvent({ mode, initialData, id }) {
-  if (mode === "edit" && !id) {
-    return;
-  }
-  
   const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
-  const committeeOptions = [
-    { name: "technology", label: "Technology" },
-    { name: "prof_dev", label: "Professional Development" },
-    { name: "ram", label: "Recruitment & Membership" },
-    { name: "social", label: "Social" },
-    { name: "marketing", label: "Marketing" },
-    { name: "fundraising", label: "Fundraising" },
-  ];
   const [membersData, setMembersData] = useState([]);
   const [availableMembers, setAvailableMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-
+  
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
@@ -87,6 +75,19 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
       attendance: initialData?.event_attendance.map(attendee => attendee.uniqname) ?? [],
     },
   });
+
+  if (mode === "edit" && !id) {
+    return;
+  }
+  
+  const committeeOptions = [
+    { name: "technology", label: "Technology" },
+    { name: "prof_dev", label: "Professional Development" },
+    { name: "ram", label: "Recruitment & Membership" },
+    { name: "social", label: "Social" },
+    { name: "marketing", label: "Marketing" },
+    { name: "fundraising", label: "Fundraising" },
+  ];
 
   async function onSubmit(values) {
     mode === "edit"

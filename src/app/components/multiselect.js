@@ -25,6 +25,27 @@ import { Separator } from "@/components/ui/separator";
 export default function MultiSelect({ termValidity, options, placeholder, onChange, input, onInputChange, form, index }) {
   const [open, setOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState([]);
+  const [isWrapped, setIsWrapped] = useState(false);
+  const badgeContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = badgeContainerRef.current;
+    if (container) {
+      setIsWrapped(container.scrollHeight > 36);
+    }
+  }, [selectedValues])
+
+  useEffect(() => {
+    if (!termValidity) {
+      handleClear();
+      setOpen(false);
+    }
+  }, [termValidity])
+
+  useEffect(() => {
+    const currentSelected = form.getValues(`courses.${index}.classes`) || [];
+    setSelectedValues(currentSelected);
+  }, [form])
 
   const toggleOption = (option) => {
     const newSelectedValues = selectedValues.includes(option)
@@ -51,28 +72,6 @@ export default function MultiSelect({ termValidity, options, placeholder, onChan
       option.className.toLowerCase().includes((input || "").toLowerCase())
     );
   }, [options, input])
-
-  useEffect(() => {
-    if (!termValidity) {
-      handleClear();
-      setOpen(false);
-    }
-  }, [termValidity])
-
-  useEffect(() => {
-    const currentSelected = form.getValues(`courses.${index}.classes`) || [];
-    setSelectedValues(currentSelected);
-  }, [form])
-
-  const [isWrapped, setIsWrapped] = useState(false);
-  const badgeContainerRef = useRef(null);
-
-  useEffect(() => {
-    const container = badgeContainerRef.current;
-    if (container) {
-      setIsWrapped(container.scrollHeight > 36);
-    }
-  }, [selectedValues])
 
   return (
     <Popover open={open} onOpenChange={(isOpen) => {

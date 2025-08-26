@@ -20,6 +20,8 @@ import { termCodeToWords } from "./term-functions";
 import { ChevronRight } from "lucide-react";
 
 export default function CourseResults({ results, query, filter }) {
+  const [openStates, setOpenStates] = useState({});
+  
   if (results.length === 0 || filter.length === 0) {
     return (
       <p>No results found for <strong>{ query }</strong></p>
@@ -39,7 +41,6 @@ export default function CourseResults({ results, query, filter }) {
   })
   .filter(({ students }) => students.length > 0);
 
-  const [openStates, setOpenStates] = useState({});
 
   const toggleOpen = (key) => {
     setOpenStates((prev) => ({
