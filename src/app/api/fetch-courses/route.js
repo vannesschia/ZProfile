@@ -21,8 +21,11 @@ export async function POST(req) {
   });
 
   if (!tokenRes.ok) {
-    return new Response("Token fetch failed", { status: 401 });
-  }
+  const errText = await tokenRes.text();
+  console.error("Token fetch failed:", errText);
+  return new Response(`Token fetch failed: ${errText}`, { status: 401 });
+}
+
 
   const { access_token } = await tokenRes.json();
 
