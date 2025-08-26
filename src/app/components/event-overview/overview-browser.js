@@ -11,8 +11,8 @@ export default function OverviewBrowser({ uniqname, role = "brother" }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    let ignore = false
-    ;(async () => {
+    let ignore = false;
+    (async () => {
       try {
         const rows1 = await getCommitteeEventsBrowser(uniqname)
         const rows2 = await getChapterAttendanceBrowser(uniqname)
