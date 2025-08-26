@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import MemberCard from "../../../components/MemberCard";
+import MemberCard from "@/app/components/MemberCard";
 
 export default function ClientMembersView({ members }) {
     const [search, setSearch] = useState("");
