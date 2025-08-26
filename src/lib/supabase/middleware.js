@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
+import { getServerClient } from '../supabaseServer'
 
 export async function updateSession(request) {
   let supabaseResponse = NextResponse.next({
@@ -49,6 +50,23 @@ export async function updateSession(request) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
+  }
+
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const supabase = await getServerClient();
+
+    const uniqname = user.email.split("@")[0];
+
+    const { data: member } = await supabase
+      .from('members')
+      .select('admin')
+      .eq('uniqname', uniqname)
+      .single()
+
+    if (!member?.admin) {
+      const url = new URL('/dashboard', request.url)
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

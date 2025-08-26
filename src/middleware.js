@@ -1,30 +1,18 @@
-import { updateSession } from '@/lib/supabase/middleware'
-import { NextResponse } from 'next/server'
-import { getServerClient } from './lib/supabaseServer';
+import { updateSession } from "./lib/supabase/middleware"
 
 export async function middleware(request) {
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    const supabase = await getServerClient();
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const uniqname = user.email.split("@")[0];
-
-    const { data: member } = await supabase
-      .from('members')
-      .select('admin')
-      .eq('uniqname', uniqname)
-      .single()
-
-    if (!member?.admin) {
-      const url = new URL('/dashboard', request.url)
-      return NextResponse.rewrite(url)
-    }
-  }
-  return await updateSession(request);
+  return await updateSession(request)
 }
 
 export const config = {
   matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
