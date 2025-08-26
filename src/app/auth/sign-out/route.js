@@ -24,7 +24,7 @@ function isSameOrigin(request) {
 
 export async function POST(request) {
   if (!isSameOrigin(request)) {
-    return NextResponse.redirect(new URL("/login", BASE_URL));
+    return NextResponse.redirect(new URL("/", BASE_URL));
   }
 
   const { searchParams } = new URL(request.url);
