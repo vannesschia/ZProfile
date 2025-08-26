@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { AppSidebar } from "../components/app-sidebar";
 import { getServerClient } from "@/lib/supabaseServer";
+import DynamicBreadcrumb from "../components/DynamicBreadcrumb";
 
 export default async function WithNavbarLayout({ children }) {
   const supabase = await getServerClient();
@@ -25,8 +26,6 @@ export default async function WithNavbarLayout({ children }) {
     .eq('uniqname', uniqname)
     .single();
 
-  // console.log(member.name, member.email_address);
-
   return (
       <SidebarProvider>
         <AppSidebar user ={ member }/>
@@ -37,11 +36,7 @@ export default async function WithNavbarLayout({ children }) {
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-            <Breadcrumb>
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </Breadcrumb>
+            <DynamicBreadcrumb />
           </header>
           <main className="p-4">{children}</main>
         </SidebarInset>

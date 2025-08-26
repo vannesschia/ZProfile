@@ -39,10 +39,10 @@ export default function ClientMembersView({ members }) {
                 })
                 .reverse()
                 .map(([className, classMembers]) => {
+                    if (className === "Unsorted") return null; // doesn't display unsorted group
                     const filtered = classMembers.filter((m) =>
                         m.name.toLowerCase().includes(search.toLowerCase())
                     );
-
                     if (filtered.length === 0) return null;
 
                     return (
