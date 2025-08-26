@@ -8,7 +8,7 @@ export default function OverviewView({ role = "brother", events, chapter, otherE
   return (
     <>
       {role === "pledge" ? (
-        <ProgressBlock title={"Other Events"} subtext={"Here are events for the entire faternity."}>
+        <ProgressBlock title={"Other Events"} subtext={"Here are events for the entire fraternity."}>
           <Tabs defaultValue="committee_points">
             <TabsList>
               <TabsTrigger value="committee_points">Committee</TabsTrigger>

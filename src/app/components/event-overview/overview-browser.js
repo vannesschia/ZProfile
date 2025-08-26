@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getChapterAttendanceBrowser, getOtherEventsBrowser, getCommitteeEventsBrowser } from "@/lib/db/global"
+import { getChapterAttendanceBrowser, getOtherEventsBrowser, getCommitteeEventsBrowser } from "@/lib/db/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import OverviewView from "./overview-view"
 

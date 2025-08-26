@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getCoffeeChatsBrowser, getPledgeEventsBrowser, getStudyTablesBrowser } from "@/lib/db/global"
+import { getCoffeeChatsBrowser, getPledgeEventsBrowser, getStudyTablesBrowser } from "@/lib/db/client"
 import PledgeOverviewView from "./pledge-overview-view"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -11,8 +11,8 @@ export default function PledgeOverviewBrowser({ uniqname }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    let ignore = false
-    ;(async () => {
+    let ignore = false;
+    (async () => {
       try {
         const rows1 = await getCoffeeChatsBrowser(uniqname)
         const rows2 = await getPledgeEventsBrowser(uniqname)
