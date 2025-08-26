@@ -30,7 +30,7 @@ const items = [
   },
   {
     title: "Brothers Directory",
-    url: "/brothers/active",
+    url: "/brothers",
     icon: Handshake,
   },
   {
