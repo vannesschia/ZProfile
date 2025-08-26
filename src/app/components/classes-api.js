@@ -9,8 +9,10 @@ export default async function handleCourseSearch(term, input) {
 
   const termCode = wordsToTermCode(term);
   const subjectCode = arr[0].toUpperCase();
+
+  const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
   
-  const result = await fetch("/api/fetch-courses", {
+  const result = await fetch(`${BASE_URL}/api/fetch-courses`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ termCode, subjectCode })
