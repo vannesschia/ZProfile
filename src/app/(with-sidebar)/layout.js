@@ -21,7 +21,7 @@ export default async function WithNavbarLayout({ children }) {
 
   const { data: member, error } = await supabase
     .from('members')
-    .select('name, email_address')
+    .select('name, email_address, admin')
     .eq('uniqname', uniqname)
     .single();
 
@@ -29,7 +29,7 @@ export default async function WithNavbarLayout({ children }) {
 
   return (
       <SidebarProvider>
-        <AppSidebar user ={ member }/>
+        <AppSidebar user={ member }/>
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />

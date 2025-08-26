@@ -129,7 +129,7 @@ export function AppSidebar({ user }) {
             </SidebarMenu>
           </SidebarGroupContent>
           <SidebarMenu>
-            {admin_items.map((item) => (
+            {user.admin && admin_items.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
                   <a href={item.url}>
