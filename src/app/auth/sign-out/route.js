@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabaseServer";
 
 // Set in env: dev -> http://localhost:3000, prod -> https://your.domain
-const BASE_URL = process.env.PUBLIC_SITE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
 
 function safeNext(next) {
   let path = next || "/login";
