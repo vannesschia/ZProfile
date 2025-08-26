@@ -164,13 +164,6 @@ export async function getAllStudyTablesAttendance() {
 export async function getAttendanceRequirements(uniqname) {
   const supabase = await getServerClient();
 
-  const { data: member, error: mErr } = await supabase
-    .from('members')
-    .select('extra_committee_points')
-    .eq('uniqname', uniqname)
-    .maybeSingle();
-  if (mErr) throw mErr;
-
   const { data: req, error: rErr } = await supabase
     .from('requirements')
     .select(`

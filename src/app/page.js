@@ -15,7 +15,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/auth/sign-in?next=/dashboard`,
       },
     });
     if (error) {
@@ -48,7 +48,7 @@ export default function LoginPage() {
                     </a>
                   </div> */}
                 </div>
-                <div>
+                <div className="flex flex-col gap-2 text-center">
                   <Button type="button" className="w-full" onClick={handleGoogleSignIn}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                       <path
@@ -56,8 +56,9 @@ export default function LoginPage() {
                         fill="currentColor"
                       />
                     </svg>
-                    Continue with Google
+                    Sign in
                   </Button>
+                  <p className="text-muted-foreground text-sm">Please sign in with your umich email.</p>
                 </div>
               </div>
             </form>
