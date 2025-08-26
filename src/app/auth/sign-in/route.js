@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabaseServer";
 
-const BASE_URL = process.env.PUBLIC_SITE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.PUBLIC_SITE_URL ?? "zprofile.tech";
 const REQUIRED_DOMAIN = "umich.edu";
 
 function safeRedirect(next) {
