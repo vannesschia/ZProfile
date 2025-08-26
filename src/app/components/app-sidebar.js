@@ -26,17 +26,12 @@ const items = [
   {
     title: "Course Directory",
     url: "/course-directory",
-    url: "/course-directory",
     icon: Book,
   },
   {
     title: "Brothers Directory",
     url: "/brothers/active",
     icon: Handshake,
-    items: [
-      { title: "Active Brothers", url: "/brothers/active" },
-      { title: "Alumni", url: "/brothers/alumni" },
-    ]
   },
   {
     title: "Family Tree",
@@ -49,7 +44,7 @@ const items = [
     icon: ClipboardCheck,
   },
   {
-    title: "Report Bug",
+    title: "Report Bugs",
     url: "/support",
     icon: Bug,
   }
@@ -67,7 +62,11 @@ const admin_items = [
       },
       {
         title: "Coffee Chat Approval",
-        url: "#",
+        url: "/coffee-chat/approval",
+      },
+      {
+        title: "Requirement Settings",
+        url: "/admin/requirements-form",
       }
     ]
   },
