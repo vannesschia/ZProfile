@@ -102,11 +102,13 @@ export async function GET(request) {
       return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
     }
 
-    // Newly bound: send to setup (you can choose to send to `next` if already completed)
-    if (bound.onboarding_completed) {
-      return NextResponse.redirect(safeRedirect(next));
-    }
-    return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
+    // Newly bound: send to setup
+    const redirectUrl = new URL(
+      bound.onboarding_completed ? safeRedirect(next) : "/profile/setup",
+      BASE_URL
+    );
+    redirectUrl.searchParams.set("redirectedFromAuth", "true");
+    return NextResponse.redirect(redirectUrl);
   }
 
   // 6) Returning user: ensure this auth user owns the row
@@ -121,5 +123,8 @@ export async function GET(request) {
     redirectUrl.searchParams.set('redirectedFromAuth', 'true');
     return NextResponse.redirect(redirectUrl);
   }
-  return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
+  
+  const redirectUrl = new URL("/profile/setup", BASE_URL);
+  redirectUrl.searchParams.set("redirectedFromAuth", "true");
+  return NextResponse.redirect(redirectUrl);
 }

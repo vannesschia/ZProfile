@@ -9,7 +9,7 @@ export default async function AttendancePoints({ uniqname }) {
   const daysLeftOrLate = daysUntilOrSince(attendanceRequirements.dueBy);
 
   return (
-    <ProgressTab title={"Attendance"} className={`max-w-[25rem] ${daysLeftOrLate.status === "past" ? "bg-red-50 border-red-200 text-red-800" : null}`}>
+    <ProgressTab title={"Attendance"} className={`md:max-w-[25rem] ${daysLeftOrLate.status === "past" ? "bg-red-50 border-red-200 text-red-800" : null}`}>
       <div className="flex flex-row gap-12">
         <div className="flex flex-col gap-4">
           <p className="text-sm tracking-tight leading-tight">Attendance Points</p>
