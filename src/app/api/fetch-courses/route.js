@@ -1,7 +1,7 @@
 export async function POST(req) {
   const { termCode, subjectCode } = await req.json();
 
-  const clientId = process.env.NEXT_PUBLIC_API_CLIENT_ID;
+  const clientId = process.env.API_CLIENT_ID;
   const clientSecret = process.env.API_CLIENT_SECRET;
   const tokenURL = "https://gw.api.it.umich.edu/um/oauth2/token";
   const apiURL = `https://gw.api.it.umich.edu/um/Curriculum/SOC/Terms/${termCode}/Schools/LSA/Subjects/${subjectCode}/CatalogNbrs`;
@@ -21,11 +21,10 @@ export async function POST(req) {
   });
 
   if (!tokenRes.ok) {
-  const errText = await tokenRes.text();
-  console.error("Token fetch failed:", errText);
-  return new Response(`Token fetch failed: ${errText}`, { status: 401 });
-}
-
+    const errText = await tokenRes.text();
+    console.error("Token fetch failed:", errText);
+    return new Response(`Token fetch failed: ${errText}`, { status: 401 });
+  }
 
   const { access_token } = await tokenRes.json();
 
