@@ -3,6 +3,17 @@ export async function POST(req) {
 
   const clientId = process.env.API_CLIENT_ID;
   const clientSecret = process.env.API_CLIENT_SECRET;
+
+  if (!clientId) {
+    console.error("Missing API_CLIENT_ID in env");
+    return new Response("Server misconfiguration", { status: 500 });
+  }
+
+  if (!clientSecret) {
+    console.error("Missing API_CLIENT_SECRET in env");
+    return new Response("Server misconfiguration", { status: 500 });
+  }
+
   const tokenURL = "https://gw.api.it.umich.edu/um/oauth2/token";
   const apiURL = `https://gw.api.it.umich.edu/um/Curriculum/SOC/Terms/${termCode}/Schools/LSA/Subjects/${subjectCode}/CatalogNbrs`;
 
