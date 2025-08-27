@@ -1,9 +1,8 @@
-// app/auth/sign-out/route.js
 import { NextResponse } from "next/server";
-import { getServerClient } from "@/lib/supabaseServer";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
-// Set in env: dev -> http://localhost:3000, prod -> https://your.domain
-const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
+const BASE_URL = process.env.PUBLIC_SITE_URL;
 
 function safeNext(next) {
   let path = next || "/";
@@ -11,41 +10,49 @@ function safeNext(next) {
   return new URL(path, BASE_URL).toString();
 }
 
-function isSameOrigin(request) {
-  // Basic CSRF guard: ensure Origin/Referer matches our BASE_URL
-  const origin = request.headers.get("origin");
-  const referer = request.headers.get("referer");
+function sameOrigin(req) {
+  const base = new URL(BASE_URL).origin;
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
   try {
-    if (origin && new URL(origin).origin === new URL(BASE_URL).origin) return true;
-    if (referer && new URL(referer).origin === new URL(BASE_URL).origin) return true;
+    if (origin && new URL(origin).origin === base) return true;
+    if (referer && new URL(referer).origin === base) return true;
   } catch {}
   return false;
 }
 
 export async function POST(request) {
-  if (!isSameOrigin(request)) {
+  if (!sameOrigin(request)) {
     return NextResponse.redirect(new URL("/", BASE_URL));
   }
 
-  const { searchParams } = new URL(request.url);
-  const next = safeNext(searchParams.get("next"));
-  const scopeParam = (searchParams.get("scope") || "local").toLowerCase();
-  const scope =
-    scopeParam === "others" || scopeParam === "global" ? scopeParam : "local";
+  const url = new URL(request.url);
+  const nextUrl = safeNext(url.searchParams.get("next"));
+  const scopeParam = (url.searchParams.get("scope") || "local").toLowerCase();
+  const scope = scopeParam === "global" || scopeParam === "others" ? scopeParam : "local";
 
-  const supabase = await getServerClient();
+  const res = NextResponse.redirect(nextUrl, { status: 303 });
 
-  // Optional: audit logging before sign-out
-  // const { data: { user } } = await supabase.auth.getUser();
-  // await supabase.from("auth_signout_events").insert({
-  //   user_id: user?.id ?? null,
-  //   ip: request.headers.get("x-forwarded-for") ?? null,
-  //   user_agent: request.headers.get("user-agent") ?? null,
-  //   scope,
-  // });
+  const cookieStore = await cookies();
 
-  // Clears auth cookies; "global" revokes all sessions
-  await supabase.auth.signOut({ scope });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
 
-  return NextResponse.redirect(next, { status: 303 });
+  await supabase.auth.signOut({ scope }).catch(() => {});
+
+  return res; // includes cleared cookies
 }
