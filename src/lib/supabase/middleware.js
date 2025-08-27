@@ -1,22 +1,25 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
-import { getServerClient } from '../supabaseServer'
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
 
-export async function updateSession(request) {
-  const { pathname } = request.nextUrl
-  const method = request.method
+export async function middleware(request) {
+  const { pathname, searchParams } = request.nextUrl;
+  const method = request.method;
 
-  // 1) Never meddle with auth endpoints (sign-in/out, callback, etc.)
-  if (pathname.startsWith('/auth')) {
-    return NextResponse.next({ request })
-  }
-
-  // 2) Only do redirects on navigations; don't 307 POST/PUT/DELETE
+  // 1. Always pass through non-GET/HEAD requests without any checks.
+  // This is crucial for handling POST requests to API routes.
   if (method !== 'GET' && method !== 'HEAD') {
-    return NextResponse.next({ request })
+    return NextResponse.next({ request });
   }
 
-  let res = NextResponse.next({ request })
+  // 2. Auth routes should also be left untouched to handle sign-in/out logic.
+  if (pathname.startsWith('/auth')) {
+    return NextResponse.next({ request });
+  }
+
+  // From this point on, the middleware only handles GET/HEAD requests
+  // and routes that are not part of the /auth path.
+
+  const res = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -24,33 +27,31 @@ export async function updateSession(request) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // keep Next in sync by writing to the response
           cookiesToSet.forEach(({ name, value, options }) =>
             res.cookies.set(name, value, options)
-          )
+          );
         },
       },
     }
-  )
+  );
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // 3) Gate protected pages
+  // 3. Redirect unauthenticated users to the home page.
   if (!user && pathname !== '/' && pathname !== '/auth/sign-in') {
-    const url = new URL('/', request.url)
-    return NextResponse.redirect(url) // 307 is fine here (GET)
+    const url = new URL('/', request.url);
+    return NextResponse.redirect(url);
   }
 
-  // 4) Home → Dashboard only for GET when logged in
+  // 4. Redirect authenticated users from the home page to the dashboard.
   if (user && pathname === '/') {
-    const url = new URL('/dashboard', request.url)
-    return NextResponse.redirect(url)
+    const url = new URL('/dashboard', request.url);
+    return NextResponse.redirect(url);
   }
 
-  // 5) Admin guard (only if logged in)
   if (user && pathname.startsWith('/admin')) {
     const supabase = await getServerClient();
     const uniqname = user.email.split("@")[0];
@@ -66,5 +67,5 @@ export async function updateSession(request) {
     }
   }
 
-  return res
+  return res;
 }
