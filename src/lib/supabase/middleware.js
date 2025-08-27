@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
-export async function middleware(request) {
+export async function updateSession(request) {
   const { pathname, searchParams } = request.nextUrl;
   const method = request.method;
 
