@@ -5,6 +5,12 @@ export async function updateSession(request) {
   const { pathname, searchParams } = request.nextUrl;
   const method = request.method;
 
+  if (searchParams.get('redirectedFromAuth') === 'true') {
+      const url = new URL(request.url);
+      url.searchParams.delete('redirectedFromAuth');
+      return NextResponse.redirect(url);
+  }
+
   // 1. Always pass through non-GET/HEAD requests without any checks.
   // This is crucial for handling POST requests to API routes.
   if (method !== 'GET' && method !== 'HEAD') {

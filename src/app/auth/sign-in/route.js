@@ -117,7 +117,9 @@ export async function GET(request) {
 
   // Route based on onboarding
   if (member.onboarding_completed) {
-    return NextResponse.redirect(safeRedirect(next));
+    const redirectUrl = new URL(safeRedirect(next));
+    redirectUrl.searchParams.set('redirectedFromAuth', 'true');
+    return NextResponse.redirect(redirectUrl);
   }
   return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
 }
