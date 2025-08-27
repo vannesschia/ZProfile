@@ -14,7 +14,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${process.env.PUBLIC_SITE_URL}/auth/sign-in?next=/dashboard`,
+        redirectTo: `http://localhost:3000/auth/sign-in?next=/dashboard`,
       },
     });
     if (error) {
@@ -39,7 +39,7 @@ export default function LoginPage() {
                     </div>
                     <span className="sr-only">ZProfiles</span>
                   </a>
-                  <h1 className="text-xl font-bold">Welcome to ZProfiles</h1>
+                  <h1 className="text-xl font-bold">Welcome to ZProfile</h1>
                   {/* <div className="text-center text-sm">
                     Don&apos;t have an account?{" "}
                     <a href="#" className="underline underline-offset-4">
@@ -57,7 +57,7 @@ export default function LoginPage() {
                     </svg>
                     Sign in
                   </Button>
-                  <p className="text-muted-foreground text-sm">Please sign in with your umich email.</p>
+                  <p className="text-muted-foreground text-sm">Please sign in with your umich email</p>
                 </div>
               </div>
             </form>
