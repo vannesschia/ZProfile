@@ -36,6 +36,7 @@ import MultiSelect from "./multiselect";
 import handleCourseSearch from "./classes-api";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import PhoneNumberInput from "./phone-number";
 
 const formSchema = z.object({
   name: z.string().min(1).transform((val) => val.trim()), //removes whitespace from name
@@ -45,10 +46,7 @@ const formSchema = z.object({
   graduation_year: z.coerce.number().int().min(2020),
   current_class_number: z.string().min(1),
   email_address: z.string().min(1),
-  phone_number: z.string().min(1),
-  // pronouns: z.string().min(1).optional(),
-  // preferred_name: z.string().min(1).optional(),
-  // profile_picture: z.string().min(1)
+  phone_number: z.string().length(10, "Invalid phone number"),
   courses: z.array(
     z.object({
       term: z.string().min(1, "Invalid term format"),
@@ -96,109 +94,110 @@ export function MyForm({ initialData, userEmail }) {
   });
 
   async function handleImageUpload() {
-      if (!selectedFile) {
-        toast.error("Please select a file first.");
-        return;
+    if (!selectedFile) {
+      toast.error("Please select a file first.");
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      // Get current user to ensure authentication
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Auth error:", userError);
+        throw new Error(`Authentication error: ${userError.message}`);
       }
 
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(selectedFile.type)) {
-        toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
-        return;
+      if (!user) {
+        console.error("No user found in session");
+        throw new Error("You must be logged in to upload images.");
       }
 
-      // Validate file size (5MB limit)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB.");
-        return;
-      }
+      // Delete old profile picture if it exists
+      if (currentImageUrl) {
+        // Extract filename from URL (last part after /)
+        const oldFileName = currentImageUrl.split('/').pop();
+        if (oldFileName) {
+          // Use the same path structure as upload: "profile-pictures/filename"
+          const { error: deleteError } = await supabase.storage
+            .from("profile-pictures")
+            .remove([`profile-pictures/${oldFileName}`]);
 
-      setUploadingImage(true);
-
-      try {
-        // Get current user to ensure authentication
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError) {
-          console.error("Auth error:", userError);
-          throw new Error(`Authentication error: ${userError.message}`);
-        }
-
-        if (!user) {
-          console.error("No user found in session");
-          throw new Error("You must be logged in to upload images.");
-        }
-
-        // Delete old profile picture if it exists
-        if (currentImageUrl) {
-          // Extract filename from URL (last part after /)
-          const oldFileName = currentImageUrl.split('/').pop();
-          if (oldFileName) {
-            // Use the same path structure as upload: "profile-pictures/filename"
-            const { error: deleteError } = await supabase.storage
-              .from("profile-pictures")
-              .remove([`profile-pictures/${oldFileName}`]);
-
-            if (deleteError) {
-              console.warn("Failed to delete old profile picture:", deleteError);
-            }
+          if (deleteError) {
+            console.warn("Failed to delete old profile picture:", deleteError);
           }
         }
-
-        // Create unique filename with user identifier
-        const fileExt = selectedFile.name.split('.').pop();
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `profile-pictures/${fileName}`;
-
-        // Upload file to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from("profile-pictures")
-          .upload(filePath, selectedFile, {
-            cacheControl: '3600',
-            upsert: false // Don't overwrite existing files
-          });
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw new Error(uploadError.message || "Failed to upload image.");
-        }
-
-        // Get public URL for the uploaded file
-        const { data: publicData } = supabase.storage
-          .from("profile-pictures")
-          .getPublicUrl(filePath);
-
-        const imageUrl = publicData.publicUrl;
-
-        // Update the member record with the new profile picture URL
-        const { error: updateError } = await supabase
-          .from("members")
-          .update({ profile_picture_url: imageUrl })
-          .eq("email_address", userEmail);
-
-        if (updateError) {
-          console.error("Database update error:", updateError);
-          throw new Error("Failed to save profile picture to your account.");
-        }
-
-        // Update local state
-        setCurrentImageUrl(imageUrl);
-        setSelectedFile(null);
-
-        // Reset file input
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
-
-        toast.success("Profile picture uploaded successfully!");
-
-      } catch (error) {
-        console.error("Image upload error:", error);
-        toast.error(error.message || "Failed to upload image.");
-      } finally {
-        setUploadingImage(false);
       }
+
+      // Create unique filename with user identifier
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("profile-pictures")
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false // Don't overwrite existing files
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(uploadError.message || "Failed to upload image.");
+      }
+
+      // Get public URL for the uploaded file
+      const { data: publicData } = supabase.storage
+        .from("profile-pictures")
+        .getPublicUrl(filePath);
+
+      const imageUrl = publicData.publicUrl;
+
+      // Update the member record with the new profile picture URL
+      const { error: updateError } = await supabase
+        .from("members")
+        .update({ profile_picture_url: imageUrl })
+        .eq("email_address", userEmail);
+
+      if (updateError) {
+        console.error("Database update error:", updateError);
+        throw new Error("Failed to save profile picture to your account.");
+      }
+
+      // Update local state
+      setCurrentImageUrl(imageUrl);
+      setSelectedFile(null);
+
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = '';
+
+      toast.success("Profile picture uploaded successfully!");
+
+    } catch (error) {
+      console.error("Image upload error:", error);
+      toast.error(error.message || "Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
     }
+  }
+
   const termInputDebounce = useRef({});
     const courseSearchDebounce = useRef({});
     const [searchText, setSearchText] = useState({});
@@ -389,23 +388,6 @@ export function MyForm({ initialData, userEmail }) {
               </FormDescription>
             </div>
 
-
-            {/* <FormField
-            control={form.control}
-            name="email_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                  placeholder="------@umich.edu"
-                  type="email"
-                  {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
             <FormField
               control={form.control}
               name="phone_number"
@@ -413,10 +395,10 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="(xxx) xxx-xxxx"
-                      type="tel"
-                      {...field} />
+                    <PhoneNumberInput
+                      form={form}
+                      initialValue={form.watch("phone_number")}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -457,15 +439,6 @@ export function MyForm({ initialData, userEmail }) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* <SelectItem value="F2025">F25</SelectItem>
-                    <SelectItem value="W2026">W26</SelectItem>
-                    <SelectItem value="F2026">F26</SelectItem>
-                    <SelectItem value="W2027">W27</SelectItem>
-                    <SelectItem value="F2027">F27</SelectItem>
-                    <SelectItem value="W2028">W28</SelectItem>
-                    <SelectItem value="F2028">F28</SelectItem>
-                    <SelectItem value="W2029">W29</SelectItem>
-                    <SelectItem value="F2029">F29</SelectItem> */}
                       <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2026">2026</SelectItem>
                       <SelectItem value="2027">2027</SelectItem>
@@ -507,7 +480,6 @@ export function MyForm({ initialData, userEmail }) {
                       type="text"
                       {...field} />
                   </FormControl>
-                  {/* <FormDescription>enter your class</FormDescription> */}
                   <FormMessage />
                 </FormItem>
               )}
