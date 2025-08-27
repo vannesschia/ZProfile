@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabaseServer";
 
-const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
+const BASE_URL = 'http://localhost:3000'
+console.log("ENV", process.env);
 console.log("BASE_URL", BASE_URL);
 const REQUIRED_DOMAIN = "umich.edu";
 
@@ -123,7 +124,7 @@ export async function GET(request) {
     redirectUrl.searchParams.set('redirectedFromAuth', 'true');
     return NextResponse.redirect(redirectUrl);
   }
-  
+
   const redirectUrl = new URL("/profile/setup", BASE_URL);
   redirectUrl.searchParams.set("redirectedFromAuth", "true");
   return NextResponse.redirect(redirectUrl);
