@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { FormatPhoneNumber } from "./format-phone-number";
 
 export default function PhoneNumberInput({ form, initialValue }) {
   const [phoneNumber, setPhoneNumber] = useState(FormatPhoneNumber(initialValue));
@@ -23,13 +24,9 @@ export default function PhoneNumberInput({ form, initialValue }) {
 
   return (
     <Input
+      className="text-sm"
       value={phoneNumber}
       onChange={setValidPhoneNumber}
     />
   )
-}
-
-// function to insert hyphens into phone number
-export function FormatPhoneNumber(phoneNumber) {
-  return phoneNumber.replace(/(\d{3})(\d{3})(\d+)/, "$1-$2-$3");
 }

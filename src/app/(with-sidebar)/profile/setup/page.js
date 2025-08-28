@@ -1,6 +1,5 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
-// import ProfileForm from "./ProfileForm";
 import { MyForm } from "@/app/components/profileForm";
 import {
   Card,
@@ -76,9 +75,7 @@ export default async function ProfilePage() {
   return (
     <main style={{ padding: "2rem" }}>
       <main className="min-h-screen">
-
         <h1 className="mb-6 text-2xl font-bold">Profile Setup</h1>
-
         <Card className="max-w-8xl">
           {initialData ? <MyForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}
         </Card>

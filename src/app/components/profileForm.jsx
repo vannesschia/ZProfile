@@ -30,21 +30,21 @@ import {
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation";
 import { Trash, ListPlus } from "lucide-react";
-import { wordsToTermCode, CURRENT_TERM, isValidTerm } from "../(with-sidebar)/course-directory/term-functions";
+import { wordsToTermCode, isValidTerm } from "../(with-sidebar)/course-directory/term-functions";
 import { useEffect, useRef, useState } from "react";
 import MultiSelect from "./multiselect";
 import handleCourseSearch from "./classes-api";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import PhoneNumberInput from "./phone-number";
+import PhoneNumberInput from "./phone-number/phone-number";
 
 const formSchema = z.object({
   name: z.string().min(1).transform((val) => val.trim()), //removes whitespace from name
-  major: z.string().min(1),
-  minor: z.string().min(1).optional(),
-  grade: z.string().min(1),
+  major: z.string().min(1, "Please enter your major"),
+  minor: z.string().optional(),
+  grade: z.string().min(1, "Please enter your grade"),
   graduation_year: z.coerce.number().int().min(2020),
-  current_class_number: z.string().min(1),
+  current_class_number: z.string().min(1, "Please enter your class"),
   email_address: z.string().min(1),
   phone_number: z.string().length(10, "Invalid phone number"),
   courses: z.array(
@@ -241,11 +241,10 @@ export function MyForm({ initialData, userEmail }) {
       onboarding_completed: true
     };
 
-    const { error: membersError, data: membersData } = await supabase
+    const { error: membersError } = await supabase
       .from("members")
       .update(payload)
       .eq("email_address", userEmail)
-      .select();
 
     if (membersError) {
       console.error("Update error:", membersError.message);
@@ -304,10 +303,9 @@ export function MyForm({ initialData, userEmail }) {
       }
     }
 
-    const { error: classesError, data: classesData } = await supabase
+    const { error: classesError } = await supabase
       .from("brother_classes")
       .insert(newCourses)
-      .select()
 
     if (classesError) {
       console.error("Update error:", classesError.message);
@@ -325,33 +323,50 @@ export function MyForm({ initialData, userEmail }) {
 
   return (
     <Form {...form} className="px-12">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
-
-        {/* Two column grid for remaining fields */}
-        <div className="grid grid-cols-2 gap-8">
-          {/* Left column */}
-          <div className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-0 justify-between items-start">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full mr-8">
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input
+                      className="text-sm"
                       placeholder=""
                       type="text"
-                      {...field} />
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* Profile Picture Upload Section */}
-            <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="major"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Major</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="text-sm"
+                      placeholder=""
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>** Separate by comma if double majoring</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-0 justify-between items-start">
+            <div className="flex flex-col gap-2 w-full mr-8">
               <FormLabel>Profile Picture</FormLabel>
-
-              {/* Current image preview */}
               {currentImageUrl && (
                 <div className="flex flex-col items-left pl-1 space-y-2">
                   <img
@@ -362,37 +377,98 @@ export function MyForm({ initialData, userEmail }) {
                   <p className="text-sm text-muted-foreground">Current profile picture</p>
                 </div>
               )}
-
-              {/* File input */}
               <Input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                className="cursor-pointer"
+                className="cursor-pointer pt-1.5 text-sm"
               />
-
-              {/* Upload button */}
               <Button
                 type="button"
                 onClick={handleImageUpload}
                 disabled={!selectedFile || uploadingImage}
                 variant="outline"
-                size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start px-3 h-[48px] lg:h-[36px] whitespace-normal"
               >
-                {uploadingImage ? "Uploading..." : "Upload Picture"}
+                {uploadingImage ? "Uploading..." : "Upload Picture (JPEG, PNG, or WebP, max 5MB)"}
               </Button>
-
-              <FormDescription>
-                Upload a profile picture (JPEG, PNG, or WebP, max 5MB)
-              </FormDescription>
             </div>
-
+            <div className="flex flex-col w-full gap-4">
+              <FormField
+                control={form.control}
+                name="graduation_year"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expected Graduation Year</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full lg:w-[200px]">
+                          <SelectValue placeholder="Choose a year"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="2025">2025</SelectItem>
+                        <SelectItem value="2026">2026</SelectItem>
+                        <SelectItem value="2027">2027</SelectItem>
+                        <SelectItem value="2028">2028</SelectItem>
+                        <SelectItem value="2029">2029</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="minor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minor</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="text-sm"
+                        placeholder=""
+                        type="text"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>** Leave blank if N/A</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="grade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grade</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full lg:w-[200px]">
+                          <SelectValue placeholder="Choose your grade"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="freshman">Freshman</SelectItem>
+                        <SelectItem value="sophomore">Sophomore</SelectItem>
+                        <SelectItem value="junior">Junior</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                        <SelectItem value="graduate_student">Graduate Student</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-0 justify-between items-start mb-4">
             <FormField
               control={form.control}
               name="phone_number"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full mr-8">
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <PhoneNumberInput
@@ -404,97 +480,16 @@ export function MyForm({ initialData, userEmail }) {
                 </FormItem>
               )}
             />
-          </div>
-
-          {/* Right column */}
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="major"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Major</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder=""
-                      type="text"
-                      {...field} />
-                  </FormControl>
-                  <FormDescription> ** Separate by comma if double majoring</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="graduation_year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expected Graduation Date</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="select graduation semester" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="2025">2025</SelectItem>
-                      <SelectItem value="2026">2026</SelectItem>
-                      <SelectItem value="2027">2027</SelectItem>
-                      <SelectItem value="2028">2028</SelectItem>
-                      <SelectItem value="2029">2029</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="minor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Minor</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder=""
-                      type="text"
-                      {...field} />
-                  </FormControl>
-                  <FormDescription>** Leave blank if N/A</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="grade"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Grade</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder=""
-                      type="text"
-                      {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="current_class_number"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full">
                   <FormLabel>Class</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="select class" />
+                      <SelectTrigger className="w-full lg:w-[200px]">
+                        <SelectValue placeholder="Choose your class" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -633,7 +628,7 @@ export function MyForm({ initialData, userEmail }) {
           <Button
             type="button"
             variant="secondary"
-            className="cursor-pointer"
+            className="cursor-pointer mb-4"
             onClick={() => append({ term: "", classes: [] })}
           >
             <ListPlus />Add Another Term

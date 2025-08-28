@@ -1,7 +1,5 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
-// import ProfileForm from "./ProfileForm";
-import { MyForm } from "@/app/components/profileForm";
 import {
   Card,
   CardAction,
@@ -13,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import Link from "next/link";
 import { termCodeToWords } from "../course-directory/term-functions";
+import { FormatPhoneNumber } from "@/app/components/phone-number/format-phone-number";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +66,12 @@ export default async function ProfilePage() {
               )}
               <div>
                 <CardTitle className="text-xl pt-2 pl-2">{member?.name || "Full Name"}</CardTitle>
-                <CardDescription className="pl-2">{member?.grade || "Grade"}</CardDescription>
+                <CardDescription className="pl-2">
+                  {member?.grade
+                    ? member.grade.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
+                    : "Grade"
+                  }
+                </CardDescription>
               </div>
             </div>
             <Link href="/profile/setup">
@@ -80,10 +84,15 @@ export default async function ProfilePage() {
             <div className="space-y-6"> {/* left column */}
               <CardContent>
                 <strong>Major</strong>
-                <p>{member?.major || "Major"}</p>
+                <p>
+                  {member?.major.length
+                    ? member.major.join(", ")
+                    : "Major"
+                  }
+                </p>
               </CardContent>
               <CardContent>
-                <strong>Expected Graduation Date</strong>
+                <strong>Expected Graduation Year</strong>
                 <p>{member?.graduation_year || "Graduation Year"}</p>
               </CardContent>
               <CardContent>
@@ -94,7 +103,12 @@ export default async function ProfilePage() {
               <div className="space-y-6"> {/* right column */}
               <CardContent>
                 <strong>Minor</strong>
-                <p>{member?.minor || "Minor"}</p>
+                <p>
+                  {member?.minor.length
+                    ? member.minor.join(", ")
+                    : "Minor"
+                  }
+                </p>
               </CardContent>
               <CardContent>
                 <strong>Class</strong>
@@ -102,7 +116,7 @@ export default async function ProfilePage() {
               </CardContent>
               <CardContent>
                 <strong>Phone Number</strong>
-                <p>{member?.phone_number || "Phone Number"}</p>
+                <p>{FormatPhoneNumber(member?.phone_number) || "Phone Number"}</p>
               </CardContent>
             </div>
           </div>
