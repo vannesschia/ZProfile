@@ -69,7 +69,7 @@ export default async function ProfilePage() {
                 <CardDescription className="pl-2">
                   {member?.grade
                     ? member.grade.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
-                    : "Grade"
+                    : ""
                   }
                 </CardDescription>
               </div>
@@ -87,17 +87,17 @@ export default async function ProfilePage() {
                 <p>
                   {member?.major.length
                     ? member.major.join(", ")
-                    : "Major"
+                    : "N/A"
                   }
                 </p>
               </CardContent>
               <CardContent>
                 <strong>Expected Graduation Year</strong>
-                <p>{member?.graduation_year || "Graduation Year"}</p>
+                <p>{member?.graduation_year || "N/A"}</p>
               </CardContent>
               <CardContent>
                 <strong>Email</strong>
-                <p>{member?.email_address || "Email"}</p>
+                <p>{member?.email_address || "N/A"}</p>
               </CardContent>
             </div>
               <div className="space-y-6"> {/* right column */}
@@ -106,20 +106,20 @@ export default async function ProfilePage() {
                 <p>
                   {member?.minor.length
                     ? member.minor.join(", ")
-                    : "Minor"
+                    : "N/A"
                   }
                 </p>
               </CardContent>
               <CardContent>
                 <strong>Class</strong>
-                <p>{member?.current_class_number || "Class"}</p>
+                <p>{member?.current_class_number || "N/A"}</p>
               </CardContent>
               <CardContent>
                 <strong>Phone Number</strong>
                 <p>
                   {member?.phone_number
                     ? FormatPhoneNumber(member.phone_number)
-                    : "Phone Number"
+                    : "N/A"
                   }
                 </p>
               </CardContent>
@@ -128,7 +128,7 @@ export default async function ProfilePage() {
           <CardContent>
             <strong>Courses</strong>
             {
-              member
+              member?.courses
                 ? <div className="flex flex-col">
                     {(() => {
                       const m = new Map();
@@ -152,7 +152,7 @@ export default async function ProfilePage() {
                       })
                     })()}
                   </div>
-                : <p>Courses</p>
+                : <p>N/A</p>
             }
           </CardContent>
         </Card>
