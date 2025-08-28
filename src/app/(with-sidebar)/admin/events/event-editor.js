@@ -257,7 +257,7 @@ export function AttendanceDualListbox({
       <div className="flex flex-col w-full">
         <span className="text-[12px] text-muted-foreground select-none mb-1">Selected Names</span>
         <Command className="min-h-[36px] rounded-md border">
-          <CommandList>
+          <CommandList className="max-h-[332px]">
             {loading
               ? <div className="p-2 flex flex-col gap-4">
                   <div className="flex flex-row gap-2">
