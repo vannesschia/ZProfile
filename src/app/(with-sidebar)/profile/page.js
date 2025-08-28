@@ -116,7 +116,12 @@ export default async function ProfilePage() {
               </CardContent>
               <CardContent>
                 <strong>Phone Number</strong>
-                <p>{FormatPhoneNumber(member?.phone_number) || "Phone Number"}</p>
+                <p>
+                  {member?.phone_number
+                    ? FormatPhoneNumber(member.phone_number)
+                    : "Phone Number"
+                  }
+                </p>
               </CardContent>
             </div>
           </div>
