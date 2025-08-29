@@ -24,7 +24,6 @@ export async function GET(request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const oauthErr = url.searchParams.get("error");
-  const next = url.searchParams.get("next");
 
   if (oauthErr || !code) {
     // No need to signOut: no session was set
@@ -103,7 +102,7 @@ export async function GET(request) {
 
     // Newly bound: send to setup (you can choose to send to `next` if already completed)
     if (bound.onboarding_completed) {
-      return NextResponse.redirect(safeRedirect(next));
+      return NextResponse.redirect(safeRedirect("/dashboard"));
     }
     return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
   }
@@ -116,7 +115,7 @@ export async function GET(request) {
 
   // Route based on onboarding
   if (member.onboarding_completed) {
-    return NextResponse.redirect(safeRedirect(next));
+    return NextResponse.redirect(safeRedirect("/dashboard"));
   }
   return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
 }
