@@ -22,7 +22,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-export default function MultiSelect({ termValidity, options, placeholder, onChange, input, onInputChange, form, index }) {
+export default function MultiSelect({
+  termValidity,
+  options,
+  placeholder,
+  onChange,
+  input,
+  onInputChange,
+  form,
+  index
+}) {
   const [open, setOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState([]);
   const [isWrapped, setIsWrapped] = useState(false);
@@ -153,6 +162,9 @@ export default function MultiSelect({ termValidity, options, placeholder, onChan
                     key={option.className}
                     onSelect={() => toggleOption(option.className)}
                     className="cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
                   >
                     <div className={`flex h-4 w-4 border items-center justify-center
                       ${isSelected ? "border-green-500" : "opacity-50 [&_svg]:invisible"}
