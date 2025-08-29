@@ -1,9 +1,8 @@
-// app/callback/route.js
+// app/auth/sign-in/route.js
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabaseServer";
 
-const BASE_URL = 'http://localhost:3000'
-console.log("ENV", process.env);
+const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
 console.log("BASE_URL", BASE_URL);
 const REQUIRED_DOMAIN = "umich.edu";
 
@@ -16,7 +15,6 @@ function safeRedirect(next) {
 function redirectToLogin(message = "") {
   const url = new URL("/", BASE_URL);
   if (message) url.searchParams.set("error", message);
-  // Add a 'reauth=1' hint if you want to tweak login UX
   url.searchParams.set("reauth", "1");
   return url;
 }
@@ -30,13 +28,13 @@ export async function GET(request) {
 
   if (oauthErr || !code) {
     // No need to signOut: no session was set
-    return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth", BASE_URL));
   }
 
   // 1) Exchange code → session cookies
   const { error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeErr) {
-    return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth", BASE_URL));
   }
 
   // 2) Get user
@@ -68,19 +66,19 @@ export async function GET(request) {
 
   if (readErr) {
     console.error("Member read error");
-    return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth", BASE_URL));
   }
 
   // Not invited
   if (!member) {
-    return NextResponse.redirect(new URL("/auth/not-invited", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth/not-invited", BASE_URL));
   }
 
   // If email was pre-populated, it must match; if it was NULL, allow first bind to set it
   const storedEmail = (member.email_address ?? "").toLowerCase();
   if (storedEmail && storedEmail !== email) {
     // Email mismatch against roster
-    return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth", BASE_URL));
   }
 
   // 5) First login bind:
@@ -99,33 +97,26 @@ export async function GET(request) {
       .maybeSingle();
 
     if (bindErr || !bound) {
-      // Another session may have claimed it, or a race/error occurred
-      return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+      // Another session may have claimed it, or a race/error/auth occurred
+      return NextResponse.redirect(new URL("/error/auth", BASE_URL));
     }
 
-    // Newly bound: send to setup
-    const redirectUrl = new URL(
-      bound.onboarding_completed ? safeRedirect(next) : "/profile/setup",
-      BASE_URL
-    );
-    redirectUrl.searchParams.set("redirectedFromAuth", "true");
-    return NextResponse.redirect(redirectUrl);
+    // Newly bound: send to setup (you can choose to send to `next` if already completed)
+    if (bound.onboarding_completed) {
+      return NextResponse.redirect(safeRedirect(next));
+    }
+    return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
   }
 
   // 6) Returning user: ensure this auth user owns the row
   if (member.user_id !== user.id) {
     // Row already bound to a different auth user -> block
-    return NextResponse.redirect(new URL("/auth/auth-code-error", BASE_URL));
+    return NextResponse.redirect(new URL("/error/auth", BASE_URL));
   }
 
   // Route based on onboarding
   if (member.onboarding_completed) {
-    const redirectUrl = new URL(safeRedirect(next));
-    redirectUrl.searchParams.set('redirectedFromAuth', 'true');
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(safeRedirect(next));
   }
-
-  const redirectUrl = new URL("/profile/setup", BASE_URL);
-  redirectUrl.searchParams.set("redirectedFromAuth", "true");
-  return NextResponse.redirect(redirectUrl);
+  return NextResponse.redirect(new URL("/profile/setup", BASE_URL));
 }
