@@ -128,7 +128,7 @@ export default async function ProfilePage() {
           <CardContent>
             <strong>Courses</strong>
             {
-              member?.courses
+              member?.brother_classes
                 ? <div className="flex flex-col">
                     {(() => {
                       const m = new Map();

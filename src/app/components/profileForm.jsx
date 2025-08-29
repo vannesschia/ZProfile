@@ -39,13 +39,13 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import PhoneNumberInput from "./phone-number/phone-number";
 
 const formSchema = z.object({
-  name: z.string().min(1).transform((val) => val.trim()), //removes whitespace from name
+  name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
   major: z.string().min(1, "Please enter your major"),
   minor: z.string().optional(),
   grade: z.string().min(1, "Please enter your grade"),
-  graduation_year: z.coerce.number().int().min(2020),
+  graduation_year: z.coerce.number().int().min(2020, "Please enter your graduation year"),
   current_class_number: z.string().min(1, "Please enter your class"),
-  email_address: z.string().min(1),
+  email_address: z.string().min(1, "Please enter your email address"),
   phone_number: z.string().length(10, "Invalid phone number"),
   courses: z.array(
     z.object({
