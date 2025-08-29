@@ -13,7 +13,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `http://localhost:3000/auth/sign-in`,
+        redirectTo: `http://zprofile.tech/auth/sign-in`,
       },
     });
     if (error) {
