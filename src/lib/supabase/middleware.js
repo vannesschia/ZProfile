@@ -6,12 +6,6 @@ export async function updateSession(request) {
   const { pathname, searchParams } = request.nextUrl;
   const method = request.method;
 
-  if (searchParams.get('redirectedFromAuth') === 'true') {
-      const url = new URL(request.url);
-      url.searchParams.delete('redirectedFromAuth');
-      return NextResponse.redirect(url);
-  }
-
   // 1. Always pass through non-GET/HEAD requests without any checks.
   // This is crucial for handling POST requests to API routes.
   if (method !== 'GET' && method !== 'HEAD') {
@@ -19,7 +13,7 @@ export async function updateSession(request) {
   }
 
   // 2. Auth routes should also be left untouched to handle sign-in/out logic.
-  if (pathname.startsWith('/auth')) {
+  if (pathname.startsWith('/auth') || pathname.startsWith('/error')) {
     return NextResponse.next({ request });
   }
 
@@ -28,27 +22,12 @@ export async function updateSession(request) {
 
   const res = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const supabase = await getServerClient();
 
   const { data: { user } } = await supabase.auth.getUser();
 
   // 3. Redirect unauthenticated users to the home page.
-  if (!user && pathname !== '/' && pathname !== '/auth/sign-in') {
+  if (!user && pathname !== '/' && !pathname.startsWith('/auth/sign-in')) {
     const url = new URL('/', request.url);
     return NextResponse.redirect(url);
   }
@@ -60,7 +39,6 @@ export async function updateSession(request) {
   }
 
   if (user && pathname.startsWith('/admin')) {
-    const supabase = await getServerClient();
     const uniqname = user.email.split("@")[0];
     const { data: member } = await supabase
       .from('members')

@@ -7,14 +7,13 @@ import { Button } from "../components/ui/button";
 
 export default function LoginPage() {
   const supabase = getBrowserClient();
-  const router = useRouter();
 
   // Google OAuth
   async function handleGoogleSignIn() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `http://localhost:3000/auth/sign-in?next=/dashboard`,
+        redirectTo: `http://localhost:3000/auth/sign-in`,
       },
     });
     if (error) {
