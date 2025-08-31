@@ -20,7 +20,7 @@ export default function MemberCard({ member }) {
 
             <div className="flex-1 space-y-2 w-full flex flex-col items-center">
                 {/* Name + Contact stacked vertically (centered) */}
-                <div className="flex flex-col flex-1 space-y-1 items-center justify-center">
+                <div className="flex flex-col flex-1 space-y-1 items-center justify-start">
                     <h2 className="text-lg font-semibold">{member.name}</h2>
                     <p className="text-sm text-muted-foreground leading-tight">{member.email_address}</p>
                     {member.phone_number && <p className="text-sm text-muted-foreground leading-tight">{FormatPhoneNumber(member.phone_number)}</p>}
