@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FormatPhoneNumber } from "./phone-number/format-phone-number";
 
 export default function MemberCard({ member }) {
     return (
@@ -22,7 +23,7 @@ export default function MemberCard({ member }) {
                 <div className="flex flex-col flex-1 space-y-1 items-center justify-center">
                     <h2 className="text-lg font-semibold">{member.name}</h2>
                     <p className="text-sm text-muted-foreground leading-tight">{member.email_address}</p>
-                    <p className="text-sm text-muted-foreground leading-tight">{member.phone_number}</p>
+                    {member.phone_number && <p className="text-sm text-muted-foreground leading-tight">{FormatPhoneNumber(member.phone_number)}</p>}
                 </div>
 
                 {/* description badges */}
@@ -39,7 +40,10 @@ export default function MemberCard({ member }) {
                     ))}
                     {member.grade && (
                         <Badge className="bg-green-100 text-green-800">
-                            {member.grade}
+                            {member?.grade
+                                ? member.grade.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
+                                : ""
+                            }
                         </Badge>
                     )}
                     {member.graduation_year && (
