@@ -525,6 +525,7 @@ export function MyForm({ initialData, userEmail }) {
                         <FormItem className="w-full sm:w-32 flex-shrink-0 mb-2">
                           <FormControl>
                             <Input
+                              className="text-sm"
                               {...field}
                               placeholder="e.g. Fall 2023"
                               onChange={(e) => {

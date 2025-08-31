@@ -47,116 +47,120 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <main className="min-h-screen">
-        <Card className="max-w-8xl">
-          <CardHeader className="flex justify-between items-start">
-            <div className="flex items-start gap-4">
-              {/* Profile Picture */}
-              {member?.profile_picture_url ? (
-                <img 
-                  src={member.profile_picture_url} 
-                  alt={`${member.name || 'User'}'s profile picture`}
-                  className="w-32 h-36 rounded-sm object-cover border-2 border-gray-200"
-                />
-              ) : (
-                <div className="w-32 h-36 rounded-sm bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
-                  No Photo
-                </div>
-              )}
-              <div>
-                <CardTitle className="text-xl pt-2 pl-2">{member?.name || "Full Name"}</CardTitle>
-                <CardDescription className="pl-2">
-                  {member?.grade
-                    ? member.grade.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
-                    : ""
-                  }
-                </CardDescription>
+    <main className="min-h-screen p-0 sm:p-8">
+      <Card className="max-w-8xl">
+        <CardHeader className="flex justify-between items-start">
+          <div className="flex items-start gap-4">
+            {/* Profile Picture */}
+            {member?.profile_picture_url ? (
+              <img
+                src={member.profile_picture_url}
+                alt={`${member.name || 'User'}'s profile picture`}
+                className="w-32 h-36 rounded-sm object-cover border-2 border-gray-200"
+              />
+            ) : (
+              <div className="w-32 h-36 rounded-sm bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                No Photo
               </div>
-            </div>
-            <Link href="/profile/setup">
-              <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700">
-                Edit Profile
-              </CardAction>
-            </Link>
-          </CardHeader>
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-6"> {/* left column */}
-              <CardContent>
-                <strong>Major</strong>
-                <p>
-                  {member?.major.length
-                    ? member.major.join(", ")
-                    : "N/A"
-                  }
-                </p>
-              </CardContent>
-              <CardContent>
-                <strong>Expected Graduation Year</strong>
-                <p>{member?.graduation_year || "N/A"}</p>
-              </CardContent>
-              <CardContent>
-                <strong>Email</strong>
-                <p>{member?.email_address || "N/A"}</p>
-              </CardContent>
-            </div>
-              <div className="space-y-6"> {/* right column */}
-              <CardContent>
-                <strong>Minor</strong>
-                <p>
-                  {member?.minor.length
-                    ? member.minor.join(", ")
-                    : "N/A"
-                  }
-                </p>
-              </CardContent>
-              <CardContent>
-                <strong>Class</strong>
-                <p>{member?.current_class_number || "N/A"}</p>
-              </CardContent>
-              <CardContent>
-                <strong>Phone Number</strong>
-                <p>
-                  {member?.phone_number
-                    ? FormatPhoneNumber(member.phone_number)
-                    : "N/A"
-                  }
-                </p>
-              </CardContent>
+            )}
+            <div>
+              <CardTitle className="text-xl pt-2 pl-2">{member?.name || "Full Name"}</CardTitle>
+              <CardDescription className="pl-2">
+                {member?.grade
+                  ? member.grade.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
+                  : ""
+                }
+              </CardDescription>
             </div>
           </div>
-          <CardContent>
-            <strong>Courses</strong>
-            {
-              member?.brother_classes
-                ? <div className="flex flex-col">
-                    {(() => {
-                      const m = new Map();
-                      for (const {term_code: t, class_name: c} of member.brother_classes) {
-                        if (!m[t]) {
-                          m[t] = [c];
-                        } else {
-                          m[t].push(c);
-                        }
-                      }
-                      return Object.entries(m).map(([t, c]) => {
-                        const class_text = c.map(cc => cc.replace(/([A-Za-z]+)(\d+)/, "$1 $2")).join(", ");
-                        return (
-                          <div key={t} className="flex flex-row">
-                            <div className="italic">{`${termCodeToWords(t)}:`}</div>
-                            <div className="flex flex-row ml-1 gap-1">
-                              {class_text}
-                            </div>
-                          </div>
-                        )
-                      })
-                    })()}
-                  </div>
-                : <p>N/A</p>
-            }
-          </CardContent>
-        </Card>
-      </main>
+          <Link className="hidden lg:block" href="/profile/setup">
+            <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700">
+              Edit Profile
+            </CardAction>
+          </Link>
+        </CardHeader>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="space-y-6"> {/* left column */}
+            <CardContent>
+              <strong>Major</strong>
+              <p>
+                {member?.major.length
+                  ? member.major.join(", ")
+                  : "N/A"
+                }
+              </p>
+            </CardContent>
+            <CardContent>
+              <strong>Expected Graduation Year</strong>
+              <p>{member?.graduation_year || "N/A"}</p>
+            </CardContent>
+            <CardContent>
+              <strong>Email</strong>
+              <p>{member?.email_address || "N/A"}</p>
+            </CardContent>
+          </div>
+          <div className="space-y-6"> {/* right column */}
+            <CardContent>
+              <strong>Minor</strong>
+              <p>
+                {member?.minor.length
+                  ? member.minor.join(", ")
+                  : "N/A"
+                }
+              </p>
+            </CardContent>
+            <CardContent>
+              <strong>Class</strong>
+              <p>{member?.current_class_number || "N/A"}</p>
+            </CardContent>
+            <CardContent>
+              <strong>Phone Number</strong>
+              <p>
+                {member?.phone_number
+                  ? FormatPhoneNumber(member.phone_number)
+                  : "N/A"
+                }
+              </p>
+            </CardContent>
+          </div>
+        </div>
+        <CardContent>
+          <strong>Courses</strong>
+          {
+            member?.brother_classes
+              ? <div className="flex flex-col">
+                {(() => {
+                  const m = new Map();
+                  for (const { term_code: t, class_name: c } of member.brother_classes) {
+                    if (!m[t]) {
+                      m[t] = [c];
+                    } else {
+                      m[t].push(c);
+                    }
+                  }
+                  return Object.entries(m).map(([t, c]) => {
+                    const class_text = c.map(cc => cc.replace(/([A-Za-z]+)(\d+)/, "$1 $2")).join(", ");
+                    return (
+                      <div key={t} className="flex flex-row mb-1">
+                        <div>
+                          <span className="italic">{termCodeToWords(t)}:</span>
+                          {" "}
+                          <span>{class_text}</span>
+                        </div>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+              : <p>N/A</p>
+          }
+          <Link className="block mt-2 lg:hidden" href="/profile/setup">
+            <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700 w-fit">
+              Edit Profile
+            </CardAction>
+          </Link>
+        </CardContent>
+      </Card>
     </main>
   );
 }
