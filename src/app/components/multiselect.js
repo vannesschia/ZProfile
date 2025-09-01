@@ -6,7 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, ChevronDown, XCircle, XIcon } from "lucide-react";
+import { ChevronDown, XCircle, XIcon } from "lucide-react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   Command,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function MultiSelect({
   termValidity,
@@ -169,11 +170,7 @@ export default function MultiSelect({
                       e.preventDefault();
                     }}
                   >
-                    <div className={`flex h-4 w-4 border items-center justify-center
-                      ${isSelected ? "border-green-500" : "opacity-50 [&_svg]:invisible"}
-                    `}>
-                      <CheckIcon size="icon" className={`${isSelected ? "text-green-500" : "text-primary"}`} />
-                    </div>
+                    <Checkbox checked={isSelected} />
                     <div className="flex flex-col">
                       <span className="font-semibold">{option.className}</span>
                       <span>{option.classDescription}</span>
