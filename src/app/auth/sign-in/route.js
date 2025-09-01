@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabaseServer";
 
 const BASE_URL = process.env.PUBLIC_SITE_URL ?? "https://www.zprofile.tech";
-console.log("BASE_URL", BASE_URL);
 const REQUIRED_DOMAIN = "umich.edu";
 
 function safeRedirect(next) {

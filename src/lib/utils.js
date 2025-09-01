@@ -12,7 +12,10 @@ export function formatMonthDay(isoDateString) {
 
 export function formatMonthDayNumeric(isoDateString) {
   const date = new Date(isoDateString);
-  return date.toLocaleString('en-US', { month: 'numeric', day: 'numeric'});
+  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+  const localDate = new Date(date.getTime() + userTimezoneOffset);
+
+  return localDate.toLocaleString('en-US', { month: 'numeric', day: 'numeric' });
 }
 
 export function capitalizeFirstLetter(str) {
@@ -29,8 +32,9 @@ export function capitalizeFirstLetter(str) {
 export function daysUntilOrSince(dateStr) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const target = new Date(dateStr);
+  const utcTarget = new Date(dateStr);
+  const timezoneOffset = utcTarget.getTimezoneOffset() * 60000;
+  const target = new Date(utcTarget.getTime() + timezoneOffset);
   target.setHours(0, 0, 0, 0);
 
   const diffMs = target.getTime() - today.getTime();
@@ -38,10 +42,11 @@ export function daysUntilOrSince(dateStr) {
 
   if (diffDays >= 0) {
     return { status: "upcoming", daysLeft: diffDays };
-  } else if (diffDays < 0) {
+  } else {
     return { status: "past", daysLate: Math.abs(diffDays) };
   }
 }
+
 
 export const byDate = (rowA, rowB, columnId) => {
   const toTime = (v) => {
