@@ -105,7 +105,7 @@ export default function MultiSelect({
               form.clearErrors(`courses.${index}.classes`);
             }
           }}
-          className={`w-full cursor-pointer [&_svg]:pointer-events-auto ${isWrapped ? "h-auto" : "h-9"}`}
+          className={`${selectedValues.length === 0 ? "" : "px-2"} w-full cursor-pointer [&_svg]:pointer-events-auto ${isWrapped ? "h-auto" : "h-9"}`}
         >
           <div className="flex items-center justify-between w-full">
             {selectedValues.length === 0 ? (
@@ -115,10 +115,13 @@ export default function MultiSelect({
               </div>
             ) : (
               <div className="flex justify-between items-center w-full">
-                <div ref={badgeContainerRef} className="max-w-full overflow-hidden flex flex-wrap items-center">
-                  {selectedValues.map((course, courseIndex) => (
-                    <Badge key={course} className="mr-1 my-1">
-                      { course }
+                <div
+                  ref={badgeContainerRef}
+                  className="max-w-full overflow-hidden flex flex-wrap items-center gap-1"
+                >
+                  {selectedValues.map((course) => (
+                    <Badge key={course}>
+                      {course}
                       <XCircle
                         className="cursor-pointer h-4 w-4"
                         onClick={(e) => {
