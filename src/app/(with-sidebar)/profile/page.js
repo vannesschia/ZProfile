@@ -30,11 +30,12 @@ export default async function ProfilePage() {
     .from("members")
     .select(`*,
       brother_classes (
-        *
+        class_name, term_code
       )`
     )
     .eq("email_address", email)
     .order("term_code", { ascending: true, referencedTable: "brother_classes" })
+    .order("class_name", { ascending: true, referencedTable: "brother_classes" })
     .single();
 
   if (error && error.code !== "PGRST116") {

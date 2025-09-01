@@ -25,11 +25,18 @@ export default async function ProfilePage() {
   }
 
   const email = session.user.email;
+  
+  const uniqname = email.split("@")[0];
 
   const { data: member, memberError } = await supabase
-    .from("members")
-    .select("*")
-    .eq("email_address", email)
+    .from('members')
+    .select(`
+      *,
+      brother_classes (
+        class_name, term_code
+      )
+    `)
+    .eq('uniqname', uniqname)
     .single();
 
   if (memberError && memberError.code !== "PGRST116") {
@@ -39,17 +46,6 @@ export default async function ProfilePage() {
         <p>{memberError.message}</p>
       </main>
     );
-  }
-
-  const uniqname = email.split("@")[0];
-
-  const { data: courses, coursesError } = await supabase
-    .from("brother_classes")
-    .select("class_name, term_code")
-    .eq("uniqname", uniqname)
-
-  if (coursesError) {
-    console.error(coursesError);
   }
 
   const initialCourses = (courses) => {
@@ -64,12 +60,15 @@ export default async function ProfilePage() {
         result.push({ term, classes: [clas] });
       }
     });
-    return result;
+    return result.map(({ term, classes }) => ({
+      term,
+      classes: classes.sort((a, b) => a.localeCompare(b))
+    }));
   };
 
   const initialData = {
     ...member,
-    courses: courses ? initialCourses(courses) : []
+    brother_classes: initialCourses(member.brother_classes)
   };
 
   return (

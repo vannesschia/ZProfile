@@ -58,8 +58,8 @@ export default function MultiSelect({
 
   const toggleOption = (option) => {
     const newSelectedValues = selectedValues.includes(option)
-      ? selectedValues.filter((value) => value !== option)
-      : [...selectedValues, option];
+      ? selectedValues.filter((value) => value !== option).sort((a, b) => a.localeCompare(b))
+      : [...selectedValues, option].sort((a, b) => a.localeCompare(b));
     setSelectedValues(newSelectedValues);
     form.setValue(`courses.${index}.classes`, newSelectedValues, {
       shouldValidate: false,
@@ -110,7 +110,7 @@ export default function MultiSelect({
           <div className="flex items-center justify-between w-full">
             {selectedValues.length === 0 ? (
               <div className="flex items-center justify-between w-full">
-                <span className="text-sm text-muted-foreground">{ placeholder }</span>
+                <span className="text-sm text-muted-foreground">{placeholder}</span>
                 <ChevronDown className="h-4 cursor-pointer text-muted-foreground" />
               </div>
             ) : (
@@ -172,11 +172,11 @@ export default function MultiSelect({
                     <div className={`flex h-4 w-4 border items-center justify-center
                       ${isSelected ? "border-green-500" : "opacity-50 [&_svg]:invisible"}
                     `}>
-                      <CheckIcon size="icon" className={`${isSelected ? "text-green-500" : "text-primary"}`}/>
+                      <CheckIcon size="icon" className={`${isSelected ? "text-green-500" : "text-primary"}`} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-semibold">{ option.className }</span>
-                      <span>{ option.classDescription }</span>
+                      <span className="font-semibold">{option.className}</span>
+                      <span>{option.classDescription}</span>
                     </div>
                   </CommandItem>
                 )

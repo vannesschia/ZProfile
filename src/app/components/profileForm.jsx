@@ -82,7 +82,7 @@ export function MyForm({ initialData, userEmail }) {
       current_class_number: initialData?.current_class_number || "",
       email_address: initialData?.email_address || "",
       phone_number: initialData?.phone_number || "",
-      courses: initialData?.courses || [],
+      courses: initialData?.brother_classes || [],
     }
   });
 
@@ -199,34 +199,34 @@ export function MyForm({ initialData, userEmail }) {
   }
 
   const termInputDebounce = useRef({});
-    const courseSearchDebounce = useRef({});
-    const [searchText, setSearchText] = useState({});
-    const [courseOptions, setCourseOptions] = useState({});
-    const [termValidity, setTermValidity] = useState({});
+  const courseSearchDebounce = useRef({});
+  const [searchText, setSearchText] = useState({});
+  const [courseOptions, setCourseOptions] = useState({});
+  const [termValidity, setTermValidity] = useState({});
 
-    useEffect(() => {
-      if (initialData) {
-        form.reset({
-          ...initialData,
-          name: initialData.name || "",
-          major: Array.isArray(initialData.major) ? initialData.major.join(", ") : initialData.major || "",
-          minor: Array.isArray(initialData.minor) ? initialData.minor.join(", ") : initialData.minor || "",
-          grade: initialData.grade || "",
-          graduation_year: initialData.graduation_year?.toString() || "",
-          current_class_number: initialData.current_class_number || "",
-          email_address: initialData.email_address || "",
-          phone_number: initialData.phone_number || "",
-          courses: initialData.courses || [],
-        });
-      }
-      const newTermValidity = {};
-      if (initialData?.courses) {
-        initialData.courses.forEach((_, index) => {
-          newTermValidity[index] = true;
-        });
-      }
-      setTermValidity(newTermValidity);
-    }, [initialData, form]);
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        name: initialData.name || "",
+        major: Array.isArray(initialData.major) ? initialData.major.join(", ") : initialData.major || "",
+        minor: Array.isArray(initialData.minor) ? initialData.minor.join(", ") : initialData.minor || "",
+        grade: initialData.grade || "",
+        graduation_year: initialData.graduation_year?.toString() || "",
+        current_class_number: initialData.current_class_number || "",
+        email_address: initialData.email_address || "",
+        phone_number: initialData.phone_number || "",
+        courses: initialData.brother_classes || [],
+      });
+    }
+    const newTermValidity = {};
+    if (initialData?.brother_classes) {
+      initialData.brother_classes.forEach((_, index) => {
+        newTermValidity[index] = true;
+      });
+    }
+    setTermValidity(newTermValidity);
+  }, [initialData, form]);
 
   async function onSubmit(values) {
     const supabase = createClientComponentClient();
@@ -282,7 +282,7 @@ export function MyForm({ initialData, userEmail }) {
       toast.error("Failed to update profile.");
       return;
     }
-    
+
     await supabase
       .from("brother_classes")
       .delete()
@@ -403,7 +403,7 @@ export function MyForm({ initialData, userEmail }) {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full lg:w-[200px]">
-                          <SelectValue placeholder="Choose a year"/>
+                          <SelectValue placeholder="Choose a year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -446,7 +446,7 @@ export function MyForm({ initialData, userEmail }) {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full lg:w-[200px]">
-                          <SelectValue placeholder="Choose your grade"/>
+                          <SelectValue placeholder="Choose your grade" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
