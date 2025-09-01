@@ -11,11 +11,14 @@ export function formatMonthDay(isoDateString) {
 }
 
 export function formatMonthDayNumeric(isoDateString) {
-  const date = new Date(isoDateString);
-  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-  const localDate = new Date(date.getTime() + userTimezoneOffset);
-
-  return localDate.toLocaleString('en-US', { month: 'numeric', day: 'numeric' });
+  if (!isoDateString || typeof isoDateString !== 'string') return '';
+  const parts = isoDateString.split('-');
+  if (parts.length < 3) return isoDateString;
+  
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  
+  return `${month}/${day}`;
 }
 
 export function capitalizeFirstLetter(str) {
@@ -30,13 +33,16 @@ export function capitalizeFirstLetter(str) {
 }
 
 export function daysUntilOrSince(dateStr) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const utcTarget = new Date(dateStr);
-  const timezoneOffset = utcTarget.getTimezoneOffset() * 60000;
-  const target = new Date(utcTarget.getTime() + timezoneOffset);
-  target.setHours(0, 0, 0, 0);
-
+  const timeZone = 'America/New_York';
+  const now = new Date();
+  const todayFormatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone,
+  });
+  const today = new Date(todayFormatter.format(now));
+  const target = new Date(dateStr);
   const diffMs = target.getTime() - today.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
