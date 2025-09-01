@@ -57,8 +57,8 @@ export function RequirementsForm({ initialData }) {
         const [year, month, day] = initialData.second_milestone_due_date.split('-').map(Number);
         return new Date(year, month - 1, day);
       })() : undefined,
-      final_milestone_due_date: initialData?.second_milestone_due_date ? (() => {
-        const [year, month, day] = initialData.second_milestone_due_date.split('-').map(Number);
+      final_milestone_due_date: initialData?.final_milestone_due_date ? (() => {
+        const [year, month, day] = initialData.final_milestone_due_date.split('-').map(Number);
         return new Date(year, month - 1, day);
       })() : undefined,
       semester_last_day: initialData?.semester_last_day ? (() => {
