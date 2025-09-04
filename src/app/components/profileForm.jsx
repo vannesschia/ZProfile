@@ -173,6 +173,16 @@ export function MyForm({ initialData, userEmail }) {
 
     const uniqname = userEmail.split("@")[0];
 
+    // Require a profile picture: either an existing image or a newly selected file
+    if (!currentImageUrl && !selectedFile) {
+      form.setError("root", {
+        type: "manual",
+        message: "Please upload a profile picture.",
+      });
+      toast.error("Please upload a profile picture.");
+      return;
+    }
+
     let uploaded = null;
     let previousStorageKey = null;
     if (currentImageUrl) {
@@ -351,11 +361,20 @@ export function MyForm({ initialData, userEmail }) {
               <Input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setSelectedFile(file);
+                  if (file) {
+                    form.clearErrors("root");
+                  }
+                }}
                 id="profile-picture-input"
-                className="cursor-pointer pt-1.5 text-sm"
+                className="cursor-pointer text-sm"
               />
               <FormDescription>Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit.</FormDescription>
+              {form.formState.errors.root?.message && (
+                <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+              )}
             </div>
             <div className="flex flex-col w-full gap-4">
               <FormField
