@@ -61,7 +61,6 @@ export function MyForm({ initialData, userEmail }) {
 
   // Separate state for profile picture upload
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(initialData?.profile_picture_url || null);
 
   const form = useForm({
@@ -93,109 +92,48 @@ export function MyForm({ initialData, userEmail }) {
     name: "courses"
   });
 
-  async function handleImageUpload() {
-    if (!selectedFile) {
-      toast.error("Please select a file first.");
-      return;
-    }
+  async function uploadSelectedImage() {
+    if (!selectedFile) return null;
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(selectedFile.type)) {
       toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
-      return;
+      throw new Error("Invalid image type");
     }
 
-    // Validate file size (5MB limit)
     if (selectedFile.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB.");
-      return;
+      throw new Error("Image too large");
     }
 
-    setUploadingImage(true);
-
-    try {
-      // Get current user to ensure authentication
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError) {
-        console.error("Auth error:", userError);
-        throw new Error(`Authentication error: ${userError.message}`);
-      }
-
-      if (!user) {
-        console.error("No user found in session");
-        throw new Error("You must be logged in to upload images.");
-      }
-
-      // Delete old profile picture if it exists
-      if (currentImageUrl) {
-        // Extract filename from URL (last part after /)
-        const oldFileName = currentImageUrl.split('/').pop();
-        if (oldFileName) {
-          // Use the same path structure as upload: "profile-pictures/filename"
-          const { error: deleteError } = await supabase.storage
-            .from("profile-pictures")
-            .remove([`profile-pictures/${oldFileName}`]);
-
-          if (deleteError) {
-            console.warn("Failed to delete old profile picture:", deleteError);
-          }
-        }
-      }
-
-      // Create unique filename with user identifier
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `profile-pictures/${fileName}`;
-
-      // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("profile-pictures")
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false // Don't overwrite existing files
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error(uploadError.message || "Failed to upload image.");
-      }
-
-      // Get public URL for the uploaded file
-      const { data: publicData } = supabase.storage
-        .from("profile-pictures")
-        .getPublicUrl(filePath);
-
-      const imageUrl = publicData.publicUrl;
-
-      // Update the member record with the new profile picture URL
-      const { error: updateError } = await supabase
-        .from("members")
-        .update({ profile_picture_url: imageUrl })
-        .eq("email_address", userEmail);
-
-      if (updateError) {
-        console.error("Database update error:", updateError);
-        throw new Error("Failed to save profile picture to your account.");
-      }
-
-      // Update local state
-      setCurrentImageUrl(imageUrl);
-      setSelectedFile(null);
-
-      // Reset file input
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) fileInput.value = '';
-
-      toast.success("Profile picture uploaded successfully!");
-
-    } catch (error) {
-      console.error("Image upload error:", error);
-      toast.error(error.message || "Failed to upload image.");
-    } finally {
-      setUploadingImage(false);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Auth error:", userError);
+      throw new Error(`Authentication error: ${userError.message}`);
     }
+    if (!user) {
+      throw new Error("You must be logged in to upload images.");
+    }
+
+    const fileExt = selectedFile.name.split('.').pop();
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `profile-pictures/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-pictures")
+      .upload(filePath, selectedFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      throw new Error(uploadError.message || "Failed to upload image.");
+    }
+
+    const { data: publicData } = supabase.storage
+      .from("profile-pictures")
+      .getPublicUrl(filePath);
+    return { imageUrl: publicData.publicUrl, storageKey: filePath };
   }
 
   const termInputDebounce = useRef({});
@@ -233,27 +171,58 @@ export function MyForm({ initialData, userEmail }) {
 
     const { email_address, major, minor, courses, ...rest } = values;
 
+    const uniqname = userEmail.split("@")[0];
+
+    // Require a profile picture: either an existing image or a newly selected file
+    if (!currentImageUrl && !selectedFile) {
+      form.setError("root", {
+        type: "manual",
+        message: "Please upload a profile picture.",
+      });
+      toast.error("Please upload a profile picture.");
+      return;
+    }
+
+    let uploaded = null;
+    let previousStorageKey = null;
+    if (currentImageUrl) {
+      const oldFileName = currentImageUrl.split('/').pop();
+      if (oldFileName) previousStorageKey = `profile-pictures/${oldFileName}`;
+    }
+    if (selectedFile) {
+      try {
+        uploaded = await uploadSelectedImage();
+      } catch (e) {
+        console.error("Image upload error:", e);
+        toast.error(e.message || "Failed to upload image.");
+        return;
+      }
+    }
+
     const payload = {
       ...rest,
       email_address: userEmail,
-      major: [major],                 // wrap string as array
-      minor: minor ? [minor] : [],    // wrap optional string as array
-      onboarding_completed: true
+      uniqname,
+      major: [major],
+      minor: minor ? [minor] : [],
+      onboarding_completed: true,
+      ...(uploaded?.imageUrl ? { profile_picture_url: uploaded.imageUrl } : {})
     };
 
     const { error: membersError } = await supabase
       .from("members")
-      .update(payload)
-      .eq("email_address", userEmail)
+      .upsert(payload, { onConflict: 'email_address' })
 
     if (membersError) {
       console.error("Update error:", membersError.message);
       toast.error("Failed to update profile.");
+      if (uploaded?.storageKey) {
+        try {
+          await getBrowserClient().storage.from("profile-pictures").remove([uploaded.storageKey]);
+        } catch {}
+      }
       return;
     }
-
-    const uniqname = userEmail.split("@")[0];
-
     const allCourses = new Set();
 
     const newCourses = courses.flatMap((course) => {
@@ -311,6 +280,18 @@ export function MyForm({ initialData, userEmail }) {
       console.error("Update error:", classesError.message);
       toast.error("Failed to update profile.");
       return;
+    }
+
+    if (uploaded?.imageUrl) {
+      setCurrentImageUrl(uploaded.imageUrl);
+      setSelectedFile(null);
+      const fileInput = document.querySelector('#profile-picture-input');
+      if (fileInput) fileInput.value = '';
+      if (previousStorageKey) {
+        try {
+          await getBrowserClient().storage.from("profile-pictures").remove([previousStorageKey]);
+        } catch {}
+      }
     }
 
     toast.success("Profile updated successfully!");
@@ -380,18 +361,20 @@ export function MyForm({ initialData, userEmail }) {
               <Input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                className="cursor-pointer pt-1.5 text-sm"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setSelectedFile(file);
+                  if (file) {
+                    form.clearErrors("root");
+                  }
+                }}
+                id="profile-picture-input"
+                className="cursor-pointer text-sm"
               />
-              <Button
-                type="button"
-                onClick={handleImageUpload}
-                disabled={!selectedFile || uploadingImage}
-                variant="outline"
-                className="w-full justify-start px-3 h-[48px] lg:h-[36px] whitespace-normal"
-              >
-                {uploadingImage ? "Uploading..." : "Upload Picture (JPEG, PNG, or WebP, max 5MB)"}
-              </Button>
+              <FormDescription>Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit.</FormDescription>
+              {form.formState.errors.root?.message && (
+                <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+              )}
             </div>
             <div className="flex flex-col w-full gap-4">
               <FormField
