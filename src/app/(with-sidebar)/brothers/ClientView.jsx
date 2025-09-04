@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import MemberCard from "@/app/components/MemberCard";
 import HorizontalMemberCard from "@/app/components/HorizontalMemberCard";
 
-const GREEK_ORDER = [
+const GREEK_ORDER = [ //will need to be changed years later 
+//                     when class names are "alpha beta", etc 
     "alpha", "beta", "gamma", "delta", "epsilon",
     "zeta", "eta", "theta", "iota", "kappa",
     "lambda", "mu", "nu", "xi", "omicron",
@@ -59,9 +60,6 @@ export default function ClientMembersView({ members }) {
                                 {className}
                             </h2>
                             <div className="flex flex-wrap gap-4 justify-start items-start">
-                                {/* {filtered.map((member) => (
-                                    <MemberCard key={member.uniqname} member={member} />
-                                ))} */}
                                 {filtered.map((member) => (
                                     <HorizontalMemberCard key={member.uniqname} member={member} />
                                 ))}
