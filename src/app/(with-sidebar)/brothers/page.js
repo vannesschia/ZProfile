@@ -22,7 +22,7 @@ export default async function MembersPage() {
     }
 
     return (
-        <main className="min-h-screen px-6 py-4">
+        <main className="min-h-screen px-1 py-1">
             <h1 className="text-3xl font-bold mb-2">Brothers Directory</h1>
             <p className="mb-6 text-muted-foreground">Find any active member.</p> 
 
