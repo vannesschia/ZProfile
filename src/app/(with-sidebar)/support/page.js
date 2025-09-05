@@ -22,7 +22,7 @@ export default async function SupportPage() {
 
   return (
     <div className="flex flex-col m-4 gap-4">
-      <span className="font-bold text-xl">Report Bugs</span>
+      <span className="text-2xl font-bold tracking-tight leading-tight">Report Bugs</span>
       <BugReportForm name={data.name}/>
     </div>
   )

@@ -23,7 +23,7 @@ export function NavUser({ user }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
@@ -44,7 +44,7 @@ export function NavUser({ user }) {
             sideOffset={4}
           >
             <Link href="/profile">
-              <DropdownMenuLabel className="p-0 font-normal rounded-md hover:bg-gray-300">
+              <DropdownMenuLabel className="p-0 font-normal rounded-md hover:bg-sidebar-accent">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
@@ -64,7 +64,7 @@ export function NavUser({ user }) {
             <form action="/auth/sign-out" method="POST">
               {/* You can change ?next=... or add &scope=global for "sign out everywhere" */}
               <DropdownMenuItem asChild>
-                <button type="submit" className="w-full text-left flex items-center gap-2">
+                <button type="submit" className="w-full text-left flex items-center gap-2 cursor-pointer">
                   <LogOut className="h-4 w-4" />
                   Log out
                 </button>

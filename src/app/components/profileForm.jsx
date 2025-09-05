@@ -29,7 +29,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation";
-import { Trash, ListPlus } from "lucide-react";
+import { Trash, ListPlus, Loader2Icon } from "lucide-react";
 import { wordsToTermCode, isValidTerm } from "../(with-sidebar)/course-directory/term-functions";
 import { useEffect, useRef, useState } from "react";
 import MultiSelect from "./multiselect";
@@ -629,15 +629,14 @@ export function MyForm({ initialData, userEmail }) {
           <Button
             type="button"
             variant="secondary"
-            className="cursor-pointer mb-4"
+            className="cursor-pointer w-[168px] mb-4"
             onClick={() => append({ term: "", classes: [] })}
           >
             <ListPlus />Add Another Term
           </Button>
         </div>
-        {/* <InputFile /> */}
         <Button
-          className="cursor-pointer mr-2"
+          className="cursor-pointer w-[80px] mr-2"
           type="button"
           variant="outline"
           onClick={() => {
@@ -646,8 +645,8 @@ export function MyForm({ initialData, userEmail }) {
         >
           Cancel
         </Button>
-        <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Saving..." : "Submit"}
+        <Button className="cursor-pointer w-[80px]" type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? <Loader2Icon className="animate-spin" /> : "Submit"}
         </Button>
       </form>
     </Form>

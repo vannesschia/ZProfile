@@ -91,13 +91,9 @@ export default function BugReportForm({ name }) {
               </FormItem>
             )}
           />
-          {form.formState.isSubmitting
-            ? <Button disabled className="w-[100px]">
-                <Loader2Icon className="animate-spin" />
-                Submitting
-              </Button>
-            : <Button className="cursor-pointer w-[100px]" type="submit">Submit</Button>
-          }
+          <Button className="cursor-pointer w-[80px]" type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? <Loader2Icon className="animate-spin" /> : "Submit"}
+          </Button>
         </div>
       </form>
     </Form>
