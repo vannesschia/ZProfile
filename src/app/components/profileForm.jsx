@@ -596,10 +596,6 @@ export function MyForm({ initialData, userEmail }) {
                     variant="destructive"
                     onClick={() => {
                       remove(index);
-                      setTermValidity((prev) => ({
-                        ...prev,
-                        [index]: false
-                      }))
                     }}
                     className="cursor-pointer mt-2 sm:mt-[22px]"
                   >
