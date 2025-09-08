@@ -476,6 +476,7 @@ export function MyForm({ initialData, userEmail }) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="Alpha">Alpha</SelectItem>
                       <SelectItem value="Beta">Beta</SelectItem>
                       <SelectItem value="Gamma">Gamma</SelectItem>
                       <SelectItem value="Delta">Delta</SelectItem>
