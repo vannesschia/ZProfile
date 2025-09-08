@@ -50,6 +50,7 @@ export default async function ProfilePage() {
 
   const initialCourses = (courses) => {
     let result = [];
+    courses = courses.sort((a, b) => a.term_code - b.term_code);
     courses.forEach((element) => {
       const term = termCodeToWords(element.term_code);
       const exists = result.find((x) => x.term === term);
