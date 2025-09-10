@@ -22,9 +22,9 @@ export default async function MembersPage() {
     }
 
     return (
-        <main className="min-h-screen px-1 py-1">
-            <h1 className="text-3xl font-bold mb-2">Brothers Directory</h1>
-            <p className="mb-6 text-muted-foreground">Find any active member.</p> 
+        <main className="m-4 flex flex-col gap-2">
+            <span className="text-2xl font-bold tracking-tight leading-tight">Brothers Directory</span>
+            <p className="text-muted-foreground">Find any active member.</p> 
 
             <Suspense fallback={<p>Loading...</p>}>
                 <ClientMembersView members={members} />

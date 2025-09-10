@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import MemberCard from "@/app/components/MemberCard";
 import HorizontalMemberCard from "@/app/components/HorizontalMemberCard";
+import { Search } from "lucide-react";
 
 const GREEK_ORDER = [ //will need to be changed years later 
-//                     when class names are "alpha beta", etc 
+    //                     when class names are "alpha beta", etc 
     "alpha", "beta", "gamma", "delta", "epsilon",
     "zeta", "eta", "theta", "iota", "kappa",
     "lambda", "mu", "nu", "xi", "omicron",
@@ -38,13 +39,16 @@ export default function ClientMembersView({ members }) {
 
     return (
         <div>
-            <Input
-                type="text"
-                placeholder="Search by name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-md mb-8"
-            />
+            <div className="relative w-full lg:w-1/2 xl:w-1/4 mb-8">
+                <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
+                <Input
+                    type="search"
+                    className="pl-8 text-sm"
+                    placeholder="Search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {Object.entries(grouped)
                 .sort(sectionComparator) // α → β → γ → …

@@ -145,7 +145,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
                 <FormLabel>Committee</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full lg:w-[calc(50%-16px)]">
+                    <SelectTrigger className="cursor-pointer hover:text-accent-foreground w-full lg:w-[calc(50%-16px)]">
                       <SelectValue placeholder="Select a committee"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>

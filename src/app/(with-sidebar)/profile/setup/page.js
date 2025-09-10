@@ -73,7 +73,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <main className="min-h-screen p-0 sm:p-8">
+    <main className="p-0 sm:p-8">
       <h1 className="mb-6 text-2xl font-bold">Profile Setup</h1>
       <Card className="max-w-8xl">
         {initialData ? <MyForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}

@@ -37,6 +37,7 @@ import handleCourseSearch from "./classes-api";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import PhoneNumberInput from "./phone-number/phone-number";
+import Image from "next/image";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
@@ -219,7 +220,7 @@ export function MyForm({ initialData, userEmail }) {
       if (uploaded?.storageKey) {
         try {
           await getBrowserClient().storage.from("profile-pictures").remove([uploaded.storageKey]);
-        } catch {}
+        } catch { }
       }
       return;
     }
@@ -290,7 +291,7 @@ export function MyForm({ initialData, userEmail }) {
       if (previousStorageKey) {
         try {
           await getBrowserClient().storage.from("profile-pictures").remove([previousStorageKey]);
-        } catch {}
+        } catch { }
       }
     }
 
@@ -349,8 +350,10 @@ export function MyForm({ initialData, userEmail }) {
             <div className="flex flex-col gap-2 w-full mr-8">
               <FormLabel>Profile Picture</FormLabel>
               {currentImageUrl && (
-                <div className="flex flex-col items-left pl-1 space-y-2">
-                  <img
+                <div className="flex flex-col items-left space-y-2">
+                  <Image
+                    width={96}
+                    height={96}
                     src={currentImageUrl}
                     alt="Current profile picture"
                     className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
@@ -369,8 +372,16 @@ export function MyForm({ initialData, userEmail }) {
                   }
                 }}
                 id="profile-picture-input"
-                className="cursor-pointer text-sm"
+                className="hidden"
               />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById("profile-picture-input")?.click()}
+                className="justify-start text-left px-3"
+              >
+                {selectedFile ? selectedFile.name : "Choose File"}
+              </Button>
               <FormDescription>Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit.</FormDescription>
               {form.formState.errors.root?.message && (
                 <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>

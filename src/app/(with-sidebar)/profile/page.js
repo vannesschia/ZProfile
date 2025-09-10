@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { termCodeToWords } from "../course-directory/term-functions";
 import { FormatPhoneNumber } from "@/app/components/phone-number/format-phone-number";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen p-0 sm:p-8">
+    <main className="p-0 sm:p-8">
       <Card className="max-w-8xl">
         <CardHeader className="flex justify-between items-start">
           <div className="flex items-start gap-4">
@@ -74,11 +75,7 @@ export default async function ProfilePage() {
               </CardDescription>
             </div>
           </div>
-          <Link className="hidden lg:block" href="/profile/setup">
-            <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700">
-              Edit Profile
-            </CardAction>
-          </Link>
+          <EditProfileButton className="hidden lg:block" />
         </CardHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <div className="space-y-6"> {/* left column */}
@@ -155,13 +152,17 @@ export default async function ProfilePage() {
               </div>
               : <p>N/A</p>
           }
-          <Link className="block mt-2 lg:hidden" href="/profile/setup">
-            <CardAction variant="default" className="bg-black text-white rounded-md px-4 py-2 transition duration-200 ease-in-out hover:bg-gray-700 w-fit">
-              Edit Profile
-            </CardAction>
-          </Link>
+          <EditProfileButton className="mt-6 lg:hidden" />
         </CardContent>
       </Card>
     </main>
   );
+}
+
+export function EditProfileButton({ className }) {
+  return (
+    <Button className={className} asChild>
+      <Link href="/profile/setup">Edit Profile</Link>
+    </Button>
+  )
 }
