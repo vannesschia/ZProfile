@@ -13,6 +13,7 @@ import {
 import { AppSidebar } from "../components/app-sidebar";
 import { getServerClient } from "@/lib/supabaseServer";
 import DynamicBreadcrumb from "../components/DynamicBreadcrumb";
+import ChangeThemeButton from "../components/change-theme-button";
 
 export default async function WithNavbarLayout({ children }) {
   const supabase = await getServerClient();
@@ -30,13 +31,16 @@ export default async function WithNavbarLayout({ children }) {
       <SidebarProvider>
         <AppSidebar user={ member }/>
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <DynamicBreadcrumb />
+          <header className="flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
+            <div className="flex flex-row items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
+              <DynamicBreadcrumb />
+            </div>
+            <ChangeThemeButton />
           </header>
           <main className="p-4">{children}</main>
         </SidebarInset>

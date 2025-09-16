@@ -61,11 +61,11 @@ export default function EventEditor({ mode, initialData = null, id = null }) {
   const EventComponent = events.find(eve => eve.name === event)?.component;
 
   return (
-    <div className="flex flex-col gap-2 w-full lg:w-[564px]">
-      <div className="flex flex-col mt-8 mb-8 gap-1">
-        <span className="text-sm font-medium select-none mb-1">Event Type</span>
+    <div className="flex flex-col gap-4 w-full lg:w-[564px]">
+      <div className="flex flex-col mb-8 gap-2">
+        <span className="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50">Event Type</span>
         <Select value={event} onValueChange={(value) => setEvent(value)}>
-          <SelectTrigger disabled={mode === "edit"} className="w-full lg:w-[calc(50%-16px)]">
+          <SelectTrigger disabled={mode === "edit"} className="cursor-pointer w-full lg:w-[calc(50%-16px)]">
             <SelectValue placeholder="Select an event type" />
           </SelectTrigger>
           <SelectContent className="box-border p-0">
@@ -129,7 +129,7 @@ export function SelectDate({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`${value ? "text-popover-foreground" : "text-muted-foreground"} font-normal w-full justify-between`}
+          className={`${value ? "text-popover-foreground" : "text-muted-foreground"} cursor-pointer font-normal w-full justify-between`}
           type="button"
         >
           {value
@@ -456,23 +456,17 @@ export async function DeleteEvent({ id, router }) {
 
 export function SaveEventButton({ submitting }) {
   return (
-    submitting
-      ? <Button disabled className="w-[100px]">
-          <Loader2Icon className="animate-spin" />
-          Saving
-        </Button>
-      : <Button className="cursor-pointer w-[100px]" type="submit">Save</Button>
+    <Button className="cursor-pointer w-[80px]" type="submit" disabled={submitting}>
+      {submitting ? <Loader2Icon className="animate-spin" /> : "Save"}
+    </Button>
   )
 }
 
 export function CreateEventButton({ submitting }) {
   return (
-    submitting
-      ? <Button disabled className="w-[100px]">
-          <Loader2Icon className="animate-spin" />
-          Creating
-        </Button>
-      : <Button className="cursor-pointer w-[100px]" type="submit">Create</Button>
+    <Button className="cursor-pointer w-[80px]" type="submit" disabled={submitting}>
+      {submitting ? <Loader2Icon className="animate-spin" /> : "Create"}
+    </Button>
   )
 }
 

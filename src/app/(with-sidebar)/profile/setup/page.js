@@ -50,6 +50,7 @@ export default async function ProfilePage() {
 
   const initialCourses = (courses) => {
     let result = [];
+    courses = courses.sort((a, b) => a.term_code - b.term_code);
     courses.forEach((element) => {
       const term = termCodeToWords(element.term_code);
       const exists = result.find((x) => x.term === term);
@@ -72,7 +73,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <main className="min-h-screen p-0 sm:p-8">
+    <main className="p-0 sm:p-8">
       <h1 className="mb-6 text-2xl font-bold">Profile Setup</h1>
       <Card className="max-w-8xl">
         {initialData ? <MyForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}

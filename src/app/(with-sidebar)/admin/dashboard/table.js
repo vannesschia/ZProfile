@@ -19,11 +19,12 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronDown, Milestone, Search, CalendarSearch, Plus } from "lucide-react"
 import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
-export default function AdminViewTable({ 
-  milestones, 
-  pledgeProgress, 
-  committeesAttendance, 
+export default function AdminViewTable({
+  milestones,
+  pledgeProgress,
+  committeesAttendance,
   indvCommitteeCount,
   chapterAttendance,
   pledgeEventAttendance,
@@ -37,7 +38,7 @@ export default function AdminViewTable({
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") ?? "pledge";
   const [activeTab, setActiveTab] = useState(initialTab)
-  
+
   const handleTabChange = (value) => {
     setActiveTab(value);
   }
@@ -93,7 +94,7 @@ export default function AdminViewTable({
   }, [withStatus, search])
 
   // Events States
-  const EVENT_TYPES = ["committee_event","chapter","rush_event","pledge_event","study_table"];
+  const EVENT_TYPES = ["committee_event", "chapter", "rush_event", "pledge_event", "study_table"];
   const [eventType, setEventType] = useState("committee_event")
   const [searchByType, setSearchByType] = useState({
     committee_event: "",
@@ -116,10 +117,10 @@ export default function AdminViewTable({
 
   const filterFns = {
     committee_event: (row, t) => row.name?.toLowerCase().includes(t),
-    chapter:        (row, t) => row.name?.toLowerCase().includes(t),
-    rush_event:     (row, t) => row.name?.toLowerCase().includes(t),
-    pledge_event:   (row, t) => row.name?.toLowerCase().includes(t),
-    study_table:   (row, t) => row.name?.toLowerCase().includes(t),
+    chapter: (row, t) => row.name?.toLowerCase().includes(t),
+    rush_event: (row, t) => row.name?.toLowerCase().includes(t),
+    pledge_event: (row, t) => row.name?.toLowerCase().includes(t),
+    study_table: (row, t) => row.name?.toLowerCase().includes(t),
   };
 
   const filteredEventsMap = useMemo(() => {
@@ -138,7 +139,7 @@ export default function AdminViewTable({
     studyTableAttendance,
     searchByType,
   ]);
-  
+
   // Brother States
   const [searchBrother, setSearchBrother] = useState("");
 
@@ -165,7 +166,7 @@ export default function AdminViewTable({
     <Tabs defaultValue="pledge" className="gap-6" value={activeTab} onValueChange={handleTabChange}>
       <div className="flex sm:flex-row flex-col gap-2 justify-between">
         <TabsList>
-          <TabsTrigger value="pledge">Pledge 
+          <TabsTrigger value="pledge">Pledge
             <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">{pledgeProgress.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="brother">Brother
@@ -175,9 +176,9 @@ export default function AdminViewTable({
             <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">
               {eventType === "committee_event" && committeesAttendance.length}
               {eventType === "chapter" && chapterAttendance.length}
-              {eventType === "rush_event"  && rushEventsAttendance.length}
-              {eventType === "pledge_event"  && pledgeEventAttendance.length}
-              {eventType === "study_table"  && pledgeEventAttendance.length}
+              {eventType === "rush_event" && rushEventsAttendance.length}
+              {eventType === "pledge_event" && pledgeEventAttendance.length}
+              {eventType === "study_table" && pledgeEventAttendance.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -199,28 +200,29 @@ export default function AdminViewTable({
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-
               <div className="relative sm:w-64 w-full">
+                <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
                 <Input
+                  type="search"
+                  className="pl-8 text-sm"
                   placeholder="Search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
                 />
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               </div>
             </>
           )}
 
           {activeTab === "brother" && (
             <div className="relative sm:w-64 w-full">
+              <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
               <Input
+                type="search"
+                className="pl-8 text-sm"
                 placeholder="Search"
-                value={searchBrother}
-                onChange={(e) => setSearchBrother(e.target.value)}
-                className="pl-10"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             </div>
           )}
 
@@ -244,18 +246,20 @@ export default function AdminViewTable({
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <div className="relative sm:w-64 w-full">
+                  <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
                   <Input
+                    type="search"
+                    className="pl-8 text-sm"
                     placeholder="Search"
-                    value={searchByType[eventType]}
-                    onChange={(e) => setActiveSearch(e.target.value)}
-                    className="pl-10"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 </div>
               </div>
-              <Button onClick={() => {router.push("/admin/events/create")}}>
-                <Plus />
-                Create Event
+              <Button className="gap-1 !pl-2 pr-3" asChild>
+                <Link href="/admin/events/create">
+                  <Plus/>Create Event
+                </Link>
               </Button>
             </div>
           )}
@@ -273,7 +277,7 @@ export default function AdminViewTable({
             <ProgressTabAdmin title="On Track">{stats.onTrack}</ProgressTabAdmin>
             <ProgressTabAdmin title="Late">{stats.late}</ProgressTabAdmin>
           </div>
-          <PledgeOverviewAdminTable 
+          <PledgeOverviewAdminTable
             data={filteredProgress}
             milestones={milestones}
             currentMilestone={currentMilestone}
@@ -293,10 +297,10 @@ export default function AdminViewTable({
           <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req} />
         </div>
       </TabsContent>
-      
+
       <TabsContent value="events">
         <div className="flex flex-col gap-4">
-          {eventType === "committee_event" && 
+          {eventType === "committee_event" &&
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
               <ProgressTabAdmin title="Fundraising">{indvCommitteeCount.fundraising ?? 0}</ProgressTabAdmin>
               <ProgressTabAdmin title="Marketing">{indvCommitteeCount.marketing ?? 0}</ProgressTabAdmin>
@@ -308,9 +312,9 @@ export default function AdminViewTable({
           }
           {eventType === "committee_event" && <CommitteeEventsWithAttendance data={filteredEventsMap.committee_event} />}
           {eventType === "chapter" && <ChapterWithAttendance data={filteredEventsMap.chapter} />}
-          {eventType === "rush_event"  && <DefaultEventsWithAttendance data={filteredEventsMap.rush_event} />}
-          {eventType === "pledge_event"  && <DefaultEventsWithAttendance data={filteredEventsMap.pledge_event} />}
-          {eventType === "study_table"  && <DefaultEventsWithAttendance data={filteredEventsMap.study_table} />}
+          {eventType === "rush_event" && <DefaultEventsWithAttendance data={filteredEventsMap.rush_event} />}
+          {eventType === "pledge_event" && <DefaultEventsWithAttendance data={filteredEventsMap.pledge_event} />}
+          {eventType === "study_table" && <DefaultEventsWithAttendance data={filteredEventsMap.study_table} />}
         </div>
       </TabsContent>
     </Tabs>

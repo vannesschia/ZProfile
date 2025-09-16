@@ -40,7 +40,7 @@ export default async function EditEventPage({ params }) {
   }
 
   return (
-    <div className="m-4 flex flex-col gap-2">
+    <div className="m-4 flex flex-col gap-4">
       <h2 className="text-2xl font-bold tracking-tight leading-tight">Edit Event</h2>
       <EventEditor mode={"edit"} initialData={initialData} id={id}/>
     </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import SearchBar from "./search-bar";
 import searchCourses from "./search-courses";
 import CourseResults from "./course-results";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ListFilter } from "lucide-react";
+import { ListFilter, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { termCodeToWords } from "./term-functions";
+import { Input } from "@/components/ui/input";
 
 export default function CourseSearch() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,11 +58,20 @@ export default function CourseSearch() {
   return (
     <>
       <div className="flex flex-row">
-        <SearchBar value={ searchQuery } handleQueryChange={ handleQueryChange }/>
+        <div className="relative w-full lg:w-1/2 xl:w-1/4">
+          <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
+          <Input
+            type="search"
+            className="pl-8 text-sm"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={handleQueryChange}
+          />
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="w-24 ml-4">
-              <ListFilter/>Filter
+              <ListFilter />Filter
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="max-h-64 overflow-y-auto min-w-[12rem] w-[var(--radix-popover-trigger-width)]">
@@ -101,15 +110,15 @@ export default function CourseSearch() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      { searchQuery && (isLoading 
+      {searchQuery && (isLoading
         ?
         <>
-          <Skeleton className="mt-2 h-8 w-[100px] rounded-lg"/>
-          <Skeleton className="h-8 w-[350px] rounded-lg"/>
-          <Skeleton className="h-8 w-[300px] rounded-lg"/>
-        </> 
-        : <CourseResults results={ searchResults } query={ searchQuery } filter={ filter }/>
-        )
+          <Skeleton className="mt-2 h-8 w-[100px] rounded-lg" />
+          <Skeleton className="h-8 w-[350px] rounded-lg" />
+          <Skeleton className="h-8 w-[300px] rounded-lg" />
+        </>
+        : <CourseResults results={searchResults} query={searchQuery} filter={filter} />
+      )
       }
     </>
   )

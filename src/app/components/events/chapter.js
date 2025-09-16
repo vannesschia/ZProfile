@@ -111,7 +111,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                 return (
                   <div className="w-1/2 flex flex-col gap-2">
                     <FormLabel>Name</FormLabel>
-                    <span className="items-center border-input flex h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 shadow-xs text-sm">
+                    <span className="items-center border-input flex h-9 min-w-0 rounded-md border dark:bg-input/30 px-3 py-1 shadow-xs text-sm">
                       {month} Chapter
                     </span>
                   </div>
