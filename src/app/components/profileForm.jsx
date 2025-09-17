@@ -38,11 +38,14 @@ import { getBrowserClient } from "@/lib/supbaseClient";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import PhoneNumberInput from "./phone-number/phone-number";
 import Image from "next/image";
+import imageCompression from "browser-image-compression";
+import MajorMinorMultiSelect from "./MajorMinorMultiSelect.jsx";
+import handleMajorMinorSearch from "./majors-api.js";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
-  major: z.string().min(1, "Please enter your major"),
-  minor: z.string().optional(),
+  major: z.array(z.string()).min(1, "Please enter your major"),
+  minor: z.array(z.string()).optional(),
   grade: z.string().min(1, "Please enter your grade"),
   graduation_year: z.coerce.number().int().min(2020, "Please enter your graduation year"),
   current_class_number: z.string().min(1, "Please enter your class"),
@@ -72,11 +75,11 @@ export function MyForm({ initialData, userEmail }) {
       ...initialData,
       name: initialData?.name || "",
       major: Array.isArray(initialData?.major)
-        ? initialData.major.join(", ")
-        : initialData?.major || "",
+        ? initialData.major
+        : initialData?.major ? initialData.major.split(",").map(s => s.trim()) : [],
       minor: Array.isArray(initialData?.minor)
-        ? initialData.minor.join(", ")
-        : initialData?.minor || "",
+        ? initialData.minor
+        : initialData?.minor ? initialData.minor.split(",").map(s => s.trim()) : [],
       grade: initialData?.grade || "",
       graduation_year: initialData?.graduation_year?.toString() || "",
       current_class_number: initialData?.current_class_number || "",
@@ -107,25 +110,33 @@ export function MyForm({ initialData, userEmail }) {
       throw new Error("Image too large");
     }
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError) {
-      console.error("Auth error:", userError);
-      throw new Error(`Authentication error: ${userError.message}`);
-    }
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       throw new Error("You must be logged in to upload images.");
     }
 
-    const fileExt = selectedFile.name.split('.').pop();
-    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-    const filePath = `profile-pictures/${fileName}`;
+    // --- Image Compression ---
+    const options = {
+      maxSizeMB: 2.5,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+      fileType: 'image/webp',
+    };
+
+    const compressedFile = await imageCompression(selectedFile, options);
+    
+    const timestamp = Date.now();
+    const fileExt = 'webp';
+    const fileName = `${user.id}-${timestamp}.${fileExt}`;
+    const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("profile-pictures")
-      .upload(filePath, selectedFile, {
-        cacheControl: '3600',
+      .upload(filePath, compressedFile, {
+        cacheControl: '31536000',
         upsert: false
       });
+
     if (uploadError) {
       console.error("Upload error:", uploadError);
       throw new Error(uploadError.message || "Failed to upload image.");
@@ -134,7 +145,11 @@ export function MyForm({ initialData, userEmail }) {
     const { data: publicData } = supabase.storage
       .from("profile-pictures")
       .getPublicUrl(filePath);
-    return { imageUrl: publicData.publicUrl, storageKey: filePath };
+
+    return {
+      imageUrl: publicData.publicUrl,
+      storageKey: filePath,
+    };
   }
 
   const termInputDebounce = useRef({});
@@ -142,14 +157,21 @@ export function MyForm({ initialData, userEmail }) {
   const [searchText, setSearchText] = useState({});
   const [courseOptions, setCourseOptions] = useState({});
   const [termValidity, setTermValidity] = useState({});
+  const [majorSearch, setMajorSearch] = useState("");
+  const [minorSearch, setMinorSearch] = useState("");
+  const [majorOptions, setMajorOptions] = useState([]);
+  const [minorOptions, setMinorOptions] = useState([]);
+  const majorSearchDebounce = useRef(null);
+  const minorSearchDebounce = useRef(null);
+
 
   useEffect(() => {
     if (initialData) {
       form.reset({
         ...initialData,
         name: initialData.name || "",
-        major: Array.isArray(initialData.major) ? initialData.major.join(", ") : initialData.major || "",
-        minor: Array.isArray(initialData.minor) ? initialData.minor.join(", ") : initialData.minor || "",
+        major: Array.isArray(initialData.major) ? initialData.major : (initialData.major ? initialData.major.split(',').map(s => s.trim()) : []),
+        minor: Array.isArray(initialData.minor) ? initialData.minor : (initialData.minor ? initialData.minor.split(',').map(s => s.trim()) : []),
         grade: initialData.grade || "",
         graduation_year: initialData.graduation_year?.toString() || "",
         current_class_number: initialData.current_class_number || "",
@@ -188,8 +210,11 @@ export function MyForm({ initialData, userEmail }) {
     let previousStorageKey = null;
     if (currentImageUrl) {
       const oldFileName = currentImageUrl.split('/').pop();
-      if (oldFileName) previousStorageKey = `profile-pictures/${oldFileName}`;
+      if (oldFileName) {
+        previousStorageKey = `${oldFileName}`;
+      }
     }
+
     if (selectedFile) {
       try {
         uploaded = await uploadSelectedImage();
@@ -204,10 +229,12 @@ export function MyForm({ initialData, userEmail }) {
       ...rest,
       email_address: userEmail,
       uniqname,
-      major: [major],
-      minor: minor ? [minor] : [],
+      major: major,
+      minor: minor || [],
       onboarding_completed: true,
-      ...(uploaded?.imageUrl ? { profile_picture_url: uploaded.imageUrl } : {})
+      ...(uploaded?.imageUrl && {
+        profile_picture_url: uploaded.imageUrl,
+      })
     };
 
     const { error: membersError } = await supabase
@@ -291,7 +318,9 @@ export function MyForm({ initialData, userEmail }) {
       if (previousStorageKey) {
         try {
           await getBrowserClient().storage.from("profile-pictures").remove([previousStorageKey]);
-        } catch { }
+        } catch (e) {
+          console.error("Failed to remove old profile picture:", e);
+        }
       }
     }
 
@@ -333,14 +362,23 @@ export function MyForm({ initialData, userEmail }) {
                 <FormItem className="w-full">
                   <FormLabel>Major</FormLabel>
                   <FormControl>
-                    <Input
-                      className="text-sm"
-                      placeholder=""
-                      type="text"
-                      {...field}
+                    <MajorMinorMultiSelect
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      options={majorOptions}
+                      input={majorSearch}
+                      onInputChange={(input) => {
+                        setMajorSearch(input);
+                        if (majorSearchDebounce.current) {
+                          clearTimeout(majorSearchDebounce.current);
+                        }
+                        majorSearchDebounce.current = setTimeout(() => {
+                          handleMajorMinorSearch(input).then(setMajorOptions);
+                        }, 300);
+                      }}
+                      placeholder="Select your major(s)"
                     />
                   </FormControl>
-                  <FormDescription>** Separate by comma if double majoring</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -419,18 +457,28 @@ export function MyForm({ initialData, userEmail }) {
                   <FormItem>
                     <FormLabel>Minor</FormLabel>
                     <FormControl>
-                      <Input
-                        className="text-sm"
-                        placeholder=""
-                        type="text"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>** Leave blank if N/A</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                     <MajorMinorMultiSelect
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      options={minorOptions}
+                      input={minorSearch}
+                      onInputChange={(input) => {
+                        setMinorSearch(input);
+                        if (minorSearchDebounce.current) {
+                          clearTimeout(minorSearchDebounce.current);
+                        }
+                        minorSearchDebounce.current = setTimeout(() => {
+                          handleMajorMinorSearch(input).then(setMinorOptions);
+                        }, 300);
+                      }}
+                      placeholder="Select your minor(s)"
+                    />
+                  </FormControl>
+                  <FormDescription>** Leave blank if N/A</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
               <FormField
                 control={form.control}
                 name="grade"

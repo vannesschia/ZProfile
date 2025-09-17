@@ -37,6 +37,10 @@ export default function ClientMembersView({ members }) {
         return acc;
     }, {});
 
+    Object.values(grouped).forEach((classMembers) => {
+        classMembers.sort((a, b) => a.name.localeCompare(b.name));
+    });
+
     return (
         <div>
             <div className="relative w-full lg:w-1/2 xl:w-1/4 mb-8">

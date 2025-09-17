@@ -2,14 +2,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormatPhoneNumber } from "./phone-number/format-phone-number";
+import Image from "next/image";
 
 export default function MemberCard({ member }) {
     return (
         <Card className="flex flex-col gap-4 p-4 items-center shadow-sm rounded-xl border min-w-[260px] max-w-[260px] min-h-[360px] max-h-[360px]">
             {member.profile_picture_url ? (
-                <img 
-                    src={member.profile_picture_url} 
+                <Image
+                    src={member.profile_picture_url}
                     alt={`${member.name}'s profile picture`}
+                    width={130}
+                    height={145}
                     className="w-[130px] h-[145px] rounded-lg object-cover border border-gray-200"
                 />
             ) : (

@@ -2,14 +2,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormatPhoneNumber } from "./phone-number/format-phone-number";
+import Image from "next/image";
 
 export default function HorizontalMemberCard({ member }) {
     return (
-        <Card className="flex flex-row gap-3 p-2.5 items-start shadow-sm rounded-xl border min-h-[175px] max-h-[175px] min-w-[325px] max-w-[325px]">
+        <Card className="flex flex-row gap-3 p-2.5 items-start shadow-sm rounded-xl border min-h-[175px] max-h-[195px] min-w-[340px] max-w-[340px]">
             {member.profile_picture_url ? (
-                <img 
+                <Image
                     src={member.profile_picture_url}
                     alt={`${member.name}'s profile picture`}
+                    width={105}
+                    height={151}
                     className="max-w-[105px] min-w-[105px] max-h-[150.75px] min-h-[150.75px] rounded-lg object-cover "
                 />
             ) : (
@@ -26,7 +29,7 @@ export default function HorizontalMemberCard({ member }) {
                 </div>
 
                 {/* description badges */}
-                <div className="flex flex-wrap gap-2 pt-1 height-full justify-start w-full">
+                <div className="flex flex-wrap gap-1.5 pt-1 height-full justify-start w-full">
                     {member.major?.map((m, i) => (
                         <Badge key={`major-${i}`} className="bg-blue-100 text-blue-900 text-[9.5px]">
                             {m.trim()}
