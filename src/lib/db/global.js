@@ -82,24 +82,9 @@ export async function getAllStudyTablesAttendance() {
  */
 export async function getAttendanceRequirements(uniqname) {
   const supabase = await getServerClient();
-
-  const { data: req, error: rErr } = await supabase
-    .from('requirements')
-    .select(`
-      brother_committee_pts_req,
-      semester_last_day,
-      brother_multiplier
-    `)
-    .eq('id', true)
-    .maybeSingle();
-  if (rErr) throw rErr;
-
-  const absences = await getAbsenceCounts(uniqname);
-
-  return {
-    pointsReq: req.brother_committee_pts_req + Math.max(absences.excused-1, 0) * req.brother_multiplier + absences.unexcused * req.brother_multiplier,
-    dueBy: req.semester_last_day
-  }
+  const { data, error } = await supabase.rpc('get_attendance_requirements', {p_uniqname: uniqname})
+  if (error) throw error;
+  return data;
 }
 
 export async function getMilestones() {
