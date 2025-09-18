@@ -6,11 +6,14 @@ import { cn } from "@/lib/utils"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
 
-
-function levelBg(value, target) {
-  if (value >= target) return "bg-green-50 border-green-200 text-green-800"
-  // if (value >= Math.max(target - 1, 0)) return "bg-amber-50 border-amber-200 text-amber-800"
-  return "bg-red-50 border-red-200 text-red-800"
+function checkStatus(status) {
+  if (status === "completed") {
+    return "bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
+  }
+  if (status === "on_track") {
+    return "bg-neutral-50 text-neutral-800 border-neutral-200 dark:bg-neutral-900 dark:text-neutral-200 dark:border-neutral-700"
+  }
+  return "bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700"
 }
 
 export function getColumns({data, requirement}) {
@@ -61,9 +64,9 @@ export function getColumns({data, requirement}) {
       meta: { widthClass: "min-w-[100px]" },
       cell: ({ row, getValue }) => {
         const value = getValue()
-        const bg = levelBg(value, requirement + row.original.committee_points.extra_needed)
+        const bg2 = checkStatus(row.original.status)
         return (
-          <span className={cn("inline-block rounded-md border px-2 py-1 font-medium min-w-[150px] max-w-[150px] text-center", bg)}>
+          <span className={cn("inline-block rounded-md border px-2 py-1 font-medium min-w-[150px] max-w-[150px] text-center", bg2)}>
             {value}
           </span>
         )

@@ -294,7 +294,7 @@ export default function AdminViewTable({
             <ProgressTabAdmin title="On Track">{brotherStats.onTrack}</ProgressTabAdmin>
             <ProgressTabAdmin title="Late">{brotherStats.late}</ProgressTabAdmin>
           </div>
-          <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req} />
+          <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req}/>
         </div>
       </TabsContent>
 
