@@ -42,7 +42,7 @@ export default function DynamicBreadcrumb() {
                 {c.isLast ? (
                   <BreadcrumbPage>{c.label}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={c.href}>{c.label}</BreadcrumbLink>
+                  <BreadcrumbPage>{c.label}</BreadcrumbPage>
                 )}
               </BreadcrumbItem>
               {!c.isLast && <BreadcrumbSeparator />}
