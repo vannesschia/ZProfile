@@ -626,19 +626,21 @@ export function MyForm({ initialData, userEmail }) {
             <ListPlus />Add Another Term
           </Button>
         </div>
-        <Button
-          className="cursor-pointer w-[80px] mr-2"
-          type="button"
-          variant="outline"
-          onClick={() => {
-            router.push("/profile");
-          }}
-        >
-          Cancel
-        </Button>
-        <Button className="cursor-pointer w-[80px]" type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? <Loader2Icon className="animate-spin" /> : "Submit"}
-        </Button>
+        <div className="flex flex-row">
+          <Button
+            className="cursor-pointer w-[80px] mr-2"
+            type="button"
+            variant="outline"
+            onClick={() => {
+              router.push("/profile");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button className="cursor-pointer w-[80px]" type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? <Loader2Icon className="animate-spin" /> : "Submit"}
+          </Button>
+        </div>
       </form>
     </Form>
   )
