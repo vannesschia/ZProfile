@@ -1,19 +1,22 @@
+import { getBrowserClient } from "@/lib/supbaseClient";
+
 export default async function handleMajorMinorSearch(input) {
-  input = input.trim().toLowerCase();
+  input = input.trim();
   if (!input) {
     return [];
   }
   
-  const result = await fetch(`/api/fetch-majors`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
+  const supabase = getBrowserClient();
+  const { data, error } = await supabase
+    .from('majors_minors')
+    .select('program_name')
+    .ilike('program_name', `%${input}%`)
+    .limit(50);
 
-  if (!result.ok) {
-    console.error("Failed to fetch majors list");
+  if (error) {
+    console.error("Failed to fetch majors list:", error.message);
     return [];
   }
 
-  const majors = await result.json();
-  return majors.filter(major => major.toLowerCase().includes(input));
+  return data.map(m => m.program_name);
 }

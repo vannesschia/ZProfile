@@ -62,7 +62,7 @@ const admin_items = [
       },
       {
         title: "Coffee Chat Approval",
-        url: "/coffee-chat/approval",
+        url: "/admin/approval",
       },
       {
         title: "Requirement Settings",
