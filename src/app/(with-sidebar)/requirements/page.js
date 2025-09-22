@@ -53,12 +53,11 @@ export default async function MembersPage() {
                                             Unexcused absences or &gt;1 excused absence must be made up with
                                             <span className="font-medium"> either 2 coffee chats or committee points</span>.
                                         </li>
-                                        <li className="mt-1">Examples (any combo totaling 3 “points”):</li>
+                                        <li className="mt-1">Examples (any combo totaling 2 “points”):</li>
                                         <ul className="list-disc pl-8">
-                                            <li>3 coffee chats</li>
-                                            <li>3 committee events</li>
-                                            <li>2 coffee chats + 1 committee event</li>
-                                            <li>2 committee events + 1 coffee chat</li>
+                                            <li>2 coffee chats</li>
+                                            <li>2 committee events</li>
+                                            <li>1 coffee chats + 1 committee event</li>
                                         </ul>
                                     </ul>
                                 </AccordionContent>
