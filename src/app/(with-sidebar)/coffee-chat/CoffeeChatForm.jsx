@@ -224,7 +224,7 @@ export default function CoffeeChatForm() {
                           disabled={loadingMembers}
                         />
                         {pledgeOpen && (
-                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow">
+                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow dark:bg-black">
                             {(memberOptions.filter((opt) =>
                               opt.label.toLowerCase().includes(pledgeQuery.toLowerCase()) ||
                               opt.value.toLowerCase().includes(pledgeQuery.toLowerCase())
@@ -300,7 +300,7 @@ export default function CoffeeChatForm() {
                           disabled={loadingMembers}
                         />
                         {brotherOpen && (
-                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow">
+                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow dark:bg-black">
                             {(memberOptions.filter((opt) =>
                               opt.label.toLowerCase().includes(brotherQuery.toLowerCase()) ||
                               opt.value.toLowerCase().includes(brotherQuery.toLowerCase())

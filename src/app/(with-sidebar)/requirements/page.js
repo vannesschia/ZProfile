@@ -33,11 +33,12 @@ export default async function MembersPage() {
                                     <ul className="list-disc pl-5 space-y-1">
                                         <li>Nicky Nguyen: (224) 661-1514</li>
                                         <li>Abby Moomaw: (919) 308-6644</li>
-                                        <li><u><strong><a href="https://docs.google.com/spreadsheets/d/1P_ZEDAmqf3oiJ2MvULH-J0jSNSv5z4Esqe895PSZjOk/edit?usp=sharing">Pledge Informational Sheets (Brother Contact, Coffee Chat Pairings, Cleanup Tracker)</a></strong></u></li>
+                                        <li><u><strong><a href="https://docs.google.com/spreadsheets/d/17S7amIitZdCQx7JJhBYWi5hcAqG8UV2dOGO09GQFFVA/edit?gid=1732121820#gid=1732121820">Pledge Informational Sheets (Brother Contact, Coffee Chat Pairings, Cleanup Tracker)</a></strong></u></li>
                                         <li><u><strong><a href="https://join.photocircleapp.com/S0C7Z2ZBXA">PhotoCircle</a></strong></u></li>
                                         <li><u><strong><a href="https://calendar.google.com/calendar/embed?src=c_c813756b791ff495bc94dc7041d7e02a10136be55730bd669288ee8717a1bfd4%40group.calendar.google.com&ctz=America%2FNew_York">Google Calendar</a></strong></u></li>
                                         <li><u><strong><a href="./coffee-chat">Coffee Chat Form</a></strong></u></li>
                                         <li><u><strong><a href="https://drive.google.com/drive/folders/1_GnALj-7Gq_OYPatLA93B8vngQq5-v-8">Knowledgebase</a></strong></u></li>
+                                        <li><u><strong><a href="https://forms.gle/WfjH6i5gznAej1A87">Study Table Google Form</a></strong></u></li>
                                     </ul>
                                 </AccordionContent>
                             </AccordionItem>
@@ -53,11 +54,13 @@ export default async function MembersPage() {
                                             Unexcused absences or &gt;1 excused absence must be made up with
                                             <span className="font-medium"> either 2 coffee chats or committee points</span>.
                                         </li>
-                                        <li className="mt-1">Examples (any combo totaling 2 “points”):</li>
+                                        <li className="mt-1">Examples (any combo totaling 3 “points”):</li>
                                         <ul className="list-disc pl-8">
-                                            <li>2 coffee chats</li>
-                                            <li>2 committee events</li>
-                                            <li>1 coffee chats + 1 committee event</li>
+                                            <li>3 coffee chats</li>
+                                            <li>3 committee events</li>
+                                            <li>2 coffee chats and 1 committee event</li>
+                                            <li>2 committee events and 1 coffee chat</li>
+                                            <li>Any combination of the two to add up to 3 extra "points"</li>
                                         </ul>
                                     </ul>
                                 </AccordionContent>
@@ -103,13 +106,16 @@ export default async function MembersPage() {
                                 <AccordionTrigger className="font-bold">Coffee Chats</AccordionTrigger>
                                 <AccordionContent>
                                     <ul className="list-disc pl-5 space-y-1">
-                                        <li>20 total before initiation</li>
-                                        <li>5 randomly assigned, 15 of pledge’s choosing</li>
-                                        <li>Each chat: 30+ minutes with a brother you don’t already know well</li>
-                                        <li>Submit Google Form + selfie for it to count</li>
-                                        <li className="italic">
-                                            Tip: You can be assigned extra chats as penalties — start early!
-                                        </li>
+                                        <li>Coffee chat: 30+ minute meeting or hangout with a brother to get to know each other better</li>
+                                        <li>20 coffee chats before initiation</li>
+                                        <li>5 randomly assigned</li>
+                                        <li>15 of pledge's choosing</li>
+                                        <li>Submit coffee chat through the coffee chat submission page in ZProfile</li>
+                                        <li>Coffee chat form can be found on pledge dashboard</li>
+                                        <li className="italic"><strong>Hint:</strong> Be aware that you can be penalized and receive extra coffee chats so start on your coffee chats as soon as possible</li>
+                                        <li className="italic"><strong>Hint:</strong> Getting coffee and studying together can be fun but keep in mind that it's more memorable to do interesting activities like baking together, painting together, going on a run, watching a show, etc.</li>
+                                        <li className="italic"><strong>Hint:</strong> coffee chatting brothers you don't already know is tempting but won't help you in the long run while you look for a potential big</li>
+
                                     </ul>
                                 </AccordionContent>
                             </AccordionItem>
@@ -119,12 +125,13 @@ export default async function MembersPage() {
                                 <AccordionTrigger className="font-bold">Study Tables</AccordionTrigger>
                                 <AccordionContent>
                                     <ul className="list-disc pl-5 space-y-1">
-                                        <li>Attend Zeta Pi pledge study table once per week for ≥ 1 hour</li>
-                                        <li>Held in Shapiro twice a week</li>
-                                        <li>1 missed week allowed with no penalty (no notice required)</li>
-                                        <li>
-                                            &gt;1 missed week → make up with <span className="font-medium">1 committee point or 2 coffee chats</span>
-                                        </li>
+                                        <li>Must attend Zeta Pi pledge study table once a week for at least one hour</li>
+                                        <li>Will be held in Shapiro Tuesday and Thursday evenings from 7pm to 10pm</li>
+                                        <li>Pledges are in charge of finding a table or booking a room for the study session</li>
+                                        <li>Submit proof of attending each week by submitting a selfie to the <strong><a href="https://forms.gle/WfjH6i5gznAej1A87">study table google form</a></strong></li>
+                                        <li>Allowed to miss one week throughout the semester without notifying Nicky or Abby at no penalty</li>
+                                        <li>More than one missed study table must be made up for with either 1 committee point or 2 coffee chats.</li>
+
                                     </ul>
                                 </AccordionContent>
                             </AccordionItem>
@@ -134,10 +141,11 @@ export default async function MembersPage() {
                                 <AccordionTrigger className="font-bold">Post-Party Cleanup</AccordionTrigger>
                                 <AccordionContent>
                                     <ul className="list-disc pl-5 space-y-1">
-                                        <li>Must clean after one party <span className="font-medium">in addition to</span> bid night cleanup</li>
-                                        <li>Random assignment if not enough sign-ups</li>
-                                        <li>Supplies provided</li>
-                                        <li>Track cleanup points in the pledge attendance sheet (cleanup tracker)</li>
+                                        <li>Must clean after a party once in addition to cleaning up after bid night</li>
+                                        <li>Will be randomly assigned if there are not enough pledges signed up</li>
+                                        <li>Supplies will be provided at house</li>
+                                        <li>View your cleanup points in the <strong><a href="https://docs.google.com/spreadsheets/d/17S7amIitZdCQx7JJhBYWi5hcAqG8UV2dOGO09GQFFVA/edit?usp=sharing">cleanup tracker</a></strong> in the pledge attendance sheet</li>
+                                        <li>Failure to show up will result in additional coffee chats</li>
                                     </ul>
                                 </AccordionContent>
                             </AccordionItem>
