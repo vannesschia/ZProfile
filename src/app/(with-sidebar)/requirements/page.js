@@ -33,7 +33,7 @@ export default async function MembersPage() {
                                     <ul className="list-disc pl-5 space-y-1">
                                         <li>Nicky Nguyen: (224) 661-1514</li>
                                         <li>Abby Moomaw: (919) 308-6644</li>
-                                        <li><u><strong><a href="https://docs.google.com/spreadsheets/d/17S7amIitZdCQx7JJhBYWi5hcAqG8UV2dOGO09GQFFVA/edit?gid=1732121820#gid=1732121820">Pledge Informational Sheets (Brother Contact, Coffee Chat Pairings, Cleanup Tracker)</a></strong></u></li>
+                                        <li><u><strong><a href="https://docs.google.com/spreadsheets/d/1pTNPSq05jP9e0i8IEr0orUWKv9z_msK0c6Y-XQ9nmQc/edit?usp=sharing">Pledge Informational Sheets (Brother Contact, Coffee Chat Pairings, Cleanup Tracker)</a></strong></u></li>
                                         <li><u><strong><a href="https://join.photocircleapp.com/S0C7Z2ZBXA">PhotoCircle</a></strong></u></li>
                                         <li><u><strong><a href="https://calendar.google.com/calendar/embed?src=c_c813756b791ff495bc94dc7041d7e02a10136be55730bd669288ee8717a1bfd4%40group.calendar.google.com&ctz=America%2FNew_York">Google Calendar</a></strong></u></li>
                                         <li><u><strong><a href="./coffee-chat">Coffee Chat Form</a></strong></u></li>
@@ -60,7 +60,7 @@ export default async function MembersPage() {
                                             <li>3 committee events</li>
                                             <li>2 coffee chats and 1 committee event</li>
                                             <li>2 committee events and 1 coffee chat</li>
-                                            <li>Any combination of the two to add up to 3 extra "points"</li>
+                                            <li>Any combination of the two to add up to 3 extra &quot;points&quot;</li>
                                         </ul>
                                     </ul>
                                 </AccordionContent>
@@ -109,12 +109,12 @@ export default async function MembersPage() {
                                         <li>Coffee chat: 30+ minute meeting or hangout with a brother to get to know each other better</li>
                                         <li>20 coffee chats before initiation</li>
                                         <li>5 randomly assigned</li>
-                                        <li>15 of pledge's choosing</li>
+                                        <li>15 of pledge&apos;s choosing</li>
                                         <li>Submit coffee chat through the coffee chat submission page in ZProfile</li>
                                         <li>Coffee chat form can be found on pledge dashboard</li>
                                         <li className="italic"><strong>Hint:</strong> Be aware that you can be penalized and receive extra coffee chats so start on your coffee chats as soon as possible</li>
-                                        <li className="italic"><strong>Hint:</strong> Getting coffee and studying together can be fun but keep in mind that it's more memorable to do interesting activities like baking together, painting together, going on a run, watching a show, etc.</li>
-                                        <li className="italic"><strong>Hint:</strong> coffee chatting brothers you don't already know is tempting but won't help you in the long run while you look for a potential big</li>
+                                        <li className="italic"><strong>Hint:</strong> Getting coffee and studying together can be fun but keep in mind that it&apos;s more memorable to do interesting activities like baking together, painting together, going on a run, watching a show, etc.</li>
+                                        <li className="italic"><strong>Hint:</strong> coffee chatting brothers you don&apos;t already know is tempting but won&apos;t help you in the long run while you look for a potential big</li>
 
                                     </ul>
                                 </AccordionContent>
