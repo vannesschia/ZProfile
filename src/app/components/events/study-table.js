@@ -27,7 +27,7 @@ import SubmitButton from "../submit-button";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
-  event_date: z.date({ required_error: "Required"}),
+  event_date: z.date({ required_error: "Required" }),
   attendance: z.array(z.string().min(1)),
 });
 
@@ -75,12 +75,12 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
 
   async function onDelete() {
     setIsDeleting(true);
-    DeleteEvent({id, router});
+    DeleteEvent({ id, router });
   }
-  
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.error("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
@@ -90,9 +90,9 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
                 <FormItem className={`${form.getValues("event_date") ? "w-1/2" : "w-[calc(50%-4px)] lg:w-[calc(50%-16px)]"}`}>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date"/>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date" />
                   </FormControl>
-                  <FormMessage className="flex-grow"/>
+                  <FormMessage className="flex-grow" />
                 </FormItem>
               )}
             />
@@ -105,7 +105,7 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
                 return (
                   <div className="w-1/2 flex flex-col gap-2">
                     <FormLabel>Name</FormLabel>
-                    <span className="items-center border-input flex h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 shadow-xs text-sm">
+                    <span className="items-center border-input flex min-w-0 rounded-md border dark:bg-input/30 !p-1 shadow-xs text-sm gap-2 leading-none h-9">
                       {lastSunday} - {nextSaturday} Study Table
                     </span>
                   </div>
@@ -139,10 +139,10 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
           <div className="flex flex-row justify-between">
             {mode === "edit"
               ? <>
-                  <SubmitButton submitting={form.formState.isSubmitting} text="Save"/>
-                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
-                </>
-              : <SubmitButton submitting={form.formState.isSubmitting} text="Create"/>
+                <SubmitButton submitting={form.formState.isSubmitting} text="Save" />
+                <DeleteEventButton submitting={isDeleting} onDelete={onDelete} />
+              </>
+              : <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
             }
           </div>
         </div>

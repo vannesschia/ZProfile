@@ -38,7 +38,7 @@ import SubmitButton from "../submit-button";
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
   committee: z.string().min(1, "Required"),
-  event_date: z.date({ required_error: "Required"}),
+  event_date: z.date({ required_error: "Required" }),
   attendance: z.array(z.string().min(1)),
 });
 
@@ -50,7 +50,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [membersDataLoading, setMembersDataLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   useEffect(() => {
     getMembers().then((newMembersData) => {
       setMembersData(newMembersData);
@@ -78,7 +78,7 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
   if (mode === "edit" && !id) {
     return;
   }
-  
+
   const committeeOptions = [
     { name: "technology", label: "Technology" },
     { name: "prof_dev", label: "Professional Development" },
@@ -96,12 +96,12 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
 
   async function onDelete() {
     setIsDeleting(true);
-    await DeleteEvent({id, router});
+    await DeleteEvent({ id, router });
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.error("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
@@ -129,9 +129,9 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
                 <FormItem className="w-1/2">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date"/>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date" />
                   </FormControl>
-                  <FormMessage className="flex-grow"/>
+                  <FormMessage className="flex-grow" />
                 </FormItem>
               )}
             />
@@ -190,10 +190,10 @@ export default function EditCommitteeEvent({ mode, initialData, id }) {
           <div className="flex flex-row justify-between">
             {mode === "edit"
               ? <>
-                  <SubmitButton submitting={form.formState.isSubmitting} text="Save"/>
-                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
-                </>
-              : <SubmitButton submitting={form.formState.isSubmitting} text="Create"/>
+                <SubmitButton submitting={form.formState.isSubmitting} text="Save" />
+                <DeleteEventButton submitting={isDeleting} onDelete={onDelete} />
+              </>
+              : <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
             }
           </div>
         </div>

@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Form,
   FormControl,
   FormDescription,
@@ -25,9 +34,14 @@ import { getMembers } from "./members-data";
 import { useRouter } from "next/navigation";
 import SubmitButton from "../submit-button";
 
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 const formSchema = z.object({
-  name: z.string().min(1, "Required"),
-  event_date: z.date({ required_error: "Required"}),
+  name: z.string().min(1, "Required").transform((val) => {
+    const month = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+    return `${month} Chapter`;
+  }),
+  event_date: z.date({ required_error: "Required" }),
   unexcused_absences: z.array(z.string().min(1)),
   excused_absences: z.array(z.string().min(1)),
 });
@@ -53,13 +67,13 @@ export default function EditChapterEvent({ mode, initialData, id }) {
       setMembersDataLoading(false);
     })
   }, []);
-  
+
   const form = useForm({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: initialData?.name ?? "",
+      name: initialData?.name.split(" ")[0].toLowerCase() ?? "",
       event_date: initialData?.event_date ? (() => {
         const [year, month, day] = initialData.event_date.split('-').map(Number);
         return new Date(year, month - 1, day);
@@ -81,42 +95,51 @@ export default function EditChapterEvent({ mode, initialData, id }) {
 
   async function onDelete() {
     setIsDeleting(true);
-    DeleteEvent({id, router});
+    DeleteEvent({ id, router });
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.error("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
               control={form.control}
               name="event_date"
               render={({ field }) => (
-                <FormItem className={`${form.getValues("event_date") ? "w-1/2" : "w-[calc(50%-4px)] lg:w-[calc(50%-16px)]"}`}>
+                <FormItem className="w-1/2">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date"/>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="event_date" />
                   </FormControl>
-                  <FormMessage className="flex-grow"/>
+                  <FormMessage className="flex-grow" />
                 </FormItem>
               )}
             />
-            {form.getValues("event_date") &&
-              (() => {
-                const date = new Date(form.getValues("event_date"));
-                const month = date.toLocaleString("default", { month: "long" });
-                form.setValue("name", `${month} Chapter`);
-                return (
-                  <div className="w-1/2 flex flex-col gap-2">
-                    <FormLabel>Name</FormLabel>
-                    <span className="items-center border-input flex h-9 min-w-0 rounded-md border dark:bg-input/30 px-3 py-1 shadow-xs text-sm">
-                      {month} Chapter
-                    </span>
-                  </div>
-                )
-              })()
-            }
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="w-1/2">
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month} value={month.toLowerCase()}>
+                            {month} Chapter
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
@@ -171,10 +194,10 @@ export default function EditChapterEvent({ mode, initialData, id }) {
           <div className="flex flex-row justify-between">
             {mode === "edit"
               ? <>
-                  <SubmitButton submitting={form.formState.isSubmitting} text="Save"/>
-                  <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
-                </>
-              : <SubmitButton submitting={form.formState.isSubmitting} text="Create"/>
+                <SubmitButton submitting={form.formState.isSubmitting} text="Save" />
+                <DeleteEventButton submitting={isDeleting} onDelete={onDelete} />
+              </>
+              : <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
             }
           </div>
         </div>
