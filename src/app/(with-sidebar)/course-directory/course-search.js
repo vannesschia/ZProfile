@@ -20,32 +20,29 @@ import { Input } from "@/components/ui/input";
 export default function CourseSearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState([]);
   const [uniqueTerms, setUniqueTerms] = useState([]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
-      if (searchQuery) {
-        setIsLoading(true);
-        searchCourses(searchQuery).then((newSearchResults) => {
-          setSearchResults(newSearchResults);
-          setUniqueTerms(() => {
-            const s = new Set();
-            newSearchResults.forEach((item) => {
-              item.students.forEach((student) => {
-                s.add(student.term_code);
-              })
+      setIsLoading(true);
+      const query = searchQuery === "" ? "*" : searchQuery;
+      searchCourses(query).then((newSearchResults) => {
+        setSearchResults(newSearchResults);
+        setUniqueTerms(() => {
+          const s = new Set();
+          newSearchResults.forEach((item) => {
+            item.students.forEach((student) => {
+              s.add(student.term_code);
             })
-            const a = Array.from(s).sort();
-            setFilter(a);
-            return a;
           })
-          setIsLoading(false);
+          const a = Array.from(s).sort();
+          setFilter(a);
+          return a;
         })
-      } else {
-        setSearchResults([]);
-      }
+        setIsLoading(false);
+      })
     }, 300);
     return () => clearTimeout(debounce);
   }, [searchQuery]);
@@ -110,7 +107,7 @@ export default function CourseSearch() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {searchQuery && (isLoading
+      {isLoading
         ?
         <>
           <Skeleton className="mt-2 h-8 w-[100px] rounded-lg" />
@@ -118,7 +115,6 @@ export default function CourseSearch() {
           <Skeleton className="h-8 w-[300px] rounded-lg" />
         </>
         : <CourseResults results={searchResults} query={searchQuery} filter={filter} />
-      )
       }
     </>
   )

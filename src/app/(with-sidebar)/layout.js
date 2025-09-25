@@ -23,7 +23,7 @@ export default async function WithNavbarLayout({ children }) {
 
   const { data: member, error } = await supabase
     .from('members')
-    .select('name, email_address, admin')
+    .select('name, email_address, admin, profile_picture_url')
     .eq('uniqname', uniqname)
     .single();
 

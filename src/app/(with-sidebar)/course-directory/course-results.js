@@ -57,15 +57,13 @@ export default function CourseResults({ results, query, filter }) {
         return (
           <Card key={key}>
             <Collapsible open={isOpen} onOpenChange={() => toggleOpen(key)}>
-              <CardHeader className="px-0">
-                <CollapsibleTrigger className="w-full justify-between font-semibold flex cursor-pointer">
-                  <div className="flex">
-                    <ChevronRight className={`transition-transform duration-300 ease-in-out ${isOpen ? "rotate-90" : "rotate-0"}`} />
-                    <span>{item.class_name.replace(/(\D+)(\d+)/, "$1 $2")}</span>
-                  </div>
-                  <span className="font-normal">{item.uniqueStudents} {item.uniqueStudents === 1 ? "student" : "students"}</span>
-                </CollapsibleTrigger>
-              </CardHeader>
+              <CollapsibleTrigger className="w-full justify-between font-semibold flex cursor-pointer">
+                <div className="flex">
+                  <ChevronRight className={`transition-transform duration-300 ease-in-out ${isOpen ? "rotate-90" : "rotate-0"}`} />
+                  <span>{item.class_name.replace(/(\D+)(\d+)/, "$1 $2")}</span>
+                </div>
+                <span className="font-normal">{item.uniqueStudents} {item.uniqueStudents === 1 ? "student" : "students"}</span>
+              </CollapsibleTrigger>
               <CollapsibleContent className="transition-all duration-300 ease-in-out overflow-hidden">
                 <CardContent className="px-6">
                   {item.students.map((student, j) => (

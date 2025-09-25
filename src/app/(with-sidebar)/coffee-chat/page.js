@@ -35,17 +35,17 @@ export default async function CoffeeChatPage() {
   
   if (!isAuthorized) {
     return (
-      <main className="min-h-screen px-12 py-8">
-        <h1 className="text-2xl font-bold mb-7">Access Denied</h1>
+      <div className="flex flex-col m-4 gap-4">
+        <span className="text-2xl font-bold tracking-tight leading-tight">Access Denied</span>
         <p>This page is only accessible to pledges.</p>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen px-12 py-8">
-      <h1 className="text-2xl font-bold mb-7">Coffee Chat Form</h1>
+    <div className="flex flex-col m-4 gap-4">
+      <span className="text-2xl font-bold tracking-tight leading-tight">Coffee Chat Form</span>
       <CoffeeChatForm />
-    </main>
+    </div>
   );
 }

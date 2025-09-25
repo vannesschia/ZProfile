@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info, Bug } from "lucide-react"
+import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info, Bug, LogOut } from "lucide-react"
 
 import {
   Sidebar,
@@ -12,7 +12,8 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-  SidebarHeader
+  SidebarHeader,
+  SidebarSeparator
 } from "@/components/ui/sidebar"
 
 import { NavUser } from "./nav-user"
@@ -75,27 +76,17 @@ const admin_items = [
 export function AppSidebar({ user }) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="pb-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Zeta Pi</span>
-                  {/* <span className="truncate text-xs">Zeta Pi</span> */}
-                </div>
-              </a>
+              <NavUser user={user} />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
-          {/* <SidebarGroupLabel>General</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -120,7 +111,6 @@ export function AppSidebar({ user }) {
                   ) : null}
                 </SidebarMenuItem>
               ))}
-
             </SidebarMenu>
           </SidebarGroupContent>
           <SidebarGroupContent className="mt-8">
@@ -149,25 +139,23 @@ export function AppSidebar({ user }) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
         <SidebarGroup>
         </SidebarGroup>
       </SidebarContent>
-
+      <SidebarSeparator className="!w-auto"/>
       <SidebarFooter>
-        {/* <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href='/support'>
-                  <Bug />
-                  <span>Support</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent> */}
-        <NavUser user={user} />
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            {/* POST form so the browser follows the server's 303 redirect */}
+            <form action="/auth/sign-out" method="POST">
+              {/* You can change ?next=... or add &scope=global for "sign out everywhere" */}
+              <button type="submit" className="w-full text-left flex items-center gap-2 cursor-pointer">
+                <LogOut className="h-4 w-4" />
+                Log out
+              </button>
+            </form>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarFooter>
     </Sidebar>
   )

@@ -12,10 +12,8 @@ import {
 } from "@/components/ui/form"
 import {
   AttendanceDualListbox,
-  CreateEventButton,
   DeleteEvent,
   DeleteEventButton,
-  SaveEventButton,
   SelectDate,
   SubmitCreate,
   SubmitEdit
@@ -25,6 +23,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getMembers } from "./members-data";
 import { useRouter } from "next/navigation";
+import SubmitButton from "../submit-button";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -172,10 +171,10 @@ export default function EditChapterEvent({ mode, initialData, id }) {
           <div className="flex flex-row justify-between">
             {mode === "edit"
               ? <>
-                  <SaveEventButton submitting={form.formState.isSubmitting}/>
+                  <SubmitButton submitting={form.formState.isSubmitting} text="Save"/>
                   <DeleteEventButton submitting={isDeleting} onDelete={onDelete}/>
                 </>
-              : <CreateEventButton submitting={form.formState.isSubmitting} />
+              : <SubmitButton submitting={form.formState.isSubmitting} text="Create"/>
             }
           </div>
         </div>

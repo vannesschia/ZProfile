@@ -19,14 +19,23 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { CheckIcon } from "lucide-react";
+import { SelectDate } from "../admin/events/event-editor";
+import ImageUpload from "@/app/components/image-upload";
+import SubmitButton from "@/app/components/submit-button";
 
 //store pledge/brother by uniqname to match FK to members.uniqname
 const formSchema = z.object({
@@ -51,6 +60,7 @@ export default function CoffeeChatForm() {
   const [pledgeOpen, setPledgeOpen] = useState(false);
   const [brotherQuery, setBrotherQuery] = useState("");
   const [brotherOpen, setBrotherOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -197,158 +207,159 @@ export default function CoffeeChatForm() {
   }
 
   return (
-    <Card className="max-w-5xl">
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left column */}
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="pledge"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pledge</FormLabel>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder={loadingMembers ? "Loading..." : "Search by name or uniqname"}
-                          value={pledgeQuery}
-                          onChange={(e) => {
-                            setPledgeQuery(e.target.value);
-                            if (field.value) field.onChange("");
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+        <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+          {/* Left column */}
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="pledge"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pledge</FormLabel>
+                  <FormControl>
+                    <Popover open={pledgeOpen} onOpenChange={setPledgeOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setPledgeOpen(!pledgeOpen);
                           }}
-                          onFocus={() => setPledgeOpen(true)}
-                          onBlur={() => setTimeout(() => setPledgeOpen(false), 100)}
                           disabled={loadingMembers}
-                        />
-                        {pledgeOpen && (
-                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow">
-                            {(memberOptions.filter((opt) =>
-                              opt.label.toLowerCase().includes(pledgeQuery.toLowerCase()) ||
-                              opt.value.toLowerCase().includes(pledgeQuery.toLowerCase())
-                            )).map((opt) => (
-                              <button
-                                type="button"
-                                key={`pledge-${opt.value}`}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => {
-                                  field.onChange(opt.value);
-                                  setPledgeQuery(opt.label);
-                                  setPledgeOpen(false);
-                                }}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-2">
-                  <FormLabel>Photo Proof</FormLabel>
-
-                  {currentImageUrl && (
-                    <div className="flex flex-col items-start space-y-2 pl-1">
-                      <img
-                        src={currentImageUrl}
-                        alt="Coffee chat proof"
-                        className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
-                      />
-                      {/* <p className="text-sm text-muted-foreground">Current photo</p> */}
-                    </div>
-                  )}
-
-                  <Input
-                    id="coffee-proof-input"
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="cursor-pointer"
+                          className={`block text-left h-9 px-3 py-1 font-normal w-full ${pledgeQuery ? "" : "text-muted-foreground"}`}
+                        >
+                          {loadingMembers
+                            ? "Loading"
+                            : pledgeQuery
+                              ? pledgeQuery
+                              : "Search by name or uniqname"
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                        <Command>
+                          <CommandInput placeholder="Search by name or uniqname" />
+                          <CommandList>
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandGroup>
+                              {memberOptions.map((opt) => (
+                                <CommandItem
+                                  key={opt.value}
+                                  value={opt.value}
+                                  onSelect={(currentValue) => {
+                                    setPledgeQuery(currentValue === pledgeQuery ? "" : currentValue)
+                                    setPledgeOpen(false)
+                                  }}
+                                >
+                                  {opt.label}
+                                  <CheckIcon
+                                    className={`mr-2 h-4 w-4 ${pledgeQuery === opt.value ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="space-y-2">
+              <FormLabel>Photo Proof</FormLabel>
+              {currentImageUrl && (
+                <div className="flex flex-col items-start space-y-2 pl-1">
+                  <img
+                    src={currentImageUrl}
+                    alt="Coffee chat proof"
+                    className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
                   />
-                  <FormDescription>
-                    Upload a clear selfie (JPEG, PNG, or WebP, max 5MB)
-                  </FormDescription>
                 </div>
-              </div>
-
-              {/* Right column */}
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="brother"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Brother</FormLabel>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder={loadingMembers ? "Loading..." : "Search by name or uniqname"}
-                          value={brotherQuery}
-                          onChange={(e) => {
-                            setBrotherQuery(e.target.value);
-                            if (field.value) field.onChange("");
-                          }}
-                          onFocus={() => setBrotherOpen(true)}
-                          onBlur={() => setTimeout(() => setBrotherOpen(false), 100)}
-                          disabled={loadingMembers}
-                        />
-                        {brotherOpen && (
-                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-white shadow">
-                            {(memberOptions.filter((opt) =>
-                              opt.label.toLowerCase().includes(brotherQuery.toLowerCase()) ||
-                              opt.value.toLowerCase().includes(brotherQuery.toLowerCase())
-                            )).map((opt) => (
-                              <button
-                                type="button"
-                                key={`brother-${opt.value}`}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => {
-                                  field.onChange(opt.value);
-                                  setBrotherQuery(opt.label);
-                                  setBrotherOpen(false);
-                                }}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="chat_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Chat Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              )}
+              <ImageUpload image={selectedFile} setImage={setSelectedFile} message="Upload a clear selfie (JPEG, PNG, or WebP, max 5MB)"/>
             </div>
+          </div>
 
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Coffee Chat"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          {/* Right column */}
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="brother"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Brother</FormLabel>
+                  <FormControl>
+                    <Popover open={brotherOpen} onOpenChange={setBrotherOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setBrotherOpen(!brotherOpen);
+                          }}
+                          disabled={loadingMembers}
+                          className={`block text-left h-9 px-3 py-1 font-normal w-full ${brotherQuery ? "" : "text-muted-foreground"}`}
+                        >
+                          {loadingMembers
+                            ? "Loading"
+                            : brotherQuery
+                              ? brotherQuery
+                              : "Search by name or uniqname"
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                        <Command>
+                          <CommandInput placeholder="Search by name or uniqname" />
+                          <CommandList>
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandGroup>
+                              {memberOptions.map((opt) => (
+                                <CommandItem
+                                  key={opt.value}
+                                  value={opt.value}
+                                  onSelect={(currentValue) => {
+                                    setBrotherQuery(currentValue === brotherQuery ? "" : currentValue)
+                                    setBrotherOpen(false)
+                                  }}
+                                >
+                                  {opt.label}
+                                  <CheckIcon
+                                    className={`mr-2 h-4 w-4 ${brotherQuery === opt.value ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="chat_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Chat Date</FormLabel>
+                  <FormControl>
+                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="chat_date"/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        <SubmitButton submitting={isSubmitting}/>
+      </form>
+    </Form>
   );
 }

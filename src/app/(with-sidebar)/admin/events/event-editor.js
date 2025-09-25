@@ -454,22 +454,6 @@ export async function DeleteEvent({ id, router }) {
   }, 1000);
 }
 
-export function SaveEventButton({ submitting }) {
-  return (
-    <Button className="cursor-pointer w-[80px]" type="submit" disabled={submitting}>
-      {submitting ? <Loader2Icon className="animate-spin" /> : "Save"}
-    </Button>
-  )
-}
-
-export function CreateEventButton({ submitting }) {
-  return (
-    <Button className="cursor-pointer w-[80px]" type="submit" disabled={submitting}>
-      {submitting ? <Loader2Icon className="animate-spin" /> : "Create"}
-    </Button>
-  )
-}
-
 export function DeleteEventButton({ submitting, onDelete }) {
   const [open, setOpen] = useState(false);
   const handleClose = () => {

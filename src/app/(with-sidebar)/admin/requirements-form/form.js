@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { toast } from "sonner";
+import SubmitButton from "@/app/components/submit-button";
 
 const formSchema = z.object({
   pledge_committee_pts_req: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)), z.number().min(0)),
@@ -388,9 +389,7 @@ export function RequirementsForm({ initialData }) {
             />
           </div>
         </div>
-        <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Saving..." : "Submit"}
-        </Button>
+        <SubmitButton submitting={form.formState.isSubmitting}/>
       </form>
     </Form>
   )

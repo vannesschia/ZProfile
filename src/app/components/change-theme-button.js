@@ -11,6 +11,7 @@ export default function ChangeThemeButton() {
     <Button
       variant="ghost"
       onClick={() => resolvedTheme === "light" ? setTheme("dark") : setTheme("light")}
+      className="h-8 !p-2"
     >
       <SunMoon className="w-4 h-4" />
     </Button>

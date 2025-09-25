@@ -41,6 +41,8 @@ import Image from "next/image";
 import imageCompression from "browser-image-compression";
 import MajorMinorMultiSelect from "./MajorMinorMultiSelect.jsx";
 import handleMajorMinorSearch from "./majors-api.js";
+import ImageUpload from "./image-upload";
+import SubmitButton from "./submit-button";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
@@ -394,33 +396,12 @@ export function MyForm({ initialData, userEmail }) {
                     height={96}
                     src={currentImageUrl}
                     alt="Current profile picture"
-                    className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
+                    className="w-24 h-24 rounded-sm object-cover border-2 border-muted-foreground"
                   />
                   <p className="text-sm text-muted-foreground">Current profile picture</p>
                 </div>
               )}
-              <Input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  setSelectedFile(file);
-                  if (file) {
-                    form.clearErrors("root");
-                  }
-                }}
-                id="profile-picture-input"
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById("profile-picture-input")?.click()}
-                className="justify-start text-left px-3"
-              >
-                {selectedFile ? selectedFile.name : "Choose File"}
-              </Button>
-              <FormDescription>Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit.</FormDescription>
+              <ImageUpload image={selectedFile} setImage={setSelectedFile} message="Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit."/>
               {form.formState.errors.root?.message && (
                 <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
               )}
@@ -685,9 +666,7 @@ export function MyForm({ initialData, userEmail }) {
           >
             Cancel
           </Button>
-          <Button className="cursor-pointer w-[80px]" type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? <Loader2Icon className="animate-spin" /> : "Submit"}
-          </Button>
+          <SubmitButton submitting={form.formState.isSubmitting}/>
         </div>
       </form>
     </Form>
