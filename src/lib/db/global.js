@@ -249,7 +249,7 @@ export async function getCoffeeChats(uniqname) {
  * @param {string} uniqname - The pledge's uniqname.
  * @returns {Promise<number>} - Number of coffee chats.
  */
-export async function getCoffeeChatsCount(uniqname) {
+export async function(uniqname) {
   console.log("Getting coffee chat count for:", uniqname);
   const supabase = await getServerClient();
   const {data, error} = await supabase.rpc('get_approved_coffee_chat_count', {uniqname: uniqname});
