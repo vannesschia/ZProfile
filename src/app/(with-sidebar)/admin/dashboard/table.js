@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ChevronDown, Milestone, Search, CalendarSearch, Plus } from "lucide-react"
+import { ChevronDown, Milestone, Search, CalendarSearch, Plus, Medal } from "lucide-react"
 import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -210,6 +210,11 @@ export default function AdminViewTable({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+              <Button className="gap-1" asChild>
+                <Link href="/admin/initiation">
+                  <Medal/>Initiate
+                </Link>
+              </Button>
             </>
           )}
 

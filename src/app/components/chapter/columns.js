@@ -17,7 +17,7 @@ export function getColumns(data) {
         return (
           <div className="flex flex-row gap-1">
             {chapter.absence_type ? <Badge className="border-primary/50 bg-primary/10 text-primary">{capitalizeFirstLetter(chapter.absence_type)}</Badge> : null}
-            {!chapter.is_absent ? <Badge className="bg-green-50 border-green-200 text-green-800">Present</Badge> : <Badge className="bg-red-50 border-red-200 text-red-800">Absent</Badge>}
+            {!chapter.is_absent ? <Badge className="bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700">Present</Badge> : <Badge className="bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700">Absent</Badge>}
           </div>
         )
       },
