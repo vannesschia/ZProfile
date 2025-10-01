@@ -250,10 +250,8 @@ export async function getCoffeeChats(uniqname) {
  * @returns {Promise<number>} - Number of coffee chats.
  */
 export async function getCoffeeChatsCount(uniqname) {
-  console.log("Getting coffee chat count for:", uniqname);
   const supabase = await getServerClient();
   const {data, error} = await supabase.rpc('get_approved_coffee_chat_count', {uniqname: uniqname});
-  console.log(data)
   if (error) throw error;
   return data;
 }
