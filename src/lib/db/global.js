@@ -250,19 +250,12 @@ export async function getCoffeeChats(uniqname) {
  * @returns {Promise<number>} - Number of coffee chats.
  */
 export async function getCoffeeChatsCount(uniqname) {
+  console.log("Getting coffee chat count for:", uniqname);
   const supabase = await getServerClient();
-
-  const { count, error } = await supabase
-    .from('coffee_chats')
-    .select(`
-      *,
-      brother_name:brother (
-        name
-      )
-    `, { count: 'exact', head: true })
-    .eq('pledge', uniqname);
+  const {data, error} = await supabase.rpc('get_approved_coffee_chat_count', {uniqname: uniqname});
+  console.log(data)
   if (error) throw error;
-  return count
+  return data;
 }
 
 /**
