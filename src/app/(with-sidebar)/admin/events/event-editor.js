@@ -34,7 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Command as CommandPrimitive } from "cmdk"
-import { cn } from "@/lib/utils"
+import { capitalizeFirstLetter, cn } from "@/lib/utils"
 import { useState } from "react"
 import EditCommitteeEvent from "@/app/components/events/committee"
 import EditChapterEvent from "@/app/components/events/chapter"
@@ -42,11 +42,12 @@ import EditPledgeEvent from "@/app/components/events/pledge-event"
 import EditStudyTableEvent from "@/app/components/events/study-table"
 import EditRushEvent from "@/app/components/events/rush-event"
 import { Button } from "@/components/ui/button"
-import { ArrowLeftRight, ChevronDown, Loader2Icon, Plus, TrashIcon } from "lucide-react"
+import { ArrowLeftRight, ChevronDown, Loader2Icon, Plus, TrashIcon, CircleX, CircleCheck } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 
 export default function EventEditor({ mode, initialData = null, id = null }) {
   const [event, setEvent] = useState(initialData?.event_type ?? "");
@@ -164,6 +165,8 @@ export function AttendanceDualListbox({
   form,
   formItem,
   loading,
+  availableTitle = "Available Names",
+  selectedTitle = "Selected Names",
 }) {
 
   const move = (person) => {
@@ -203,7 +206,7 @@ export function AttendanceDualListbox({
   return (
     <div className="flex flex-col lg:flex-row gap-2 sm:gap-8">
       <div className="flex flex-col w-full">
-        <span className="text-[12px] text-muted-foreground select-none mb-1">Available Names</span>
+        <span className="text-[12px] text-muted-foreground select-none mb-1">{availableTitle}</span>
         <Command className="border shadow-xs">
           <div className="relative flex flex-row gap-1 justify-between">
             <CommandInput
@@ -245,17 +248,39 @@ export function AttendanceDualListbox({
                       key={person.uniqname}
                       onSelect={() => move(person)}
                     >
-                      <Plus className="w-4 h-4"/>
-                      {person.name}
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className="flex flex-row items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          {person.name}
+                        </div>
+                        <div>
+                          {person.status && (
+                            <Badge
+                              className={`mr-4 ${
+                                person.status !== "not_ready"
+                                  ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
+                                  : "bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700"
+                              }`}
+                            >
+                              {person.status === "ready" ? (
+                                <CircleCheck className="w-4 h-4 text-green-700 dark:text-green-200 inline-block" />
+                              ) : (
+                                <CircleX className="w-4 h-4 text-red-700 dark:text-red-200 inline-block" />
+                              )}
+                              {capitalizeFirstLetter(person.status)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </CustomCommandItem>
-                  )
+                  );
                 }))
             }
           </CommandList>
         </Command>
       </div>
       <div className="flex flex-col w-full">
-        <span className="text-[12px] text-muted-foreground select-none mb-1">Selected Names</span>
+        <span className="text-[12px] text-muted-foreground select-none mb-1">{selectedTitle}</span>
         <Command className="min-h-[36px] rounded-md border">
           <CommandList className="max-h-[332px]">
             {loading
@@ -283,8 +308,30 @@ export function AttendanceDualListbox({
                       key={person.uniqname}
                       onSelect={() => move(person)}
                     >
-                      <TrashIcon className="w-4 h-4"/>
-                      {person.name}
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className="flex flex-row items-center gap-2">
+                          <TrashIcon className="w-4 h-4"/>
+                          {person.name}
+                        </div>
+                        <div>
+                          {person.status && (
+                            <Badge
+                              className={`mr-4 ${
+                                person.status !== "not_ready"
+                                  ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
+                                  : "bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700"
+                              }`}
+                            >
+                              {person.status === "ready" ? (
+                                <CircleCheck className="w-4 h-4 text-green-700 dark:text-green-200 inline-block" />
+                              ) : (
+                                <CircleX className="w-4 h-4 text-red-700 dark:text-red-200 inline-block" />
+                              )}
+                              {capitalizeFirstLetter(person.status)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </CustomCommandItem>
                   )
                 }))
