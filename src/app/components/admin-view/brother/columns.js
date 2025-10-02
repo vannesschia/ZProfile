@@ -17,33 +17,50 @@ function checkStatus(status) {
 }
 
 export function getColumns({data, requirement}) {
-  const sortingFns = {
-    activeAttendanceName: (rowA, rowB) => {
-      const a = rowA.original
-      const b = rowB.original
+  // const sortingFns = {
+  //   activeAttendanceName: (rowA, rowB) => {
+  //     const a = rowA.original
+  //     const b = rowB.original
   
-      // 1. Active first
-      if (a.active !== b.active) {
-        return a.active ? -1 : 1
-      }
+  //     // 1. Active first
+  //     if (a.active !== b.active) {
+  //       return a.active ? -1 : 1
+  //     }
   
-      // 2. Attendance under threshold first
-      const thresholdA = a.total_attendance_points < (a.committee_points.extra_needed + requirement)
-      const thresholdB = b.total_attendance_points < (b.committee_points.extra_needed + requirement)
-      if (thresholdA !== thresholdB) {
-        return thresholdA ? -1 : 1
-      }
+  //     // 2. Attendance under threshold first
+  //     const thresholdA = a.total_attendance_points < (a.committee_points.extra_needed + requirement)
+  //     const thresholdB = b.total_attendance_points < (b.committee_points.extra_needed + requirement)
+  //     if (thresholdA !== thresholdB) {
+  //       return thresholdA ? -1 : 1
+  //     }
   
-      // 3. Alphabetical by name
-      return a.name.localeCompare(b.name)
-    },
-  }
+  //     // 3. Alphabetical by name
+  //     return a.name.localeCompare(b.name)
+  //   },
+  // }
 
   return [
     {
       accessorKey: "name",
       header: "Name",
       meta: { widthClass: "min-w-[200px]" },
+
+      sortingFn: (rowA, rowB) => {
+        const a = rowA.original;
+        const b = rowB.original;
+
+        // 1) Active first
+        if (a.active !== b.active) return a.active ? -1 : 1;
+
+         // 2) Status order: late → on_track → completed
+        const statusRank = { late: 0, on_track: 1, completed: 2 };
+        const ra = statusRank[a.status] ?? 99;
+        const rb = statusRank[b.status] ?? 99;
+        if (ra !== rb) return ra - rb;
+
+        // 3) Alphabetical by name
+        return (a.name ?? "").localeCompare(b.name ?? "");
+      },
       cell: ({ row }) => {
         const { name, uniqname, active } = row.original
         return (
@@ -56,7 +73,6 @@ export function getColumns({data, requirement}) {
           </div>
         )
       },
-      sortingFns: 'activeAttendanceName'
     },
     {
       accessorKey: "total_attendance_points",

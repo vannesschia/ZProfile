@@ -115,12 +115,14 @@ export default function AdminViewTable({
     study_table: studyTableAttendance,
   };
 
+  const nameIncludes = (row, t) => (row.name ?? "").toLowerCase().includes(t);
+
   const filterFns = {
-    committee_event: (row, t) => row.name?.toLowerCase().includes(t),
-    chapter: (row, t) => row.name?.toLowerCase().includes(t),
-    rush_event: (row, t) => row.name?.toLowerCase().includes(t),
-    pledge_event: (row, t) => row.name?.toLowerCase().includes(t),
-    study_table: (row, t) => row.name?.toLowerCase().includes(t),
+    committee_event: nameIncludes,
+    chapter: nameIncludes,
+    rush_event: nameIncludes,
+    pledge_event: nameIncludes,
+    study_table: nameIncludes,
   };
 
   const filteredEventsMap = useMemo(() => {
@@ -225,8 +227,8 @@ export default function AdminViewTable({
                 type="search"
                 className="pl-8 text-sm"
                 placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchBrother}
+                onChange={(e) => setSearchBrother(e.target.value)}
               />
             </div>
           )}
@@ -256,8 +258,8 @@ export default function AdminViewTable({
                     type="search"
                     className="pl-8 text-sm"
                     placeholder="Search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchByType[eventType] ?? ""}
+                    onChange={(e) => setActiveSearch(e.target.value)}
                   />
                 </div>
               </div>

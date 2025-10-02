@@ -165,6 +165,8 @@ export function AttendanceDualListbox({
   form,
   formItem,
   loading,
+  availableTitle = "Available Names",
+  selectedTitle = "Selected Names",
 }) {
 
   const move = (person) => {
@@ -204,7 +206,7 @@ export function AttendanceDualListbox({
   return (
     <div className="flex flex-col lg:flex-row gap-2 sm:gap-8">
       <div className="flex flex-col w-full">
-        <span className="text-[12px] text-muted-foreground select-none mb-1">Available Names</span>
+        <span className="text-[12px] text-muted-foreground select-none mb-1">{availableTitle}</span>
         <Command className="border shadow-xs">
           <div className="relative flex flex-row gap-1 justify-between">
             <CommandInput
@@ -278,7 +280,7 @@ export function AttendanceDualListbox({
         </Command>
       </div>
       <div className="flex flex-col w-full">
-        <span className="text-[12px] text-muted-foreground select-none mb-1">Selected Names</span>
+        <span className="text-[12px] text-muted-foreground select-none mb-1">{selectedTitle}</span>
         <Command className="min-h-[36px] rounded-md border">
           <CommandList className="max-h-[332px]">
             {loading
