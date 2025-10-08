@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -30,7 +31,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { CheckIcon } from "lucide-react";
-import { SelectDate } from "../admin/events/event-editor";
 import ImageUpload from "@/app/components/image-upload";
 import SubmitButton from "@/app/components/submit-button";
 
@@ -43,7 +43,10 @@ const formSchema = z.object({
     .transform((v) => v.trim()),
   chat_date: z
     .string()
-    .regex(/\d{4}-\d{2}-\d{2}/, "Please provide a valid date (YYYY-MM-DD)"),
+    .regex(/\d{4}-\d{2}-\d{2}/, "Please select a valid date (YYYY-MM-DD)"),
+  image_proof: z.any().refine((file) => file !== null && file !== undefined, {
+    message: "Photo proof is required",
+  }),
 });
 
 export default function CoffeeChatForm() {
@@ -53,11 +56,10 @@ export default function CoffeeChatForm() {
   const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [memberOptions, setMemberOptions] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
-  const [pledgeQuery, setPledgeQuery] = useState("");
-  const [pledgeOpen, setPledgeOpen] = useState(false);
+  const [currentUserUniqname, setCurrentUserUniqname] = useState("");
+  const [currentUserName, setCurrentUserName] = useState("");
   const [brotherQuery, setBrotherQuery] = useState("");
   const [brotherOpen, setBrotherOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -65,8 +67,41 @@ export default function CoffeeChatForm() {
       pledge: "",
       brother: "",
       chat_date: "",
+      image_proof: null,
     },
   });
+
+  //load current user and auto-fill pledge field
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCurrentUser() {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user) return;
+
+        const { data: memberData, error: memberError } = await supabase
+          .from("members")
+          .select("uniqname, name")
+          .eq("email_address", user.email)
+          .single();
+        
+        if (memberError) throw memberError;
+        if (!isMounted) return;
+        
+        setCurrentUserUniqname(memberData.uniqname);
+        setCurrentUserName(memberData.name || memberData.uniqname);
+        form.setValue("pledge", memberData.uniqname);
+      } catch (err) {
+        console.error("Failed to load current user:", err);
+        toast.error("Failed to load your profile");
+      }
+    }
+    loadCurrentUser();
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase, form]);
 
   //load members so we can pick by name but submit uniqname to satisfy FK
   useEffect(() => {
@@ -81,7 +116,7 @@ export default function CoffeeChatForm() {
         if (error) throw error;
         if (!isMounted) return;
         const options = (data || []).map((m) => ({
-          label: m.name ? `${m.name} (${m.uniqname})` : m.uniqname,
+          label: m.name || m.uniqname,
           value: m.uniqname,
         }));
         setMemberOptions(options);
@@ -99,18 +134,13 @@ export default function CoffeeChatForm() {
   }, [supabase]);
 
   async function onSubmit(values) {
-    if (!selectedFile) {
-      toast.error("Please attach a photo as proof.");
-      return;
-    }
-
-    // Validate file
+    // Validate file (already checked by schema but adding extra validation)
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(selectedFile.type)) {
+    if (!allowedTypes.includes(values.image_proof.type)) {
       toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
       return;
     }
-    if (selectedFile.size > 5 * 1024 * 1024) {
+    if (values.image_proof.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB.");
       return;
     }
@@ -148,13 +178,13 @@ export default function CoffeeChatForm() {
       const createdChatId = insertData.id;
 
       //uploading da image
-      const fileExt = selectedFile.name.split(".").pop();
+      const fileExt = values.image_proof.name.split(".").pop();
       const fileName = `${createdChatId}-${Date.now()}.${fileExt}`;
       const filePath = `coffee-chat-pictures/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("coffee-chat-pictures")
-        .upload(filePath, selectedFile, {
+        .upload(filePath, values.image_proof, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -180,8 +210,12 @@ export default function CoffeeChatForm() {
 
       // resets the form 
       toast.success("Coffee chat submitted successfully!");
-      form.reset({ pledge: "", brother: "", chat_date: "" });
-      setPledgeQuery("");
+      form.reset({ 
+        pledge: currentUserUniqname, 
+        brother: "", 
+        chat_date: "",
+        image_proof: null,
+      });
       setBrotherQuery("");
       setSelectedFile(null);
       setCurrentImageUrl(null); //clears da photo preview
@@ -209,76 +243,43 @@ export default function CoffeeChatForm() {
         <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
           {/* Left column */}
           <div className="space-y-6">
+            <div className="space-y-2">
+              <FormLabel>Submitted By</FormLabel>
+              <div className="block h-9 px-3 py-1.5 w-full rounded-md border border-input bg-muted text-sm">
+                {currentUserName || "Loading..."}
+              </div>
+              <FormDescription className="text-xs text-muted-foreground">
+              </FormDescription>
+            </div>
             <FormField
               control={form.control}
-              name="pledge"
+              name="image_proof"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pledge</FormLabel>
+                  <FormLabel>Photo Proof *</FormLabel>
+                  {currentImageUrl && (
+                    <div className="flex flex-col items-start space-y-2 pl-1">
+                      <img
+                        src={currentImageUrl}
+                        alt="Coffee chat proof"
+                        className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
+                      />
+                    </div>
+                  )}
                   <FormControl>
-                    <Popover open={pledgeOpen} onOpenChange={setPledgeOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setPledgeOpen(!pledgeOpen);
-                          }}
-                          disabled={loadingMembers}
-                          className={`block text-left h-9 px-3 py-1 font-normal w-full ${pledgeQuery ? "" : "text-muted-foreground"}`}
-                        >
-                          {loadingMembers
-                            ? "Loading"
-                            : pledgeQuery
-                              ? pledgeQuery
-                              : "Search by name or uniqname"
-                          }
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                        <Command>
-                          <CommandInput placeholder="Search by name or uniqname" />
-                          <CommandList>
-                            <CommandEmpty>No results found.</CommandEmpty>
-                            <CommandGroup>
-                              {memberOptions.map((opt) => (
-                                <CommandItem
-                                  key={opt.value}
-                                  value={opt.value}
-                                  onSelect={(currentValue) => {
-                                    setPledgeQuery(currentValue === pledgeQuery ? "" : currentValue)
-                                    setPledgeOpen(false)
-                                  }}
-                                >
-                                  {opt.label}
-                                  <CheckIcon
-                                    className={`mr-2 h-4 w-4 ${pledgeQuery === opt.value ? "opacity-100" : "opacity-0"}`}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <ImageUpload 
+                      image={selectedFile} 
+                      setImage={(file) => {
+                        setSelectedFile(file);
+                        field.onChange(file);
+                      }} 
+                      message="Upload a clear selfie (JPEG, PNG, or WebP, max 5MB)"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="space-y-2">
-              <FormLabel>Photo Proof</FormLabel>
-              {currentImageUrl && (
-                <div className="flex flex-col items-start space-y-2 pl-1">
-                  <img
-                    src={currentImageUrl}
-                    alt="Coffee chat proof"
-                    className="w-24 h-24 rounded-sm object-cover border-2 border-gray-200"
-                  />
-                </div>
-              )}
-              <ImageUpload image={selectedFile} setImage={setSelectedFile} message="Upload a clear selfie (JPEG, PNG, or WebP, max 5MB)"/>
-            </div>
           </div>
 
           {/* Right column */}
@@ -305,28 +306,32 @@ export default function CoffeeChatForm() {
                             ? "Loading"
                             : brotherQuery
                               ? brotherQuery
-                              : "Search by name or uniqname"
+                              : "Search by name"
                           }
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
                         <Command>
-                          <CommandInput placeholder="Search by name or uniqname" />
+                          <CommandInput placeholder="Search by name" />
                           <CommandList>
                             <CommandEmpty>No results found.</CommandEmpty>
                             <CommandGroup>
                               {memberOptions.map((opt) => (
                                 <CommandItem
                                   key={opt.value}
-                                  value={opt.value}
-                                  onSelect={(currentValue) => {
-                                    setBrotherQuery(currentValue === brotherQuery ? "" : currentValue)
-                                    setBrotherOpen(false)
+                                  value={opt.label}
+                                  onSelect={(selectedLabel) => {
+                                    const selectedOption = memberOptions.find((o) => o.label === selectedLabel);
+                                    if (selectedOption) {
+                                      setBrotherQuery(selectedOption.label);
+                                      field.onChange(selectedOption.value);
+                                      setBrotherOpen(false);
+                                    }
                                   }}
                                 >
                                   {opt.label}
                                   <CheckIcon
-                                    className={`mr-2 h-4 w-4 ${brotherQuery === opt.value ? "opacity-100" : "opacity-0"}`}
+                                    className={`mr-2 h-4 w-4 ${brotherQuery === opt.label ? "opacity-100" : "opacity-0"}`}
                                   />
                                 </CommandItem>
                               ))}
@@ -347,7 +352,7 @@ export default function CoffeeChatForm() {
                 <FormItem>
                   <FormLabel>Chat Date</FormLabel>
                   <FormControl>
-                    <SelectDate value={field.value} dateOpen={dateOpen} setDateOpen={setDateOpen} form={form} formItem="chat_date"/>
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
