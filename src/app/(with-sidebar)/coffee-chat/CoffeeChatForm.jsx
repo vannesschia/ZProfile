@@ -111,7 +111,9 @@ export default function CoffeeChatForm() {
       try {
         const { data, error } = await supabase
           .from("members")
-          .select("name, uniqname")
+          .select("name, uniqname, role")
+          .eq("role", "brother")
+          .order("role", { ascending: true })
           .order("name", { ascending: true });
         if (error) throw error;
         if (!isMounted) return;
