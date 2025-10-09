@@ -41,6 +41,8 @@ import Image from "next/image";
 import imageCompression from "browser-image-compression";
 import MajorMinorMultiSelect from "./MajorMinorMultiSelect.jsx";
 import handleMajorMinorSearch from "./majors-api.js";
+import Cropper from "react-easy-crop";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
@@ -66,6 +68,13 @@ export function MyForm({ initialData, userEmail }) {
   // Separate state for profile picture upload
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentImageUrl, setCurrentImageUrl] = useState(initialData?.profile_picture_url || null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [imageToCropSrc, setImageToCropSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const originalSelectedFileRef = useRef(null);
+  const [aspectRatio, setAspectRatio] = useState(1);
 
   const form = useForm({
     mode: "onSubmit",
@@ -95,6 +104,81 @@ export function MyForm({ initialData, userEmail }) {
     control,
     name: "courses"
   });
+
+  function onCropComplete(_, croppedPixels) {
+    setCroppedAreaPixels(croppedPixels);
+  }
+
+  async function getCroppedFile(imageSrc, pixelCrop, fileName = "cropped.jpg") {
+    const image = await new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = imageSrc;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+    if (!blob) throw new Error("Failed to create cropped image");
+    return new File([blob], fileName, { type: "image/jpeg" });
+  }
+
+  function handleFileInputChange(e) {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+    originalSelectedFileRef.current = file;
+    const objectUrl = URL.createObjectURL(file);
+    setImageToCropSrc(objectUrl);
+    setIsCropperOpen(true);
+  }
+
+  async function handleConfirmCrop() {
+    if (!imageToCropSrc || !croppedAreaPixels || !originalSelectedFileRef.current) {
+      setIsCropperOpen(false);
+      return;
+    }
+    const originalName = originalSelectedFileRef.current.name || "image";
+    const baseName = originalName.replace(/\.[^/.]+$/, "");
+    try {
+      const croppedFile = await getCroppedFile(imageToCropSrc, croppedAreaPixels, `${baseName}-cropped.jpg`);
+      setSelectedFile(croppedFile);
+      form.clearErrors("root");
+    } catch (err) {
+      console.error("Crop error:", err);
+      toast.error("Failed to crop image. Please try another photo.");
+    } finally {
+      if (imageToCropSrc) URL.revokeObjectURL(imageToCropSrc);
+      setImageToCropSrc(null);
+      originalSelectedFileRef.current = null;
+      setIsCropperOpen(false);
+    }
+  }
+
+  function handleCancelCrop() {
+    if (imageToCropSrc) URL.revokeObjectURL(imageToCropSrc);
+    setImageToCropSrc(null);
+    originalSelectedFileRef.current = null;
+    setIsCropperOpen(false);
+    const fileInput = document.querySelector('#profile-picture-input');
+    if (fileInput) fileInput.value = '';
+  }
 
   async function uploadSelectedImage() {
     if (!selectedFile) return null;
@@ -402,13 +486,7 @@ export function MyForm({ initialData, userEmail }) {
               <Input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  setSelectedFile(file);
-                  if (file) {
-                    form.clearErrors("root");
-                  }
-                }}
+                onChange={handleFileInputChange}
                 id="profile-picture-input"
                 className="hidden"
               />
@@ -690,6 +768,73 @@ export function MyForm({ initialData, userEmail }) {
           </Button>
         </div>
       </form>
+      <Dialog open={isCropperOpen} onOpenChange={setIsCropperOpen}>
+        <DialogContent className="max-w-2xl p-0" showCloseButton={false}>
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle>Crop your photo</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 pb-4">
+            <div className="relative w-full h-[360px] bg-black/80 rounded-sm overflow-hidden">
+              {imageToCropSrc && (
+                <Cropper
+                  image={imageToCropSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={aspectRatio || undefined}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              )}
+            </div>
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">Zoom</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.01"
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">Aspect</span>
+                <Select
+                  onValueChange={(val) => {
+                    if (val === "free") {
+                      setAspectRatio(null);
+                    } else {
+                      const [w, h] = val.split(":").map(Number);
+                      if (w > 0 && h > 0) setAspectRatio(w / h);
+                    }
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="1:1" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="1:1">1:1</SelectItem>
+                    <SelectItem value="4:3">4:3</SelectItem>
+                    <SelectItem value="3:4">3:4</SelectItem>
+                    <SelectItem value="16:9">16:9</SelectItem>
+                    <SelectItem value="9:16">9:16</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="px-6 pb-6">
+            <Button type="button" variant="outline" onClick={handleCancelCrop}>Cancel</Button>
+            <Button type="button" onClick={handleConfirmCrop}>Use photo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Form>
   )
 }
