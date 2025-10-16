@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ChevronDown, Milestone, Search, CalendarSearch, Plus } from "lucide-react"
+import { ChevronDown, Milestone, Search, CalendarSearch, Plus, Medal } from "lucide-react"
 import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -115,12 +115,14 @@ export default function AdminViewTable({
     study_table: studyTableAttendance,
   };
 
+  const nameIncludes = (row, t) => (row.name ?? "").toLowerCase().includes(t);
+
   const filterFns = {
-    committee_event: (row, t) => row.name?.toLowerCase().includes(t),
-    chapter: (row, t) => row.name?.toLowerCase().includes(t),
-    rush_event: (row, t) => row.name?.toLowerCase().includes(t),
-    pledge_event: (row, t) => row.name?.toLowerCase().includes(t),
-    study_table: (row, t) => row.name?.toLowerCase().includes(t),
+    committee_event: nameIncludes,
+    chapter: nameIncludes,
+    rush_event: nameIncludes,
+    pledge_event: nameIncludes,
+    study_table: nameIncludes,
   };
 
   const filteredEventsMap = useMemo(() => {
@@ -210,6 +212,11 @@ export default function AdminViewTable({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+              <Button className="gap-1" asChild>
+                <Link href="/admin/initiation">
+                  <Medal/>Initiate
+                </Link>
+              </Button>
             </>
           )}
 
@@ -220,8 +227,8 @@ export default function AdminViewTable({
                 type="search"
                 className="pl-8 text-sm"
                 placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchBrother}
+                onChange={(e) => setSearchBrother(e.target.value)}
               />
             </div>
           )}
@@ -251,8 +258,8 @@ export default function AdminViewTable({
                     type="search"
                     className="pl-8 text-sm"
                     placeholder="Search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchByType[eventType] ?? ""}
+                    onChange={(e) => setActiveSearch(e.target.value)}
                   />
                 </div>
               </div>

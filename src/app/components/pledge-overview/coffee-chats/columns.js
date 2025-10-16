@@ -7,15 +7,15 @@ export function getColumns(data) {
   const statusBadgeMap = {
     approved: {
       text: "Approved",
-      className: "bg-green-50 border-green-200 text-green-800",
+      className: "bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700",
     },
     pending: {
       text: "Pending",
-      className: "bg-amber-50 border-amber-200 text-amber-800",
+      className: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-200 dark:border-amber-700",
     },
     denied: {
       text: "Denied",
-      className: "bg-red-50 border-red-200 text-red-800",
+      className: "bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700",
     },
   };
 
