@@ -106,12 +106,12 @@ export default function MultiSelect({
               form.clearErrors(`courses.${index}.classes`);
             }
           }}
-          className={`${selectedValues.length === 0 ? "" : "px-2"} w-full cursor-pointer [&_svg]:pointer-events-auto ${isWrapped ? "h-auto" : "h-9"}`}
+          className={`${selectedValues.length === 0 ? "pl-3 pr-2" : "px-2"} transition-colors w-full cursor-pointer [&_svg]:pointer-events-auto ${isWrapped ? "h-auto" : "h-9"}`}
         >
           <div className="flex items-center justify-between w-full">
             {selectedValues.length === 0 ? (
               <div className="flex items-center justify-between w-full">
-                <span className="text-sm text-muted-foreground">{placeholder}</span>
+                <span className="text-sm font-normal text-muted-foreground">{placeholder}</span>
                 <ChevronDown className="h-4 cursor-pointer text-muted-foreground" />
               </div>
             ) : (

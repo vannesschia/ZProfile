@@ -126,7 +126,7 @@ export function MyForm({ initialData, userEmail }) {
     };
 
     const compressedFile = await imageCompression(selectedFile, options);
-    
+
     const timestamp = Date.now();
     const fileExt = 'webp';
     const fileName = `${user.id}-${timestamp}.${fileExt}`;
@@ -401,7 +401,7 @@ export function MyForm({ initialData, userEmail }) {
                   <p className="text-sm text-muted-foreground">Current profile picture</p>
                 </div>
               )}
-              <ImageUpload image={selectedFile} setImage={setSelectedFile} message="Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit."/>
+              <ImageUpload image={selectedFile} setImage={setSelectedFile} message="Upload a JPEG, PNG, or WebP (max 5MB). The image will be uploaded when you submit." />
               {form.formState.errors.root?.message && (
                 <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
               )}
@@ -438,28 +438,28 @@ export function MyForm({ initialData, userEmail }) {
                   <FormItem>
                     <FormLabel>Minor</FormLabel>
                     <FormControl>
-                     <MajorMinorMultiSelect
-                      value={field.value || []}
-                      onChange={field.onChange}
-                      options={minorOptions}
-                      input={minorSearch}
-                      onInputChange={(input) => {
-                        setMinorSearch(input);
-                        if (minorSearchDebounce.current) {
-                          clearTimeout(minorSearchDebounce.current);
-                        }
-                        minorSearchDebounce.current = setTimeout(() => {
-                          handleMajorMinorSearch(input).then(setMinorOptions);
-                        }, 300);
-                      }}
-                      placeholder="Select your minor(s)"
-                    />
-                  </FormControl>
-                  <FormDescription>** Leave blank if N/A</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <MajorMinorMultiSelect
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        options={minorOptions}
+                        input={minorSearch}
+                        onInputChange={(input) => {
+                          setMinorSearch(input);
+                          if (minorSearchDebounce.current) {
+                            clearTimeout(minorSearchDebounce.current);
+                          }
+                          minorSearchDebounce.current = setTimeout(() => {
+                            handleMajorMinorSearch(input).then(setMinorOptions);
+                          }, 300);
+                        }}
+                        placeholder="Select your minor(s)"
+                      />
+                    </FormControl>
+                    <FormDescription>** Leave blank if N/A</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="grade"
@@ -666,7 +666,7 @@ export function MyForm({ initialData, userEmail }) {
           >
             Cancel
           </Button>
-          <SubmitButton submitting={form.formState.isSubmitting}/>
+          <SubmitButton submitting={form.formState.isSubmitting} />
         </div>
       </form>
     </Form>

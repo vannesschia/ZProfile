@@ -79,9 +79,14 @@ export function AppSidebar({ user }) {
       <SidebarHeader className="pb-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <NavUser user={user} />
-            </SidebarMenuButton>
+            <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-hidden group-data-[collapsible=icon]:size-8! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 h-12 text-sm group-data-[collapsible=icon]:p-0!">
+              <div className="bg-foreground text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <Command className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">Zeta Pi</span>
+              </div>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -142,20 +147,19 @@ export function AppSidebar({ user }) {
         <SidebarGroup>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarSeparator className="!w-auto"/>
+      <SidebarSeparator className="!w-auto" />
       <SidebarFooter>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            {/* POST form so the browser follows the server's 303 redirect */}
-            <form action="/auth/sign-out" method="POST">
-              {/* You can change ?next=... or add &scope=global for "sign out everywhere" */}
-              <button type="submit" className="w-full text-left flex items-center gap-2 cursor-pointer">
-                <LogOut className="h-4 w-4" />
-                Log out
-              </button>
-            </form>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <SidebarMenuButton size="lg" asChild>
+          <NavUser user={user} />
+        </SidebarMenuButton>
+        <form action="/auth/sign-out" method="POST">
+          <SidebarMenuItem>
+            <SidebarMenuButton type="submit" className="w-full cursor-pointer">
+              <LogOut />
+              <span>Log out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </form>
       </SidebarFooter>
     </Sidebar>
   )
