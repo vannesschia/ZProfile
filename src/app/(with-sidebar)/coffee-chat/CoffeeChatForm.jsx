@@ -156,17 +156,15 @@ export default function CoffeeChatForm() {
       if (userError) throw new Error(userError.message || JSON.stringify(userError));
       if (!user) throw new Error("You must be logged in to submit.");
 
-      //ensures values match existing members (by uniqname)
-      const validPledge = memberOptions.some((o) => o.value === values.pledge);
+      // ensure brother exists in the list
       const validBrother = memberOptions.some((o) => o.value === values.brother);
-      if (!validPledge) throw new Error("Please choose a valid pledge from the list.");
       if (!validBrother) throw new Error("Please choose a valid brother from the list.");
 
       //creating the row without image first 
       const { data: insertData, error: insertError } = await supabase
         .from("coffee_chats")
         .insert({
-          pledge: values.pledge,
+          pledge: currentUserUniqname,
           brother: values.brother,
           chat_date: values.chat_date,
         })
