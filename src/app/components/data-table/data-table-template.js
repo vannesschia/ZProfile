@@ -1,4 +1,5 @@
 "use client"
+import { useEffect, useState } from "react"
 import {
   flexRender,
   getCoreRowModel,
@@ -20,7 +21,15 @@ export function TestingDataTable({
   initialSorting = [],
   sortingFns,
   emptyStateMessage = "No data available.",
+  // optional controlled row selection
+  rowSelection,
+  setRowSelection,
+  onSelectionChange,
 }) {
+  const [internalRowSelection, setInternalRowSelection] = useState({})
+  const selectionState = rowSelection ?? internalRowSelection
+  const setSelectionState = setRowSelection ?? setInternalRowSelection
+
   const table = useReactTable({
     data,
     columns,
@@ -29,12 +38,20 @@ export function TestingDataTable({
       sorting: initialSorting,
       pagination: { pageSize: setPageSize },
     },
+    state: { rowSelection: selectionState },
+    onRowSelectionChange: setSelectionState,
     sortingFns, // register your named custom sorters here
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
+
+  useEffect(() => {
+    if (!onSelectionChange) return
+    const selected = table.getSelectedRowModel().rows
+    onSelectionChange(selected)
+  }, [selectionState, table, onSelectionChange])
 
   return (
     <div>
