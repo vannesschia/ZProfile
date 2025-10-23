@@ -68,6 +68,10 @@ const admin_items = [
       {
         title: "Requirement Settings",
         url: "/admin/requirements-form",
+      },
+      {
+        title: "Coffee Chat Archive",
+        url: "/admin/archive",
       }
     ]
   },
