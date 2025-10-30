@@ -66,12 +66,12 @@ const admin_items = [
         url: "/admin/approval",
       },
       {
-        title: "Requirement Settings",
-        url: "/admin/requirements-form",
-      },
-      {
         title: "Coffee Chat Archive",
         url: "/admin/archive",
+      },
+      {
+        title: "Requirement Settings",
+        url: "/admin/requirements-form",
       }
     ]
   },
