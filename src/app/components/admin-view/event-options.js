@@ -52,9 +52,6 @@ export default function EventOptions({ eventId, eventName }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="left">
           <DropdownMenuItem onSelect={() => router.push(`/admin/events/edit/${eventId}`)}>
-            Create QR Code
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => router.push(`/admin/events/edit/${eventId}`)}>
             Edit Event
           </DropdownMenuItem>
           <DropdownMenuItem
