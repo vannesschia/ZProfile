@@ -320,7 +320,7 @@ export default function AdminViewTable({
           {eventType === "committee_event" && <CommitteeEventsWithAttendance data={filteredEventsMap.committee_event} />}
           {eventType === "chapter" && <ChapterWithAttendance data={filteredEventsMap.chapter} />}
           {eventType === "rush_event" && <DefaultEventsWithAttendance data={filteredEventsMap.rush_event} />}
-          {eventType === "pledge_event" && <DefaultEventsWithAttendance data={filteredEventsMap.pledge_event} />}
+          {eventType === "pledge_event" && <ChapterWithAttendance data={filteredEventsMap.pledge_event} />}
           {eventType === "study_table" && <DefaultEventsWithAttendance data={filteredEventsMap.study_table} />}
         </div>
       </TabsContent>
