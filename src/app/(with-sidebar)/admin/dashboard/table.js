@@ -212,11 +212,20 @@ export default function AdminViewTable({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Button className="gap-1" asChild>
-                <Link href="/admin/initiation">
-                  <Medal/>Initiate
-                </Link>
-              </Button>
+              {pledgeProgress.length === 0
+                ?
+                <Button className="gap-1" asChild>
+                  <Link href="/admin/new-class">
+                    <Medal />New Class
+                  </Link>
+                </Button>
+                :
+                <Button className="gap-1" asChild>
+                  <Link href="/admin/initiation">
+                    <Medal />Initiate
+                  </Link>
+                </Button>
+              }
             </>
           )}
 
@@ -265,7 +274,7 @@ export default function AdminViewTable({
               </div>
               <Button className="gap-1 !pl-2 pr-3" asChild>
                 <Link href="/admin/events/create">
-                  <Plus/>Create Event
+                  <Plus />Create Event
                 </Link>
               </Button>
             </div>
@@ -301,7 +310,7 @@ export default function AdminViewTable({
             <ProgressTabAdmin title="On Track">{brotherStats.onTrack}</ProgressTabAdmin>
             <ProgressTabAdmin title="Late">{brotherStats.late}</ProgressTabAdmin>
           </div>
-          <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req}/>
+          <BrotherOverviewAdminTable data={filteredBrothers} requirement={brotherRequirement[0].brother_committee_pts_req} />
         </div>
       </TabsContent>
 
