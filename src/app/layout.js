@@ -17,6 +17,16 @@ const geist = Geist({
 
 export const metadata = {
   title: "ZProfile",
+  icons: {
+    icon: [
+      { url: "/zp-black.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/zp-white.svg", media: "(prefers-color-scheme: dark)" },
+    ],
+    shortcut: [
+      { url: "/zp-black.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/zp-white.svg", media: "(prefers-color-scheme: dark)" },
+    ],
+  },
 };
 
 export default async function RootLayout({ children }) {
