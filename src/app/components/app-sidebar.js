@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, Command, UserPen, Handshake, ClipboardCheck, Info, Bug, LogOut } from "lucide-react"
+import { Home, Book, TreePine, UserPen, Handshake, ClipboardCheck, Bug, LogOut } from "lucide-react"
 
 import {
   Sidebar,
@@ -84,9 +84,8 @@ export function AppSidebar({ user }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-hidden group-data-[collapsible=icon]:size-8! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 h-12 text-sm group-data-[collapsible=icon]:p-0!">
-              <div className="bg-foreground text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <Command className="size-4" />
-              </div>
+              <img src="/zp-black.svg" alt="Zeta Pi" className="h-8 w-auto rounded-sm dark:hidden" />
+              <img src="/zp-white.svg" alt="Zeta Pi" className="h-8 w-auto rounded-sm hidden dark:inline" />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">Zeta Pi</span>
               </div>
