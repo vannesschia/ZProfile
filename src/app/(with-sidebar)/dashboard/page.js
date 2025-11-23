@@ -1,8 +1,8 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import AttendancePoints from "@/app/components/tabs/attendance-points.js";
-import Absences from "@/app/components/tabs/absences";
-import RushEvent from "@/app/components/tabs/rush-event";
-import PledgeProgress from "@/app/components/tabs/pledge-progress";
+import AttendancePoints from "@/app/(with-sidebar)/dashboard/_components/tabs/attendance-points.js";
+import Absences from "@/app/(with-sidebar)/dashboard/_components/tabs/absences";
+import RushEvent from "@/app/(with-sidebar)/dashboard/_components/tabs/rush-event";
+import PledgeProgress from "@/app/(with-sidebar)/dashboard/_components/tabs/pledge-progress";
 import OverviewServer from "../../components/event-overview/overview-server";
 import PledgeOverviewServer from "../../components/event-overview/pledge-overview-server";
 import { nullable } from "zod";

@@ -1,7 +1,7 @@
 import { ProgressBlock } from "../progress-block" 
-import { DataTable } from "../committee-events/data-table"
-import { ChapterDataTable } from "../chapter/data-table"
-import { OtherEventsDataTable } from "../other-events/table"
+import { DataTable } from "./member-overview/committee-events/data-table"
+import { ChapterDataTable } from "./member-overview/chapter/data-table"
+import { OtherEventsDataTable } from "./brother-overview/other-events/table"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 export default function OverviewView({ role = "brother", events, chapter, otherEvents}) {

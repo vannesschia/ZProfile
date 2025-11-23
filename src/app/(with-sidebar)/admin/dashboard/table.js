@@ -2,9 +2,9 @@
 import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { ProgressTabAdmin } from "@/app/components/progress-block"
-import { PledgeOverviewAdminTable } from "@/app/components/admin-view/pledge/data-table"
-import { BrotherOverviewAdminTable } from "@/app/components/admin-view/brother/data-table"
-import { CommitteeEventsWithAttendance, ChapterWithAttendance, DefaultEventsWithAttendance } from "@/app/components/admin-view/events/data-table"
+import { PledgeOverviewAdminTable } from "@/app/(with-sidebar)/admin/dashboard/_components/pledge/data-table"
+import { BrotherOverviewAdminTable } from "@/app/(with-sidebar)/admin/dashboard/_components/brother/data-table"
+import { CommitteeEventsWithAttendance, ChapterWithAttendance, DefaultEventsWithAttendance } from "@/app/(with-sidebar)/admin/dashboard/_components/events/data-table"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs2"
 import {
   DropdownMenu,
@@ -169,13 +169,13 @@ export default function AdminViewTable({
       <div className="flex sm:flex-row flex-col gap-2 justify-between">
         <TabsList>
           <TabsTrigger value="pledge">Pledge
-            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">{pledgeProgress.length}</Badge>
+            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-3">{pledgeProgress.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="brother">Brother
-            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">{brotherView.length}</Badge>
+            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-3">{brotherView.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="events">Events
-            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-1">
+            <Badge variant="secondary" className="bg-muted-foreground/30 size-5 rounded-full px-3">
               {eventType === "committee_event" && committeesAttendance.length}
               {eventType === "chapter" && chapterAttendance.length}
               {eventType === "rush_event" && rushEventsAttendance.length}

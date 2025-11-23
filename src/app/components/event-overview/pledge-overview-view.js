@@ -1,8 +1,8 @@
 "use client"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CoffeeChatsTable } from "../pledge-overview/coffee-chats/data-table";
-import { ChapterDataTable } from "../chapter/data-table";
-import { StudyTableDataTable } from "../pledge-overview/study-table/data-table";
+import { CoffeeChatsTable } from "./pledge-overview/coffee-chats/data-table";
+import { ChapterDataTable } from "./member-overview/chapter/data-table";
+import { StudyTableDataTable } from "./pledge-overview/study-table/data-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,9 @@ export default function PledgeOverviewView({
   coffeeChats,
   pledgeEvents,
   studyTable,
+  adminView = false,
 }) {
+  console.log(coffeeChats);
   const router = useRouter();
   return (
     <div className="w-full bg-background border-2 border-secondary p-6 rounded-lg">
@@ -23,10 +25,11 @@ export default function PledgeOverviewView({
               Here are events specific to the pledge class.
             </p>
           </div>
-
-          <Button onClick={() => router.push('/coffee-chat')}>
-            Submit Coffee Chat <ArrowUpRight />
-          </Button>
+          {adminView ? null :
+            <Button onClick={() => router.push('/coffee-chat')}>
+              Submit Coffee Chat <ArrowUpRight />
+            </Button>
+          }
         </div>
         <div>
           <Tabs defaultValue="coffeeChats">
