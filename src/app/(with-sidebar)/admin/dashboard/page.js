@@ -10,9 +10,12 @@ import {
   getPledgeAdminView,
   getBrotherAdminView,
   getBrotherRequirement
-} from "@/lib/db/global"
+} from "./_lib/queries";
+import { getServerClient } from "@/lib/supabaseServer";
 
 export default async function AdminPledgeView() {
+  const supabase = await getServerClient();
+
   const [
     milestones,
     pledgeView,
@@ -25,16 +28,16 @@ export default async function AdminPledgeView() {
     brotherView,
     brotherRequirement,
   ] = await Promise.all([
-    getMilestones(),
-    getPledgeAdminView(),
-    getAllCommitteesAttendance(),
-    getInvCommitteeEventCount(),
-    getAllChapterAttendance(),
-    getAllPledgeEventsAttendance(),
-    getAllRushEventsAttendance(),
-    getAllStudyTablesAttendance(),
-    getBrotherAdminView(),
-    getBrotherRequirement(),
+    getMilestones(supabase),
+    getPledgeAdminView(supabase),
+    getAllCommitteesAttendance(supabase),
+    getInvCommitteeEventCount(supabase),
+    getAllChapterAttendance(supabase),
+    getAllPledgeEventsAttendance(supabase),
+    getAllRushEventsAttendance(supabase),
+    getAllStudyTablesAttendance(supabase),
+    getBrotherAdminView(supabase),
+    getBrotherRequirement(supabase),
   ]);
 
   return (

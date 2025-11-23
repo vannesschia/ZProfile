@@ -1,8 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getChapterAttendanceBrowser, getOtherEventsBrowser, getCommitteeEventsBrowser } from "@/lib/db/client"
+import { getChapterAttendance, getOtherEvents, getCommitteeEvents } from "@/lib/db/events/queries"
 import { Skeleton } from "@/components/ui/skeleton"
 import OverviewView from "./overview-view"
+import { getBrowserClient } from "@/lib/supbaseClient"
 
 export default function OverviewBrowser({ uniqname, role = "brother" }) {
   const [committeeAndRush, setCommitteeAndRush] = useState(null)
@@ -10,13 +11,15 @@ export default function OverviewBrowser({ uniqname, role = "brother" }) {
   const [otherEvents, setOtherEvents] = useState(null)
   const [error, setError] = useState(null)
 
+  const supabase = getBrowserClient();
+
   useEffect(() => {
     let ignore = false;
     (async () => {
       try {
-        const rows1 = await getCommitteeEventsBrowser(uniqname)
-        const rows2 = await getChapterAttendanceBrowser(uniqname)
-        const rows3 = await getOtherEventsBrowser(uniqname)
+        const rows1 = await getCommitteeEvents(uniqname, supabase)
+        const rows2 = await getChapterAttendance(uniqname, supabase)
+        const rows3 = await getOtherEvents(uniqname, supabase)
         if (!ignore) setCommitteeAndRush(rows1)
         if (!ignore) setChapterAttendance(rows2)
         if (!ignore) setOtherEvents(rows3)
