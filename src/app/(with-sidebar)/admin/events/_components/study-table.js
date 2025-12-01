@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form"
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -15,15 +15,11 @@ import {
 } from "@/components/ui/form"
 import {
   AttendanceDualListbox,
-  DeleteEvent,
   DeleteEventButton,
   SelectDate,
-  SubmitCreate,
-  SubmitEdit
-} from "@/app/(with-sidebar)/admin/events/event-editor";
-import { getMembers } from "./members-data";
-import { useRouter } from "next/navigation";
-import SubmitButton from "../submit-button";
+} from "./event-editor";
+import SubmitButton from "@/app/components/submit-button";
+import { handleEventSubmit } from "../_util/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -31,23 +27,22 @@ const formSchema = z.object({
   attendance: z.array(z.string().min(1)),
 });
 
-export default function EditStudyTableEvent({ mode, initialData, id }) {
-  const router = useRouter();
+export default function EditStudyTableEvent({ mode, initialData, members, id }) {
   const [dateOpen, setDateOpen] = useState(false);
-  const [membersData, setMembersData] = useState([]);
-  const [availableMembers, setAvailableMembers] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [membersDataLoading, setMembersDataLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    getMembers().then((newMembersData) => {
-      setMembersData(newMembersData);
-      setAvailableMembers(newMembersData.filter(mem => mem.role === "pledge" && !form.getValues("attendance").includes(mem.uniqname)));
-      setSelectedMembers(newMembersData.filter(mem => mem.role === "pledge" && form.getValues("attendance").includes(mem.uniqname)));
-      setMembersDataLoading(false);
-    })
-  }, []);
+  const pledges = members.filter(mem => mem.role === "pledge").map(mem => mem.uniqname);
+
+  const initialAttendance = (() => {
+    if (mode === "create") return [];
+    return initialData?.event_attendance.map(mem => mem.uniqname).filter(mem => !pledges.includes(mem));
+  })();
+
+  const [availableMembers, setAvailableMembers] = useState(
+    members.filter(mem => mem.role === "pledge" && !initialAttendance.includes(mem.uniqname))
+  );
+  const [selectedMembers, setSelectedMembers] = useState(
+    members.filter(mem => mem.role === "pledge" && initialAttendance.includes(mem.uniqname))
+  );
 
   const form = useForm({
     mode: "onSubmit",
@@ -59,7 +54,7 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
         const [year, month, day] = initialData.event_date.split('-').map(Number);
         return new Date(year, month - 1, day);
       })() : undefined,
-      attendance: initialData?.event_attendance.map(attendee => attendee.uniqname) ?? [],
+      attendance: initialAttendance,
     },
   });
 
@@ -67,20 +62,9 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
     return;
   }
 
-  async function onSubmit(values) {
-    mode === "edit"
-      ? SubmitEdit({ event_type: "study_table", values, id, router })
-      : SubmitCreate({ event_type: "study_table", values, router })
-  }
-
-  async function onDelete() {
-    setIsDeleting(true);
-    DeleteEvent({ id, router });
-  }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(handleEventSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
@@ -122,14 +106,13 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
                 <FormItem className="mb-8">
                   <FormControl>
                     <AttendanceDualListbox
-                      allPeople={membersData}
+                      allPeople={members}
                       availablePeople={availableMembers}
                       setAvailablePeople={setAvailableMembers}
                       selectedPeople={selectedMembers}
                       setSelectedPeople={setSelectedMembers}
                       form={form}
                       formItem="attendance"
-                      loading={membersDataLoading}
                     />
                   </FormControl>
                 </FormItem>
@@ -137,13 +120,14 @@ export default function EditStudyTableEvent({ mode, initialData, id }) {
             />
           </div>
           <div className="flex flex-row justify-between">
-            {mode === "edit"
-              ? <>
+            {mode === "edit" ? (
+              <>
                 <SubmitButton submitting={form.formState.isSubmitting} text="Save" />
-                <DeleteEventButton submitting={isDeleting} onDelete={onDelete} />
+                <DeleteEventButton id={id} />
               </>
-              : <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
-            }
+            ) : (
+              <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
+            )}
           </div>
         </div>
       </form>

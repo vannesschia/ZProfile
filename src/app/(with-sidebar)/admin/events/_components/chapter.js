@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -21,18 +21,14 @@ import {
 } from "@/components/ui/form"
 import {
   AttendanceDualListbox,
-  DeleteEvent,
   DeleteEventButton,
   SelectDate,
-  SubmitCreate,
-  SubmitEdit
-} from "@/app/(with-sidebar)/admin/events/event-editor";
+} from "./event-editor";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getMembers } from "./members-data";
-import { useRouter } from "next/navigation";
-import SubmitButton from "../submit-button";
+import SubmitButton from "@/app/components/submit-button";
+import { handleEventSubmit } from "../_util/utils";
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -46,27 +42,32 @@ const formSchema = z.object({
   excused_absences: z.array(z.string().min(1)),
 });
 
-export default function EditChapterEvent({ mode, initialData, id }) {
-  const router = useRouter();
+export default function EditChapterEvent({ mode, initialData, members, id }) {
   const [dateOpen, setDateOpen] = useState(false);
-  const [membersData, setMembersData] = useState([]);
-  const [availableUnexcusedAbsences, setAvailableUnexcusedAbsences] = useState([]);
-  const [selectedUnexcusedAbsences, setSelectedUnexcusedAbsences] = useState([]);
-  const [availableExcusedAbsences, setAvailableExcusedAbsences] = useState([]);
-  const [selectedExcusedAbsences, setSelectedExcusedAbsences] = useState([]);
-  const [membersDataLoading, setMembersDataLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    getMembers().then((newMembersData) => {
-      setMembersData(newMembersData);
-      setAvailableUnexcusedAbsences(newMembersData.filter(mem => !form.getValues("unexcused_absences").includes(mem.uniqname)));
-      setSelectedUnexcusedAbsences(newMembersData.filter(mem => form.getValues("unexcused_absences").includes(mem.uniqname)));
-      setAvailableExcusedAbsences(newMembersData.filter(mem => !form.getValues("excused_absences").includes(mem.uniqname)))
-      setSelectedExcusedAbsences(newMembersData.filter(mem => form.getValues("excused_absences").includes(mem.uniqname)));
-      setMembersDataLoading(false);
-    })
-  }, []);
+  const initialUnexcusedAbsences = (() => {
+    if (mode === "create") return [];
+    const initialDataUniqnames = initialData?.event_attendance.map(mem => mem.uniqname);
+    return members.map(mem => mem.uniqname).filter(mem => !initialDataUniqnames.includes(mem));
+  })();
+
+  const initialExcusedAbsences = (() => {
+    if (mode === "create") return [];
+    return initialData?.event_attendance.filter(attendee => attendee.attendance_status === "excused").map(absence => absence.uniqname);
+  })();
+
+  const [availableUnexcusedAbsences, setAvailableUnexcusedAbsences] = useState(
+    members.filter(mem => !initialUnexcusedAbsences.includes(mem.uniqname))
+  );
+  const [selectedUnexcusedAbsences, setSelectedUnexcusedAbsences] = useState(
+    members.filter(mem => initialUnexcusedAbsences.includes(mem.uniqname))
+  );
+  const [availableExcusedAbsences, setAvailableExcusedAbsences] = useState(
+    members.filter(mem => !initialExcusedAbsences.includes(mem.uniqname))
+  );
+  const [selectedExcusedAbsences, setSelectedExcusedAbsences] = useState(
+    members.filter(mem => initialExcusedAbsences.includes(mem.uniqname))
+  );
 
   const form = useForm({
     mode: "onSubmit",
@@ -78,8 +79,8 @@ export default function EditChapterEvent({ mode, initialData, id }) {
         const [year, month, day] = initialData.event_date.split('-').map(Number);
         return new Date(year, month - 1, day);
       })() : undefined,
-      unexcused_absences: initialData?.event_absences.filter(absence => absence.absence_type === "unexcused").map(absence => absence.uniqname) ?? [],
-      excused_absences: initialData?.event_absences.filter(absence => absence.absence_type === "excused").map(absence => absence.uniqname) ?? [],
+      excused_absences: initialExcusedAbsences,
+      unexcused_absences: initialUnexcusedAbsences,
     },
   });
 
@@ -87,20 +88,9 @@ export default function EditChapterEvent({ mode, initialData, id }) {
     return;
   }
 
-  async function onSubmit(values) {
-    mode === "edit"
-      ? SubmitEdit({ event_type: "chapter", values, id, router })
-      : SubmitCreate({ event_type: "chapter", values, router })
-  }
-
-  async function onDelete() {
-    setIsDeleting(true);
-    DeleteEvent({ id, router });
-  }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(handleEventSubmit, (error) => console.log("Failed to submit:", error))}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
@@ -151,7 +141,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                   <FormItem className="mb-8">
                     <FormControl>
                       <AttendanceDualListbox
-                        allPeople={membersData}
+                        allPeople={members}
                         availablePeople={availableExcusedAbsences}
                         setAvailablePeople={setAvailableExcusedAbsences}
                         selectedPeople={selectedExcusedAbsences}
@@ -159,7 +149,6 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                         disable={selectedUnexcusedAbsences}
                         form={form}
                         formItem="excused_absences"
-                        loading={membersDataLoading}
                       />
                     </FormControl>
                   </FormItem>
@@ -175,7 +164,7 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                   <FormItem className="mb-8">
                     <FormControl>
                       <AttendanceDualListbox
-                        allPeople={membersData}
+                        allPeople={members}
                         availablePeople={availableUnexcusedAbsences}
                         setAvailablePeople={setAvailableUnexcusedAbsences}
                         selectedPeople={selectedUnexcusedAbsences}
@@ -183,7 +172,6 @@ export default function EditChapterEvent({ mode, initialData, id }) {
                         disable={selectedExcusedAbsences}
                         form={form}
                         formItem="unexcused_absences"
-                        loading={membersDataLoading}
                       />
                     </FormControl>
                   </FormItem>
@@ -192,13 +180,14 @@ export default function EditChapterEvent({ mode, initialData, id }) {
             </div>
           </div>
           <div className="flex flex-row justify-between">
-            {mode === "edit"
-              ? <>
+            {mode === "edit" ? (
+              <>
                 <SubmitButton submitting={form.formState.isSubmitting} text="Save" />
-                <DeleteEventButton submitting={isDeleting} onDelete={onDelete} />
+                <DeleteEventButton id={id} />
               </>
-              : <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
-            }
+            ) : (
+              <SubmitButton submitting={form.formState.isSubmitting} text="Create" />
+            )}
           </div>
         </div>
       </form>

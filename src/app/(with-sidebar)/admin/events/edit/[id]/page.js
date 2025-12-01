@@ -1,10 +1,12 @@
-import { getServerClient } from "@/lib/supabaseServer";
-import EventEditor from "../../event-editor"
+import EventEditor from "../../_components/event-editor";
+import { getMembers } from "../../_lib/queries";
+import { getEventData } from "./_lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditEventPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
+
   if (!id) {
     console.error("Failed to get event ID.");
     return (
@@ -12,28 +14,13 @@ export default async function EditEventPage({ params }) {
     )
   }
 
-  const supabase = await getServerClient();
+  let initialData, members;
 
-  const { data: initialData, error } = await supabase
-    .from('events')
-    .select(`
-      name,
-      event_type,
-      committee,
-      event_date,
-      event_attendance (
-        uniqname
-      ),
-      event_absences (
-        uniqname,
-        absence_type
-      )
-    `)
-    .eq('id', id)
-    .single()
-  
-  if (error) {
-    console.error("Failed to get initial data:", error.message);
+  try {
+    initialData = await getEventData(id);
+    members = await getMembers();
+  } catch (error) {
+    console.error(error);
     return (
       <span>Failed to get initial data for event.</span>
     )
@@ -42,7 +29,7 @@ export default async function EditEventPage({ params }) {
   return (
     <div className="m-4 flex flex-col gap-4">
       <h2 className="text-2xl font-bold tracking-tight leading-tight">Edit Event</h2>
-      <EventEditor mode={"edit"} initialData={initialData} id={id}/>
+      <EventEditor mode={"edit"} initialData={initialData} members={members} id={id}/>
     </div>
   )
 }
