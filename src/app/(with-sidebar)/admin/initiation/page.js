@@ -5,7 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { AttendanceDualListbox } from "../events/event-editor";
+import { AttendanceDualListbox } from "../events/_components/event-editor";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { Button } from "@/components/ui/button";
 import {
