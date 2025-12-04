@@ -29,6 +29,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import SubmitButton from "@/app/components/submit-button";
 import { handleEventSubmit } from "../_util/utils";
+import { useRouter } from "next/navigation";
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -43,6 +44,7 @@ const formSchema = z.object({
 });
 
 export default function EditChapterEvent({ mode, initialData, members, id }) {
+  const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
 
   const initialUnexcusedAbsences = (() => {
@@ -90,7 +92,10 @@ export default function EditChapterEvent({ mode, initialData, members, id }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleEventSubmit, (error) => console.log("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(
+        (values) => handleEventSubmit(values, mode, id, router, "chapter"),
+        (error) => console.log("Failed to submit:", error)
+      )}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField

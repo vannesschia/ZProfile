@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/popover";
 import { Command as CommandPrimitive } from "cmdk";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import EditCommitteeEvent from "./committee";
 import EditChapterEvent from "./chapter";
 import EditPledgeEvent from "./pledge-event";
@@ -47,6 +47,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { deleteEvent } from "../_lib/actions";
 
 export default function EventEditor({ mode, initialData = null, members, id = null }) {
   const [event, setEvent] = useState(initialData?.event_type ?? "");

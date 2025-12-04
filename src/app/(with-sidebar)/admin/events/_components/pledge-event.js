@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import SubmitButton from "@/app/components/submit-button";
 import { handleEventSubmit } from "../_util/utils";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -31,6 +32,7 @@ const formSchema = z.object({
 });
 
 export default function EditPledgeEvent({ mode, initialData, members, id }) {
+  const router = useRouter();
   const [dateOpen, setDateOpen] = useState(false);
 
   const pledges = members.filter(mem => mem.role === "pledge").map(mem => mem.uniqname);
@@ -94,7 +96,10 @@ export default function EditPledgeEvent({ mode, initialData, members, id }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleEventSubmit, (error) => console.log("Failed to submit:", error))}>
+      <form onSubmit={form.handleSubmit(
+        (values) => handleEventSubmit(values, mode, id, router, "pledge_event"),
+        (error) => console.log("Failed to submit:", error)
+      )}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 lg:gap-8 mb-8 items-start">
             <FormField
