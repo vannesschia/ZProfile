@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
 import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon } from "lucide-react";
@@ -45,7 +46,8 @@ function sectionComparator([aKey], [bKey]) {
   return (greekIndex[b] ?? Infinity) - (greekIndex[a] ?? Infinity);
 }
 
-export default function ClientMembersView({ rushees }) {
+export default function ClientMembersView({ rushees, userReactions = {}, userStars = new Set() }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
   const [minorSearch, setMinorSearch] = useState("");
@@ -61,26 +63,40 @@ export default function ClientMembersView({ rushees }) {
   const [subFilterOpen, setSubFilterOpen] = useState(false);
   const [filterList, setFilterList] = useState([]);
   const [hideFilter, setHideFilter] = useState(true);
+  const [cutStatusFilter, setCutStatusFilter] = useState("active"); // "active" or "cut" or "all"
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
+  const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
 
-  const FIXED_CLASS = "eta";
+  const handleUpdate = () => {
+    // Refresh server data to get updated counts and user reactions
+    router.refresh();
+  };
 
+  // Group rushees by class_name (default to "eta" if not set)
   const grouped = safeRushees
-    .filter((rushee) => rushee.cut_status === "active")
+    .filter((rushee) => {
+      if (cutStatusFilter === "all") return true;
+      return rushee.cut_status === cutStatusFilter;
+    })
     .reduce((acc, rushee) => {
-      if (!acc[FIXED_CLASS]) acc[FIXED_CLASS] = [];
-      acc[FIXED_CLASS].push(rushee);
+      const className = (rushee.class_name || "eta").trim().toLowerCase();
+      if (!className) return acc; // skip empty class names
+      if (!acc[className]) acc[className] = [];
+      acc[className].push(rushee);
       return acc;
     }, {});
 
-  grouped[FIXED_CLASS]?.sort((a, b) => a.name.localeCompare(b.name));
+  // Sort each class by name
+  Object.values(grouped).forEach((classMembers) => {
+    classMembers.sort((a, b) => a.name.localeCompare(b.name));
+  });
 
 
   return (
     <div>
-      <div className="flex flex-row">
-        <div className="relative w-full lg:w-1/2 xl:w-1/4 mb-4">
+      <div className="flex flex-row items-center gap-2 mb-4">
+        <div className="relative w-full lg:w-1/2 xl:w-1/4">
           <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
           <Input
             type="search"
@@ -89,6 +105,29 @@ export default function ClientMembersView({ rushees }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={cutStatusFilter === "active" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCutStatusFilter("active")}
+          >
+            Active
+          </Button>
+          <Button
+            variant={cutStatusFilter === "cut" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCutStatusFilter("cut")}
+          >
+            Cut
+          </Button>
+          <Button
+            variant={cutStatusFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCutStatusFilter("all")}
+          >
+            All
+          </Button>
         </div>
         <Popover open={mainFilterOpen}>
           <PopoverTrigger asChild>
@@ -292,7 +331,13 @@ export default function ClientMembersView({ rushees }) {
               </h2>
               <div className="flex flex-wrap gap-4 justify-start items-start">
                 {filtered.map((rushee) => (
-                  <RusheeCard key={rushee.uniqname} rushee={rushee} />
+                  <RusheeCard 
+                    key={rushee.id || rushee.uniqname} 
+                    rushee={rushee}
+                    userReaction={userReactions[rushee.id] || 'none'}
+                    isStarred={safeUserStars.has(rushee.id)}
+                    onUpdate={handleUpdate}
+                  />
                 ))}
               </div>
             </section>
