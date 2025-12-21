@@ -45,7 +45,7 @@ function sectionComparator([aKey], [bKey]) {
   return (greekIndex[b] ?? Infinity) - (greekIndex[a] ?? Infinity);
 }
 
-export default function ClientMembersView({ members }) {
+export default function ClientMembersView({ rushees }) {
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
   const [minorSearch, setMinorSearch] = useState("");
