@@ -46,7 +46,7 @@ function sectionComparator([aKey], [bKey]) {
   return (greekIndex[b] ?? Infinity) - (greekIndex[a] ?? Infinity);
 }
 
-export default function ClientMembersView({ rushees, userReactions = {}, userStars = new Set() }) {
+export default function ClientMembersView({ rushees, comments, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -91,7 +91,6 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
   Object.values(grouped).forEach((classMembers) => {
     classMembers.sort((a, b) => a.name.localeCompare(b.name));
   });
-
 
   return (
     <div>
@@ -157,9 +156,9 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
           />
         </Popover>
       </div>
-      <div className={`flex flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
-        {filterList.map(f => { 
-        // Filter Logic
+      <div className={`flex flex-wrap flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
+        {filterList.map(f => {
+          // Filter Logic
           if (f === "major") { // Filter by major
             return (
               <div key="major" className="w-fit min-w-48">
@@ -294,21 +293,23 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
-              className={`w-24 !text-muted-foreground cursor-pointer ${filterList.length === 4 || filterList.length === 0 ? "hidden" : ""}`}
+              className={`w-24 !text-muted-foreground cursor-pointer ${filterList.length === 0 || filterList.length === 4 ? "hidden" : ""}`}
             >
               <div className="flex flex-row gap-2 items-center">
                 <Plus />Filter
               </div>
             </Button>
           </PopoverTrigger>
-          <FilterPopoverContent
-            open={subFilterOpen}
-            setOpen={setSubFilterOpen}
-            hideFilter={hideFilter}
-            setHideFilter={setHideFilter}
-            filterList={filterList}
-            setFilterList={setFilterList}
-          />
+          {filterList.length !== 0 && filterList.length !== 4 &&
+            <FilterPopoverContent
+              open={subFilterOpen}
+              setOpen={setSubFilterOpen}
+              hideFilter={hideFilter}
+              setHideFilter={setHideFilter}
+              filterList={filterList}
+              setFilterList={setFilterList}
+            />
+          }
         </Popover>
       </div>
 
@@ -331,9 +332,12 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
               </h2>
               <div className="flex flex-wrap gap-4 justify-start items-start">
                 {filtered.map((rushee) => (
-                  <RusheeCard 
-                    key={rushee.id || rushee.uniqname} 
+                  <RusheeCard
+                    key={rushee.id || rushee.uniqname}
                     rushee={rushee}
+                    uniqname={uniqname}
+                    isAdmin={isAdmin}
+                    comments={comments.filter(c => c.rushee_id === rushee.id)}
                     userReaction={userReactions[rushee.id] || 'none'}
                     isStarred={safeUserStars.has(rushee.id)}
                     onUpdate={handleUpdate}

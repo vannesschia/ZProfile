@@ -45,4 +45,4 @@ export function isValidTerm(value) {
   return (["fall", "winter", "spring", "spring/summer", "summer"].includes(season) && Number(year) >= 2000)
 }
 
-export const CURRENT_TERM = 2560;
+export const CURRENT_TERM = 202601;

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ClientMembersView from "./ClientView";
 import { CURRENT_TERM } from "../course-directory/term-functions";
+import getRusheeComments from "./_lib/queries";
 
 export default async function RusheePage() {
   const supabase = await getServerClient();
@@ -12,7 +13,20 @@ export default async function RusheePage() {
 
   if (!session) redirect("/");
 
-  const uniqname = session.user.email.split("@")[0];
+  const email = session.user.email;
+
+  const uniqname = email.split("@")[0];
+
+  const { data: member, error: memberError } = await supabase
+    .from("members")
+    .select("admin")
+    .eq("email_address", email)
+    .single();
+
+  if (memberError) {
+    console.error("Error fetching rushees:", error.message);
+    return <p>Error loading rushees.</p>;
+  }
 
   // Determine the rush class (next class after current)
   let rushClass = "eta"; // Default fallback
@@ -52,6 +66,15 @@ export default async function RusheePage() {
     return <p>Error loading rushees.</p>;
   }
 
+  let comments;
+
+  try {
+    comments = await getRusheeComments(member.admin);
+  } catch (error) {
+    console.error(error);
+    return <p>Error getting rushee comments.</p>
+  }
+
   // Framework: User reactions and stars
   const userReactions = {};
   const userStars = new Set();
@@ -62,8 +85,11 @@ export default async function RusheePage() {
       <p className="text-muted-foreground">Review any rushee.</p>
 
       <Suspense fallback={<p>Loading...</p>}>
-        <ClientMembersView 
-          rushees={rushees || []} 
+        <ClientMembersView
+          rushees={rushees || []}
+          comments={comments}
+          uniqname={uniqname}
+          isAdmin={!member.admin}
           userReactions={userReactions}
           userStars={userStars}
         />
