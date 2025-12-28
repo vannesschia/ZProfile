@@ -125,25 +125,31 @@
 
   .quill {
     height: 100%;
+    position: relative; 
+    display: flex;
+    flex-direction: column;
   }
 
   .ql-container.ql-snow {
     border: none !important;
-    height: calc(100% - 44px) !important;
-    overflow-y: auto !important;
+    position: absolute !important;
+    top: 42px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto !important;
   }
 
-  .ql-editor {
-    height: 100% !important;
-    overflow-y: hidden !important;
-  }
-  
   .ql-toolbar.ql-snow {
-    background: none !important;
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
     border-bottom: 1px solid var(--border) !important;
+  }
+
+  .ql-editor {
+    height: 100% !important;
+    overflow-y: auto !important;
   }
 
   .ql-toolbar.ql-snow .ql-picker-label {
@@ -152,10 +158,6 @@
 
   .ql-editor::before {
     color: var(--muted-foreground) !important;
-  }
-
-  .ql-read-only-editor {
-    cursor: not-allowed !important;
   }
 
   /* Header Picker */

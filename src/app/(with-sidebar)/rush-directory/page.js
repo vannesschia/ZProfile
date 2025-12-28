@@ -89,7 +89,7 @@ export default async function RusheePage() {
           rushees={rushees || []}
           comments={comments}
           uniqname={uniqname}
-          isAdmin={!member.admin}
+          isAdmin={member.admin}
           userReactions={userReactions}
           userStars={userStars}
         />

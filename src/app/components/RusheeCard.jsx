@@ -328,17 +328,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
           </Card>
         </div>
         {/* ql-read-only-editor is a class in globals.css that adds cursor: not-allowed */}
-        <div
-          className={`flex flex-col bg-card shadow-sm rounded-xl text-card-foreground border ${!isAdmin ? "ql-read-only-editor" : ""}`}
-        >
-          {!isAdmin &&
-            <style>{`
-              .ql-read-only-editor .ql-editor > * {
-                cursor: not-allowed !important;
-              }
-            `}
-            </style>
-          }
+        <div className="flex flex-col bg-card shadow-sm rounded-xl text-card-foreground border">
           <Card className="flex flex-row gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center rounded-b-none border-t-0 border-x-0">
             <NotebookPen className="w-5 h-5" /> Notes
           </Card>
