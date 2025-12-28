@@ -128,11 +128,15 @@
     position: relative; 
     display: flex;
     flex-direction: column;
+    min-height: 200px !important;
   }
 
   .ql-container.ql-snow {
     border: none !important;
     position: absolute !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     top: 42px;
     bottom: 0;
     left: 0;
@@ -148,6 +152,7 @@
   }
 
   .ql-editor {
+    flex: 1;
     height: 100% !important;
     overflow-y: auto !important;
   }
@@ -241,5 +246,11 @@
   .ql-picker-item:hover {
     background-color: var(--sidebar-accent) !important;
     color: var(--foreground) !important;
+  }
+
+  @media (max-width: 40rem) {
+    .ql-container.ql-snow {
+      top: 70px;
+    }
   }
 }

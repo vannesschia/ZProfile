@@ -200,9 +200,9 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
           <DialogHeader>
             <DialogTitle className="flex flex-row gap-2">
               <ProfilePhoto />
-              <div className="flex flex-col text-left justify-between text-sm text-muted-foreground">
+              <div className="flex flex-col text-left text-sm justify-between">
                 <div className="text-primary text-2xl">{rushee.name}</div>
-                {rushee.email_address}
+                <div className="text-muted-foreground">{rushee.email_address}</div>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {rushee.major?.map((m, i) => (
                     <Badge key={`major-${i}`} className="bg-blue-100 text-blue-900 text-[9.5px]">
@@ -229,7 +229,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
                   )}
                 </div>
               </div>
-              <div className="ml-auto min-w-16 grid grid-cols-2 gap-y-2 h-fit">
+              <div className="hidden sm:grid ml-auto min-w-16 grid-cols-2 gap-y-2 h-fit">
                 <div className="justify-center items-center text-sm flex flex-row text-green-800">
                   <ThumbsUp className="mr-1" />
                 </div>
@@ -250,6 +250,17 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
                 </div>
               </div>
             </DialogTitle>
+            <div className="grid sm:hidden grid-cols-3 gap-2">
+              <div className="justify-center items-center text-sm flex flex-row text-green-800">
+                <ThumbsUp className="mr-1" />{likeCount}
+              </div>
+              <div className="justify-center items-center text-sm flex flex-row text-red-800">
+                <ThumbsDown className="mr-1" />{dislikeCount}
+              </div>
+              <div className="justify-center items-center text-sm flex flex-row text-yellow-800">
+                <Star className="mr-1" />{starCount}
+              </div>
+            </div>
           </DialogHeader>
           <Card className="gap-0 px-0 pt-2 pb-0">
             <CardHeader className="px-3">
@@ -289,7 +300,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
                   <Textarea
                     disabled={sendingComment}
                     placeholder="Add a comment..."
-                    className="pr-12 border-b-0 border-x-0 rounded-t-none min-h-[40px] w-full resize-none shadow-none"
+                    className="pr-12 text-sm border-b-0 border-x-0 rounded-t-none min-h-[40px] w-full resize-none shadow-none"
                     value={commentBody}
                     onChange={(e) => setCommentBody(e.target.value)}
                   />
@@ -327,7 +338,6 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
             </CardContent>
           </Card>
         </div>
-        {/* ql-read-only-editor is a class in globals.css that adds cursor: not-allowed */}
         <div className="flex flex-col bg-card shadow-sm rounded-xl text-card-foreground border">
           <Card className="flex flex-row gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center rounded-b-none border-t-0 border-x-0">
             <NotebookPen className="w-5 h-5" /> Notes
