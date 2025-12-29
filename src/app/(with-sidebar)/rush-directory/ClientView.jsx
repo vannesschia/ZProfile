@@ -27,25 +27,6 @@ const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
-const GREEK_ORDER = [ //will need to be changed years later 
-  //                     when class names are "alpha beta", etc 
-  "alpha", "beta", "gamma", "delta", "epsilon",
-  "zeta", "eta", "theta", "iota", "kappa",
-  "lambda", "mu", "nu", "xi", "omicron",
-  "pi", "rho", "sigma", "tau", "upsilon",
-  "phi", "chi", "psi", "omega",
-];
-
-const greekIndex = Object.fromEntries(
-  GREEK_ORDER.map((g, i) => [g, i]) // alpha=0, beta=1, ...
-);
-
-function sectionComparator([aKey], [bKey]) {
-  const a = String(aKey ?? "").trim().toLowerCase();
-  const b = String(bKey ?? "").trim().toLowerCase();
-  return (greekIndex[b] ?? Infinity) - (greekIndex[a] ?? Infinity);
-}
-
 export default function ClientMembersView({ rushees, userReactions = {}, userStars = new Set() }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -73,24 +54,23 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
     router.refresh();
   };
 
-  // Group rushees by class_name (default to "eta" if not set)
-  const grouped = safeRushees
+  // Filter and sort rushees (no class grouping - all rushees from current term together)
+  const filteredRushees = safeRushees
     .filter((rushee) => {
-      if (cutStatusFilter === "all") return true;
-      return rushee.cut_status === cutStatusFilter;
+      // Filter by cut status
+      if (cutStatusFilter !== "all" && rushee.cut_status !== cutStatusFilter) {
+        return false;
+      }
+      // Filter by search and other criteria
+      return (
+        rushee.name.toLowerCase().includes(search.toLowerCase()) &&
+        majorFilter.every(maj => rushee.major?.includes(maj)) &&
+        minorFilter.every(min => rushee.minor?.includes(min)) &&
+        (gradeFilter.length === 0 || gradeFilter.includes(rushee.grade)) &&
+        (gradYearFilter.length === 0 || gradYearFilter.includes(rushee.graduation_year))
+      );
     })
-    .reduce((acc, rushee) => {
-      const className = (rushee.class_name || "eta").trim().toLowerCase();
-      if (!className) return acc; // skip empty class names
-      if (!acc[className]) acc[className] = [];
-      acc[className].push(rushee);
-      return acc;
-    }, {});
-
-  // Sort each class by name
-  Object.values(grouped).forEach((classMembers) => {
-    classMembers.sort((a, b) => a.name.localeCompare(b.name));
-  });
+    .sort((a, b) => a.name.localeCompare(b.name));
 
 
   return (
@@ -312,37 +292,21 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
         </Popover>
       </div>
 
-      {Object.entries(grouped)
-        .sort(sectionComparator) // α → β → γ → …
-        .map(([className, classMembers]) => {
-          const filtered = classMembers.filter((m) =>
-            m.name.toLowerCase().includes(search.toLowerCase()) &&
-            majorFilter.every(maj => m.major.includes(maj)) &&
-            minorFilter.every(min => m.minor.includes(min)) &&
-            (gradeFilter.length === 0 || gradeFilter.includes(m.grade)) &&
-            (gradYearFilter.length === 0 || gradYearFilter.includes(m.graduation_year))
-          );
-          if (filtered.length === 0) return null;
-
-          return (
-            <section key={className} className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">
-                {className}
-              </h2>
-              <div className="flex flex-wrap gap-4 justify-start items-start">
-                {filtered.map((rushee) => (
-                  <RusheeCard 
-                    key={rushee.id || rushee.uniqname} 
-                    rushee={rushee}
-                    userReaction={userReactions[rushee.id] || 'none'}
-                    isStarred={safeUserStars.has(rushee.id)}
-                    onUpdate={handleUpdate}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
+      {filteredRushees.length === 0 ? (
+        <p className="text-muted-foreground">No rushees found matching your filters.</p>
+      ) : (
+        <div className="flex flex-wrap gap-4 justify-start items-start">
+          {filteredRushees.map((rushee) => (
+            <RusheeCard 
+              key={rushee.id || rushee.uniqname} 
+              rushee={rushee}
+              userReaction={userReactions[rushee.id] || 'none'}
+              isStarred={safeUserStars.has(rushee.id)}
+              onUpdate={handleUpdate}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
