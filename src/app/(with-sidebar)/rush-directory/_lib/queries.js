@@ -2,7 +2,7 @@
 
 import { getServerClient } from "@/lib/supabaseServer";
 
-export default async function getRusheeComments(isAdmin) {
+export async function getRusheeComments(isAdmin) {
   const supabase = await getServerClient();
 
   if (isAdmin) {
@@ -24,4 +24,16 @@ export default async function getRusheeComments(isAdmin) {
 
     return comments;
   }
+}
+
+export async function getRusheeNotes() {
+  const supabase = await getServerClient();
+
+  const { data: notes, error } = await supabase
+    .from("rushee_notes")
+    .select("rushee_id, body")
+
+  if (error) throw error;
+
+  return notes;
 }

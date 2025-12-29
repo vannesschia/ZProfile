@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ClientMembersView from "./ClientView";
 import { CURRENT_TERM } from "../course-directory/term-functions";
-import getRusheeComments from "./_lib/queries";
+import { getRusheeComments, getRusheeNotes } from "./_lib/queries";
 
 export default async function RusheePage() {
   const supabase = await getServerClient();
@@ -75,6 +75,15 @@ export default async function RusheePage() {
     return <p>Error getting rushee comments.</p>
   }
 
+  let notes;
+
+  try {
+    notes = await getRusheeNotes();
+  } catch (error) {
+    console.error(error);
+    return <p>Error getting rushee notes.</p>
+  }
+
   // Framework: User reactions and stars
   const userReactions = {};
   const userStars = new Set();
@@ -88,6 +97,7 @@ export default async function RusheePage() {
         <ClientMembersView
           rushees={rushees || []}
           comments={comments}
+          notes={notes}
           uniqname={uniqname}
           isAdmin={member.admin}
           userReactions={userReactions}

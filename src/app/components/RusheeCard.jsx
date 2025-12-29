@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardAction,
@@ -25,18 +25,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import SendRusheeComment from "../(with-sidebar)/rush-directory/_lib/actions";
 import { getAnonymousName } from "../(with-sidebar)/rush-directory/_util/utils";
 import 'react-quill-new/dist/quill.snow.css';
 import dynamic from "next/dynamic";
 import { Separator } from "@/components/ui/separator";
+import { sendRusheeComment, updateRusheeNotes } from "../(with-sidebar)/rush-directory/_lib/actions";
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
   loading: () => <p>Loading Editor...</p>
 });
 
-export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userReaction, isStarred, onUpdate }) {
+export default function RusheeCard({ rushee, uniqname, isAdmin, comments, notes, userReaction, isStarred, onUpdate }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
@@ -44,7 +44,18 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
   const [starCount, setStarCount] = useState(rushee.star_count || 0);
   const [commentBody, setCommentBody] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [notesBody, setNotesBody] = useState(notes.body);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      try {
+        updateRusheeNotes(notes.rushee_id, notesBody);
+      } catch (error) {
+        console.error("Failed to update rushee notes:", error);
+      }
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [notesBody]);
 
   const handleReaction = (reactionType) => {
     const newReaction = currentReaction === reactionType ? 'none' : reactionType;
@@ -201,7 +212,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
             <DialogTitle className="flex flex-row gap-2">
               <ProfilePhoto />
               <div className="flex flex-col text-left text-sm justify-between">
-                <div className="text-primary text-2xl">{rushee.name}</div>
+                <div className="text-2xl">{rushee.name}</div>
                 <div className="text-muted-foreground">{rushee.email_address}</div>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {rushee.major?.map((m, i) => (
@@ -314,7 +325,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
                       }
                       setSendingComment(true);
                       try {
-                        await SendRusheeComment({
+                        await sendRusheeComment({
                           rushee_id: rushee.id,
                           author_uniqname: uniqname,
                           body: commentBody,
@@ -346,8 +357,8 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, userRe
             theme="snow"
             readOnly={!isAdmin}
             modules={{ toolbar: isAdmin }}
-            value={notes}
-            onChange={setNotes}
+            value={notesBody}
+            onChange={setNotesBody}
             placeholder={isAdmin ? "Add notes..." : "No notes available"}
           />
         </div>

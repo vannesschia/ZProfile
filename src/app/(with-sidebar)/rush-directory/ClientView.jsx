@@ -46,7 +46,7 @@ function sectionComparator([aKey], [bKey]) {
   return (greekIndex[b] ?? Infinity) - (greekIndex[a] ?? Infinity);
 }
 
-export default function ClientMembersView({ rushees, comments, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
+export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -338,6 +338,7 @@ export default function ClientMembersView({ rushees, comments, uniqname, isAdmin
                     uniqname={uniqname}
                     isAdmin={isAdmin}
                     comments={comments.filter(c => c.rushee_id === rushee.id)}
+                    notes={notes.find(n => n.rushee_id === rushee.id)}
                     userReaction={userReactions[rushee.id] || 'none'}
                     isStarred={safeUserStars.has(rushee.id)}
                     onUpdate={handleUpdate}
