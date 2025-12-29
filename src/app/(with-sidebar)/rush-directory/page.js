@@ -12,19 +12,35 @@ export default async function RusheePage() {
 
   if (!session) redirect("/");
 
+  const uniqname = session.user.email.split("@")[0];
+
   // Fetch rushees for current term (most recent term)
   const { data: rushees, error } = await supabase
     .from("rushees")
-    .select("*")
+    .select("*");
 
   if (error) {
     console.error("Error fetching rushees:", error.message);
     return <p>Error loading rushees.</p>;
   }
 
-  // Framework: User reactions and stars
-  const userReactions = {};
-  const userStars = new Set();
+  // Fetch user's reactions for all rushees
+  const rusheeIds = rushees?.map(r => r.id) || [];
+  let userReactions = {};
+  let userStars = new Set();
+
+  if (rusheeIds.length > 0) {
+    // Fetch reactions
+    const { data: reactions } = await supabase
+      .from('rushee_reactions')
+      .select('rushee_id, reaction_type')
+      .eq('member_uniqname', uniqname)
+      .in('rushee_id', rusheeIds);
+
+    reactions?.forEach(r => {
+      userReactions[r.rushee_id] = r.reaction_type;
+    });
+  }
 
   return (
     <main className="m-4 flex flex-col gap-2">

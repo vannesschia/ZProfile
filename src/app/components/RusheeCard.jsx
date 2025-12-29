@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
@@ -13,31 +14,107 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
   const [dislikeCount, setDislikeCount] = useState(rushee.dislike_count || 0);
   const [starCount, setStarCount] = useState(rushee.star_count || 0);
+  const [loading, setLoading] = useState(false);
+  
+  // Debounce and coalesce rapid clicks (last intent wins)
+  const debounceTimer = useRef(null);
+  const pendingRequest = useRef(null);
+  const optimisticState = useRef({ reaction: currentReaction, likeCount, dislikeCount });
 
   const handleReaction = (reactionType) => {
-    const newReaction = currentReaction === reactionType ? 'none' : reactionType;
-    setCurrentReaction(newReaction);
+    // Disable button immediately
+    setLoading(true);
     
-    // Update local counts (framework only - no API calls)
-    if (newReaction === 'like' && currentReaction !== 'like') {
-      setLikeCount(prev => prev + 1);
-      if (currentReaction === 'dislike') {
-        setDislikeCount(prev => Math.max(0, prev - 1));
-      }
-    } else if (newReaction === 'dislike' && currentReaction !== 'dislike') {
-      setDislikeCount(prev => prev + 1);
-      if (currentReaction === 'like') {
-        setLikeCount(prev => Math.max(0, prev - 1));
-      }
-    } else if (newReaction === 'none') {
-      if (currentReaction === 'like') {
-        setLikeCount(prev => Math.max(0, prev - 1));
-      } else if (currentReaction === 'dislike') {
-        setDislikeCount(prev => Math.max(0, prev - 1));
-      }
+    // Clear any pending debounce
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
+
+    // Cancel any pending request (last intent wins)
+    if (pendingRequest.current) {
+      // Note: We can't actually cancel fetch, but we'll ignore stale responses
+      pendingRequest.current = null;
+    }
+
+    // Calculate new reaction
+    const newReaction = currentReaction === reactionType ? 'none' : reactionType;
     
-    if (onUpdate) onUpdate();
+    // Optimistic UI update
+    const oldReaction = optimisticState.current.reaction;
+    let newLikeCount = optimisticState.current.likeCount;
+    let newDislikeCount = optimisticState.current.dislikeCount;
+
+    // Update optimistic counts
+    if (oldReaction === 'like') {
+      newLikeCount = Math.max(0, newLikeCount - 1);
+    } else if (oldReaction === 'dislike') {
+      newDislikeCount = Math.max(0, newDislikeCount - 1);
+    }
+
+    if (newReaction === 'like') {
+      newLikeCount = newLikeCount + 1;
+    } else if (newReaction === 'dislike') {
+      newDislikeCount = newDislikeCount + 1;
+    }
+
+    // Apply optimistic update immediately
+    setCurrentReaction(newReaction);
+    setLikeCount(newLikeCount);
+    setDislikeCount(newDislikeCount);
+    optimisticState.current = { reaction: newReaction, likeCount: newLikeCount, dislikeCount: newDislikeCount };
+
+    // Debounce the API call (300ms - coalesces rapid clicks)
+    debounceTimer.current = setTimeout(async () => {
+      const requestId = Date.now();
+      pendingRequest.current = requestId;
+
+      try {
+        const response = await fetch('/api/rushees/reactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rushee_id: rushee.id,
+            reaction_type: newReaction
+          })
+        });
+
+        const data = await response.json();
+
+        // Ignore stale responses (if a newer request was made)
+        if (pendingRequest.current !== requestId) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update reaction');
+        }
+
+        // Update with server response (reconcile optimistic update)
+        setCurrentReaction(data.reaction_type);
+        setLikeCount(data.like_count);
+        setDislikeCount(data.dislike_count);
+        optimisticState.current = { 
+          reaction: data.reaction_type, 
+          likeCount: data.like_count, 
+          dislikeCount: data.dislike_count 
+        };
+        
+        if (onUpdate) onUpdate();
+      } catch (error) {
+        // Revert optimistic update on error
+        setCurrentReaction(optimisticState.current.reaction);
+        setLikeCount(optimisticState.current.likeCount);
+        setDislikeCount(optimisticState.current.dislikeCount);
+        
+        console.error("Error updating reaction:", error);
+        toast.error(error.message || "Failed to update reaction");
+      } finally {
+        if (pendingRequest.current === requestId) {
+          pendingRequest.current = null;
+        }
+        setLoading(false);
+      }
+    }, 300);
   };
 
   const handleStar = () => {
@@ -117,6 +194,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
                   : 'bg-green-50 hover:bg-green-100 text-green-800'
               }`}
               onClick={() => handleReaction('like')}
+              disabled={loading}
             >
               <ThumbsUp className="h-3 w-3 mr-1" />
               {likeCount > 0 && likeCount}
@@ -130,6 +208,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
                   : 'bg-red-50 hover:bg-red-100 text-red-800'
               }`}
               onClick={() => handleReaction('dislike')}
+              disabled={loading}
             >
               <ThumbsDown className="h-3 w-3 mr-1" />
               {dislikeCount > 0 && dislikeCount}
