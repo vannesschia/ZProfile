@@ -1,20 +1,31 @@
 "use server";
 
+const { createHash } = await import('node:crypto');
 import { getServerClient } from "@/lib/supabaseServer";
 
-export async function getRusheeComments(isAdmin) {
+export async function getRusheeComments(rushees, uniqname, isAdmin) {
   const supabase = await getServerClient();
 
   if (isAdmin) {
     const { data: comments, error } = await supabase
       .from("rushee_comments_private")
-      .select("id, rushee_id, author_name, body, created_at, deleted_at")
+      .select("id, rushee_id, author_uniqname, author_name, body, created_at, deleted_at")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return comments;
+    return comments.map(c => ({
+      ...c,
+      isMine: c.author_uniqname === uniqname,
+    }));
   } else {
+    const hashes = rushees.map(rushee => {
+      return "brother-" + createHash('sha256')
+        .update(`${rushee.id}|${uniqname}`)
+        .digest('hex')
+        .substring(0, 6);
+    });
+
     const { data: comments, error } = await supabase
       .from("rushee_comments_public")
       .select("id, rushee_id, body, created_at, anon_handle")
@@ -22,7 +33,10 @@ export async function getRusheeComments(isAdmin) {
 
     if (error) throw error;
 
-    return comments;
+    return comments.map(c => ({
+      ...c,
+      isMine: hashes.includes(c.anon_handle),
+    }));
   }
 }
 

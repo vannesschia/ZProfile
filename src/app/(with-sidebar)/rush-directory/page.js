@@ -69,7 +69,7 @@ export default async function RusheePage() {
   let comments;
 
   try {
-    comments = await getRusheeComments(member.admin);
+    comments = await getRusheeComments(rushees, uniqname, member.admin);
   } catch (error) {
     console.error(error);
     return <p>Error getting rushee comments.</p>

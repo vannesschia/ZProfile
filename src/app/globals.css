@@ -161,6 +161,10 @@
     overflow-y: auto !important;
   }
 
+  .ql-editor::-webkit-scrollbar {
+    background: transparent;
+  }
+
   .ql-toolbar.ql-snow .ql-picker-label {
     border: none !important;
   }
