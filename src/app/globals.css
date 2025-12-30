@@ -144,6 +144,10 @@
     height: auto !important;
   }
 
+  .ql-container.ql-snow.ql-disabled {
+    top: 0px;
+  }
+
   .ql-toolbar.ql-snow {
     border-top: none !important;
     border-left: none !important;

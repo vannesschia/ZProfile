@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Card,
   CardAction,
@@ -44,12 +44,18 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, notes,
   const [starCount, setStarCount] = useState(rushee.star_count || 0);
   const [commentBody, setCommentBody] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
-  const [notesBody, setNotesBody] = useState(notes.body);
+  const [notesBody, setNotesBody] = useState(notes ?? "");
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     const debounce = setTimeout(() => {
       try {
-        updateRusheeNotes(notes.rushee_id, notesBody);
+        updateRusheeNotes(rushee.id, notesBody);
       } catch (error) {
         console.error("Failed to update rushee notes:", error);
       }
@@ -283,7 +289,7 @@ export default function RusheeCard({ rushee, uniqname, isAdmin, comments, notes,
             <Separator className="" />
             <CardContent className="px-0">
               <div className="flex flex-col">
-                <div className="flex flex-col-reverse max-h-[200px] sm:max-h-[400px] overflow-y-scroll px-6">
+                <div className="flex flex-col-reverse min-h-[200px] sm:min-h-[400px] max-h-[200px] sm:max-h-[400px] overflow-y-scroll px-6">
                   {comments.map(comment => {
                     return (
                       <div key={comment.id} className="flex flex-col my-1">

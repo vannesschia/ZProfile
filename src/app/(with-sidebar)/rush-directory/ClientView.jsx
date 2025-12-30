@@ -338,7 +338,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                     uniqname={uniqname}
                     isAdmin={isAdmin}
                     comments={comments.filter(c => c.rushee_id === rushee.id)}
-                    notes={notes.find(n => n.rushee_id === rushee.id)}
+                    notes={notes.find(n => n.rushee_id === rushee.id)?.body}
                     userReaction={userReactions[rushee.id] || 'none'}
                     isStarred={safeUserStars.has(rushee.id)}
                     onUpdate={handleUpdate}
