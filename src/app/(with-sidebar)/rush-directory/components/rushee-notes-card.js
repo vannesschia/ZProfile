@@ -24,17 +24,19 @@ export default function RusheeNotesCard({
   rushee,
   isAdmin,
   notes,
+  onUpdate,
 }) {
-  const [notesBody, setNotesBody] = useState(notes ?? "");
+  const [notesBody, setNotesBody] = useState(notes ?? "<p></p>");
 
   useEffect(() => {
     if (notesBody === notes) { // prevent update upon render
       return;
     }
 
-    const debounce = setTimeout(() => {
+    const debounce = setTimeout(async () => {
       try {
-        updateRusheeNotes(rushee.id, notesBody);
+        await updateRusheeNotes(rushee.id, notesBody);
+        onUpdate();
       } catch (error) {
         console.error("Failed to update rushee notes:", error);
       }

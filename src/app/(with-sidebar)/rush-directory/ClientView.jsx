@@ -342,7 +342,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             uniqname={uniqname}
             isAdmin={isAdmin}
             comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
-            notes={notes.filter(n => n.rushee_id === selectedRushee.id)}
+            notes={notes.find(n => n.rushee_id === selectedRushee.id)?.body || ""}
             likeCount={selectedRushee.like_count}
             dislikeCount={selectedRushee.dislike_count}
             starCount={selectedRushee.star_count}

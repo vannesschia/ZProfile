@@ -129,9 +129,11 @@ export default function RusheeModal({
         />
       </div>
       <RusheeNotesCard
+        key={rushee.id}
         rushee={rushee}
         isAdmin={isAdmin}
         notes={notes}
+        onUpdate={onUpdate}
       />
     </DialogContent>
   )

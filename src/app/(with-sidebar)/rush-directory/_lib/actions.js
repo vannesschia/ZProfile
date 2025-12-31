@@ -28,8 +28,7 @@ export async function updateRusheeNotes(rushee_id, body) {
 
   const { error } = await supabase
     .from("rushee_notes")
-    .update({ rushee_id, body })
-    .eq("rushee_id", rushee_id);
+    .upsert({ rushee_id, body }, { onConflict: "rushee_id" })
 
   if (error) throw error;
 }
