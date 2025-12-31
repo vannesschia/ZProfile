@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -21,7 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator";
+import RusheeModal from "./components/rushee-modal";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
@@ -64,6 +74,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [filterList, setFilterList] = useState([]);
   const [hideFilter, setHideFilter] = useState(true);
   const [cutStatusFilter, setCutStatusFilter] = useState("active"); // "active" or "cut" or "all"
+  const [selectedModal, setSelectedModal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -91,6 +103,17 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   Object.values(grouped).forEach((classMembers) => {
     classMembers.sort((a, b) => a.name.localeCompare(b.name));
   });
+
+  const filteredRushees = Object.entries(grouped)
+    .sort(sectionComparator) // α → β → γ → …
+    .flatMap(([_, rushees]) =>
+      rushees.filter((r) =>
+        r.name.toLowerCase().includes(search.toLowerCase()) &&
+        cutStatusFilter === "all" || r.cut_status === cutStatusFilter
+      )
+    );
+
+  const selectedRushee = selectedModal !== null ? filteredRushees[selectedModal] : null;
 
   return (
     <div>
@@ -312,6 +335,23 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
           }
         </Popover>
       </div>
+      <Dialog open={isModalOpen} onOpenChange={prev => setIsModalOpen(prev)}>
+        {selectedRushee &&
+          <RusheeModal
+            rushee={selectedRushee}
+            uniqname={uniqname}
+            isAdmin={isAdmin}
+            comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
+            notes={notes.filter(n => n.rushee_id === selectedRushee.id)}
+            likeCount={selectedRushee.like_count}
+            dislikeCount={selectedRushee.dislike_count}
+            starCount={selectedRushee.star_count}
+            onUpdate={handleUpdate}
+            nextRushee={() => setSelectedModal(prev => (prev + 1) % filteredRushees.length)}
+            prevRushee={() => setSelectedModal(prev => (prev - 1 + filteredRushees.length) % filteredRushees.length)}
+          />
+        }
+      </Dialog>
 
       {Object.entries(grouped)
         .sort(sectionComparator) // α → β → γ → …
@@ -331,19 +371,22 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 {className}
               </h2>
               <div className="flex flex-wrap gap-4 justify-start items-start">
-                {filtered.map((rushee) => (
-                  <RusheeCard
-                    key={rushee.id || rushee.uniqname}
-                    rushee={rushee}
-                    uniqname={uniqname}
-                    isAdmin={isAdmin}
-                    comments={comments.filter(c => c.rushee_id === rushee.id)}
-                    notes={notes.find(n => n.rushee_id === rushee.id)?.body}
-                    userReaction={userReactions[rushee.id] || 'none'}
-                    isStarred={safeUserStars.has(rushee.id)}
-                    onUpdate={handleUpdate}
-                  />
-                ))}
+                {filtered.map((rushee) => {
+                  const filteredIndex = filteredRushees.findIndex(r => r.id === rushee.id);
+                  return (
+                    <RusheeCard
+                      key={rushee.id || rushee.uniqname}
+                      rushee={rushee}
+                      userReaction={userReactions[rushee.id] || 'none'}
+                      isStarred={safeUserStars.has(rushee.id)}
+                      onUpdate={handleUpdate}
+                      openModal={() => {
+                        setIsModalOpen(true);
+                        setSelectedModal(filteredIndex);
+                      }}
+                    />
+                  )
+                })}
               </div>
             </section>
           );

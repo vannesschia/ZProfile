@@ -39,7 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { getAnonymousName } from "../_util/utils";
 
-export default function RusheeComments({
+export default function RusheeCommentsCard({
   rushee,
   uniqname,
   isAdmin,
@@ -57,7 +57,7 @@ export default function RusheeComments({
   const notDeletedComments = clientComments.filter(c => c.deleted_at === null);
 
   return (
-    <>
+    <Card className="gap-0 px-0 pt-2 pb-0">
       <CardHeader className="px-3">
         <div className="flex flex-row gap-2 pb-1 text-sm items-center">
           <MessageSquareMore className="w-5 h-5" /> Comments
@@ -74,7 +74,7 @@ export default function RusheeComments({
               {isAdmin &&
                 <Button
                   variant="ghost"
-                  className="ml-auto"
+                  className="ml-auto h-6 w-12"
                   onClick={() => {
                     setDeletedCommentsVisible(prev => !prev);
                   }}
@@ -224,6 +224,6 @@ export default function RusheeComments({
           </div>
         </div>
       </CardContent>
-    </>
+    </Card>
   )
 }
