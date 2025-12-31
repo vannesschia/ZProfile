@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
-import ProfilePhoto from "../(with-sidebar)/rush-directory/components/rushee-profile-photo";
+import Image from "next/image";
 
 export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
@@ -69,7 +69,19 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
     >
       <div className="flex flex-row gap-3 w-full">
         {/* Profile Picture */}
-        <ProfilePhoto rushee={rushee} />
+        {rushee.profile_picture_url ? (
+          <Image
+            src={rushee.profile_picture_url}
+            alt={`${rushee.name}'s profile picture`}
+            width={105}
+            height={151}
+            className="max-w-[105px] min-w-[105px] max-h-[150.75px] min-h-[150.75px] rounded-lg object-cover"
+          />
+        ) : (
+          <div className="min-w-[105px] max-w-[105px] max-h-[150.75px] min-h-[150.75px] bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
+            No Photo
+          </div>
+        )}
 
         {/* Card Content */}
         <div className="flex-1 space-y-2 w-full flex flex-col items-start">

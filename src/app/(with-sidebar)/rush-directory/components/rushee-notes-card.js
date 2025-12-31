@@ -45,7 +45,7 @@ export default function RusheeNotesCard({
   }, [notesBody]);
 
   return (
-    <div className="flex flex-col bg-card shadow-sm rounded-xl text-card-foreground border">
+    <div id="text-editor" className="flex flex-col bg-card shadow-sm rounded-xl text-card-foreground border">
       <Card className="flex flex-row gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center rounded-b-none border-t-0 border-x-0">
         <NotebookPen className="w-5 h-5" /> Notes
       </Card>

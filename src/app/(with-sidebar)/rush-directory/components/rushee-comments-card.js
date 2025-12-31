@@ -57,7 +57,7 @@ export default function RusheeCommentsCard({
   const notDeletedComments = clientComments.filter(c => c.deleted_at === null);
 
   return (
-    <Card className="gap-0 px-0 pt-2 pb-0">
+    <Card className="h-full flex flex-col gap-0 px-0 pt-2 pb-0">
       <CardHeader className="px-3">
         <div className="flex flex-row gap-2 pb-1 text-sm items-center">
           <MessageSquareMore className="w-5 h-5" /> Comments
@@ -96,9 +96,9 @@ export default function RusheeCommentsCard({
         </div>
       </CardHeader>
       <Separator />
-      <CardContent className="px-0" onWheel={(e) => e.stopPropagation()}>
-        <div className="flex flex-col">
-          <div className="flex flex-col-reverse min-h-[200px] sm:min-h-[400px] max-h-[200px] sm:max-h-[400px] overflow-y-scroll px-6">
+      <CardContent className="px-0 flex flex-col flex-1 min-h-0" onWheel={(e) => e.stopPropagation()}>
+        <div className="flex flex-col h-full">
+          <div className="flex flex-col-reverse flex-1 overflow-y-scroll px-6">
             {clientComments.map(comment => {
               if (isAdmin && comment.deleted_at !== null && !deletedCommentsVisible) {
                 return;
