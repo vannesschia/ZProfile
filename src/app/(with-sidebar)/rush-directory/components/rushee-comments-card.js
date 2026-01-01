@@ -126,7 +126,7 @@ export default function RusheeCommentsCard({
                         hour12: true
                       })}
                     </div>
-                    {!isDeleted &&
+                    {((isAdmin && !isDeleted) || (!isAdmin && comment.isMine)) &&
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
