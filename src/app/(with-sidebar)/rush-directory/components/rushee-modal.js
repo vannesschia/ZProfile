@@ -35,7 +35,7 @@ export default function RusheeModal({
 
   return (
     <DialogContent
-      className="h-3/4 grid grid-rows-1 sm:grid-rows-none sm:grid-cols-2 max-h-full w-full sm:w-3/4 [&>button:last-child]:-m-2 overflow-visible"
+      className="h-[98%] sm:h-3/4 grid grid-rows-1 sm:grid-rows-none sm:grid-cols-2 max-h-full w-full sm:w-3/4 [&>button:last-child]:-m-2 overflow-visible"
       onOpenAutoFocus={(e) => e.preventDefault()}
       onEscapeKeyDown={(e) => { // to prevent bug with dropdownmenu
         if (document.querySelectorAll('[role="menu"], [data-radix-menu-content]').length > 0) {
@@ -58,7 +58,7 @@ export default function RusheeModal({
         <ChevronRight />
       </Button>
       <div className="flex flex-col overflow-hidden">
-        <DialogHeader className={`${isPhotoEnlarged ? "h-full" : "h-1/4 pb-2"}`}>
+        <DialogHeader className={`${isPhotoEnlarged ? "h-full" : "h-1/4 pb-0 sm:pb-2"}`}>
           <DialogTitle className="flex flex-row gap-2 h-full">
             <div className={`relative group min-w-[105px] ${isPhotoEnlarged ? "w-full" : ""}`}>
               {rushee.profile_picture_url ? (
@@ -142,7 +142,7 @@ export default function RusheeModal({
               </>
             }
           </DialogTitle>
-          <div className="grid sm:hidden grid-cols-3 gap-2">
+          <div className="grid sm:hidden grid-cols-3 gap-2 pb-2">
             <div className="justify-center items-center text-sm flex flex-row text-green-800">
               <ThumbsUp className="mr-1" />{likeCount}
             </div>
