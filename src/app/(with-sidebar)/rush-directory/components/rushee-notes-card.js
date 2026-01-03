@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import 'react-quill-new/dist/quill.snow.css';
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { updateRusheeNotes } from "../_lib/actions";
 import { NotebookPen } from "lucide-react";
 
@@ -27,21 +27,32 @@ export default function RusheeNotesCard({
   onUpdate,
 }) {
   const [notesBody, setNotesBody] = useState(notes ?? "<p></p>");
+  const latestNotes = useRef(notesBody);
 
   useEffect(() => {
-    if (notesBody === notes) { // prevent update upon render
-      return;
-    }
+    latestNotes.current = notesBody;
+  }, [notesBody]);
 
-    const debounce = setTimeout(async () => {
+  useEffect(() => {
+    if (notesBody === notes) return; // prevent update upon render
+
+    const saveNotes = async () => {
       try {
         await updateRusheeNotes(rushee.id, notesBody);
         onUpdate();
       } catch (error) {
         console.error("Failed to update rushee notes:", error);
       }
-    }, 300);
-    return () => clearTimeout(debounce);
+    }
+
+    const debounce = setTimeout(() => saveNotes(), 300);
+
+    return () => {
+      clearTimeout(debounce);
+      if (latestNotes.current !== notes) {
+        saveNotes(latestNotes.current);
+      }
+    }
   }, [notesBody]);
 
   return (
