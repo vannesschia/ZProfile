@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }) {
+export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
@@ -120,19 +128,22 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
   const handleStar = () => {
     const newStarred = !currentStarred;
     setCurrentStarred(newStarred);
-    
+
     // Update local count (framework only - no API calls)
     if (newStarred) {
       setStarCount(prev => prev + 1);
     } else {
       setStarCount(prev => Math.max(0, prev - 1));
     }
-    
+
     if (onUpdate) onUpdate();
   };
 
   return (
-    <Card className="flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px]">
+    <Card
+      className="flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300"
+      onClick={openModal}
+    >
       <div className="flex flex-row gap-3 w-full">
         {/* Profile Picture */}
         {rushee.profile_picture_url ? (
@@ -145,7 +156,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
           />
         ) : (
           <div className="min-w-[105px] max-w-[105px] max-h-[150.75px] min-h-[150.75px] bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
-          No Photo
+            No Photo
           </div>
         )}
 
@@ -188,12 +199,14 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
             <Button
               size="sm"
               variant={currentReaction === 'like' ? 'default' : 'outline'}
-              className={`text-[10px] h-7 px-2 ${
-                currentReaction === 'like' 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-green-50 hover:bg-green-100 text-green-800'
-              }`}
-              onClick={() => handleReaction('like')}
+              className={`text-[10px] h-7 px-2 ${currentReaction === 'like'
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-green-50 hover:bg-green-100 text-green-800'
+                }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReaction('like');
+              }}
               disabled={loading}
             >
               <ThumbsUp className="h-3 w-3 mr-1" />
@@ -202,12 +215,14 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
             <Button
               size="sm"
               variant={currentReaction === 'dislike' ? 'default' : 'outline'}
-              className={`text-[10px] h-7 px-2 ${
-                currentReaction === 'dislike' 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-red-50 hover:bg-red-100 text-red-800'
-              }`}
-              onClick={() => handleReaction('dislike')}
+              className={`text-[10px] h-7 px-2 ${currentReaction === 'dislike'
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-red-50 hover:bg-red-100 text-red-800'
+                }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReaction('dislike');
+              }}
               disabled={loading}
             >
               <ThumbsDown className="h-3 w-3 mr-1" />
@@ -216,12 +231,14 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate }
             <Button
               size="sm"
               variant={currentStarred ? 'default' : 'outline'}
-              className={`text-[10px] h-7 px-2 ${
-                currentStarred 
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                  : 'bg-yellow-50 hover:bg-yellow-100 text-yellow-800'
-              }`}
-              onClick={handleStar}
+              className={`text-[10px] h-7 px-2 ${currentStarred
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                : 'bg-yellow-50 hover:bg-yellow-100 text-yellow-800'
+                }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStar();
+              }}
             >
               <Star className={`h-3 w-3 mr-1 ${currentStarred ? 'fill-current' : ''}`} />
               {starCount > 0 && starCount}

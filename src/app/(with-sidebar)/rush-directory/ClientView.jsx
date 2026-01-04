@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -21,13 +31,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator";
+import RusheeModal from "./components/rushee-modal";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
-export default function ClientMembersView({ rushees, userReactions = {}, userStars = new Set() }) {
+export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -45,6 +55,8 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
   const [filterList, setFilterList] = useState([]);
   const [hideFilter, setHideFilter] = useState(true);
   const [cutStatusFilter, setCutStatusFilter] = useState("active"); // "active" or "cut" or "all"
+  const [selectedModal, setSelectedModal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -53,6 +65,25 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
     // Refresh server data to get updated counts and user reactions
     router.refresh();
   };
+
+  // Filter and sort rushees (no class grouping - all rushees from current term together)
+  const grouped = safeRushees
+    .filter((rushee) => {
+      if (cutStatusFilter === "all") return true;
+      return rushee.cut_status === cutStatusFilter;
+    })
+    .reduce((acc, rushee) => {
+      const className = (rushee.class_name || "eta").trim().toLowerCase();
+      if (!className) return acc; // skip empty class names
+      if (!acc[className]) acc[className] = [];
+      acc[className].push(rushee);
+      return acc;
+    }, {});
+
+  // Sort each class by name
+  Object.values(grouped).forEach((classMembers) => {
+    classMembers.sort((a, b) => a.name.localeCompare(b.name));
+  });
 
   // Filter and sort rushees (no class grouping - all rushees from current term together)
   const filteredRushees = safeRushees
@@ -72,6 +103,16 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  // const filteredRushees = Object.entries(grouped)
+  //   // .sort(sectionComparator) // α → β → γ → …
+  //   .flatMap(([_, rushees]) =>
+  //     rushees.filter((r) =>
+  //       r.name.toLowerCase().includes(search.toLowerCase()) &&
+  //       cutStatusFilter === "all" || r.cut_status === cutStatusFilter
+  //     )
+  //   );
+
+  const selectedRushee = selectedModal !== null ? filteredRushees[selectedModal] : null;
 
   return (
     <div>
@@ -137,9 +178,9 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
           />
         </Popover>
       </div>
-      <div className={`flex flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
-        {filterList.map(f => { 
-        // Filter Logic
+      <div className={`flex flex-wrap flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
+        {filterList.map(f => {
+          // Filter Logic
           if (f === "major") { // Filter by major
             return (
               <div key="major" className="w-fit min-w-48">
@@ -274,39 +315,81 @@ export default function ClientMembersView({ rushees, userReactions = {}, userSta
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
-              className={`w-24 !text-muted-foreground cursor-pointer ${filterList.length === 4 || filterList.length === 0 ? "hidden" : ""}`}
+              className={`w-24 !text-muted-foreground cursor-pointer ${filterList.length === 0 || filterList.length === 4 ? "hidden" : ""}`}
             >
               <div className="flex flex-row gap-2 items-center">
                 <Plus />Filter
               </div>
             </Button>
           </PopoverTrigger>
-          <FilterPopoverContent
-            open={subFilterOpen}
-            setOpen={setSubFilterOpen}
-            hideFilter={hideFilter}
-            setHideFilter={setHideFilter}
-            filterList={filterList}
-            setFilterList={setFilterList}
-          />
+          {filterList.length !== 0 && filterList.length !== 4 &&
+            <FilterPopoverContent
+              open={subFilterOpen}
+              setOpen={setSubFilterOpen}
+              hideFilter={hideFilter}
+              setHideFilter={setHideFilter}
+              filterList={filterList}
+              setFilterList={setFilterList}
+            />
+          }
         </Popover>
       </div>
+      <Dialog open={isModalOpen} onOpenChange={prev => setIsModalOpen(prev)}>
+        {selectedRushee &&
+          <RusheeModal
+            rushee={selectedRushee}
+            uniqname={uniqname}
+            isAdmin={isAdmin}
+            comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
+            notes={notes.find(n => n.rushee_id === selectedRushee.id)?.body || ""}
+            likeCount={selectedRushee.like_count}
+            dislikeCount={selectedRushee.dislike_count}
+            starCount={selectedRushee.star_count}
+            onUpdate={handleUpdate}
+            nextRushee={() => setSelectedModal(prev => (prev + 1) % filteredRushees.length)}
+            prevRushee={() => setSelectedModal(prev => (prev - 1 + filteredRushees.length) % filteredRushees.length)}
+          />
+        }
+      </Dialog>
 
-      {filteredRushees.length === 0 ? (
-        <p className="text-muted-foreground">No rushees found matching your filters.</p>
-      ) : (
-        <div className="flex flex-wrap gap-4 justify-start items-start">
-          {filteredRushees.map((rushee) => (
-            <RusheeCard 
-              key={rushee.id || rushee.uniqname} 
-              rushee={rushee}
-              userReaction={userReactions[rushee.id] || 'none'}
-              isStarred={safeUserStars.has(rushee.id)}
-              onUpdate={handleUpdate}
-            />
-          ))}
-        </div>
-      )}
+      {Object.entries(grouped)
+        // .sort(sectionComparator) // α → β → γ → …
+        .map(([className, classMembers]) => {
+          const filtered = classMembers.filter((m) =>
+            m.name.toLowerCase().includes(search.toLowerCase()) &&
+            majorFilter.every(maj => m.major.includes(maj)) &&
+            minorFilter.every(min => m.minor.includes(min)) &&
+            (gradeFilter.length === 0 || gradeFilter.includes(m.grade)) &&
+            (gradYearFilter.length === 0 || gradYearFilter.includes(m.graduation_year))
+          );
+          if (filtered.length === 0) return null;
+
+          return (
+            <section key={className} className="mb-10">
+              <h2 className="text-xl font-semibold mb-4">
+                {className}
+              </h2>
+              <div className="flex flex-wrap gap-4 justify-start items-start">
+                {filtered.map((rushee) => {
+                  const filteredIndex = filteredRushees.findIndex(r => r.id === rushee.id);
+                  return (
+                    <RusheeCard
+                      key={rushee.id || rushee.uniqname}
+                      rushee={rushee}
+                      userReaction={userReactions[rushee.id] || 'none'}
+                      isStarred={safeUserStars.has(rushee.id)}
+                      onUpdate={handleUpdate}
+                      openModal={() => {
+                        setIsModalOpen(true);
+                        setSelectedModal(filteredIndex);
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            </section>
+          );
+        })}
     </div>
   );
 }

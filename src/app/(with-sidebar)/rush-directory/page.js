@@ -2,7 +2,7 @@ import { getServerClient } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ClientMembersView from "./ClientView";
-import { CURRENT_TERM } from "../course-directory/term-functions";
+import { getRusheeComments, getRusheeNotes } from "./_lib/queries";
 
 export default async function RusheePage() {
   const supabase = await getServerClient();
@@ -12,7 +12,20 @@ export default async function RusheePage() {
 
   if (!session) redirect("/");
 
-  const uniqname = session.user.email.split("@")[0];
+  const email = session.user.email;
+
+  const uniqname = email.split("@")[0];
+
+  const { data: member, error: memberError } = await supabase
+    .from("members")
+    .select("admin")
+    .eq("email_address", email)
+    .single();
+
+  if (memberError) {
+    console.error("Error fetching rushees:", error.message);
+    return <p>Error loading rushees.</p>;
+  }
 
   // Fetch rushees for current term (most recent term)
   const { data: rushees, error } = await supabase
@@ -41,6 +54,23 @@ export default async function RusheePage() {
       userReactions[r.rushee_id] = r.reaction_type;
     });
   }
+  let comments;
+
+  try {
+    comments = await getRusheeComments(rushees, uniqname, member.admin);
+  } catch (error) {
+    console.error(error);
+    return <p>Error getting rushee comments.</p>
+  }
+
+  let notes;
+
+  try {
+    notes = await getRusheeNotes();
+  } catch (error) {
+    console.error(error);
+    return <p>Error getting rushee notes.</p>
+  }
 
   return (
     <main className="m-4 flex flex-col gap-2">
@@ -48,7 +78,12 @@ export default async function RusheePage() {
       <p className="text-muted-foreground">Review any rushee.</p>
 
       <Suspense fallback={<p>Loading...</p>}>
-        <ClientMembersView rushees={rushees || []} 
+        <ClientMembersView
+          rushees={rushees || []}
+          comments={comments}
+          notes={notes}
+          uniqname={uniqname}
+          isAdmin={member.admin}
           userReactions={userReactions}
           userStars={userStars}
         />

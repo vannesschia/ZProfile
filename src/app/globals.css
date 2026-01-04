@@ -116,7 +116,149 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Text Editor CSS */
+
+  .quill {
+    height: 100%;
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    min-height: 200px !important;
+  }
+
+  .ql-container.ql-snow {
+    border: none !important;
+    position: absolute !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    top: 42px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto !important;
+  }
+
+  .ql-container.ql-snow.ql-disabled {
+    top: 0px;
+  }
+
+  .ql-toolbar.ql-snow {
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .ql-editor {
+    flex: 1;
+    height: 100% !important;
+    overflow-y: auto !important;
+  }
+
+  .ql-editor::-webkit-scrollbar {
+    background: transparent;
+  }
+
+  .ql-toolbar.ql-snow .ql-picker-label {
+    border: none !important;
+  }
+
+  .ql-editor::before {
+    color: var(--muted-foreground) !important;
+  }
+
+  /* Header Picker */
+  .ql-header.ql-picker {
+    color: var(--foreground) !important;
+  }
+
+  .ql-picker-label .ql-stroke {
+    stroke: var(--foreground) !important;
+  }
+
+  .ql-picker-label.ql-active {
+    color: var(--foreground) !important;
+  }
+
+  /* Toolbar Buttons */
+  .ql-formats button {
+    border-radius: 4px;
+    margin-right: 1px;
+    margin-left: 1px;
+  }
+
+  .ql-formats button:hover {
+    background-color: var(--sidebar-accent) !important;
+  }
+
+  .ql-formats button .ql-stroke {
+    stroke: var(--foreground) !important;
+  }
+
+  .ql-formats button .ql-fill {
+    fill: var(--foreground) !important;
+  }
+
+  .ql-formats button.ql-active {
+    background-color: rgb(144, 143, 255) !important;
+  }
+
+  .ql-toolbar button:hover .ql-stroke,
+  .ql-toolbar .ql-picker-label:hover .ql-stroke {
+    stroke: var(--accent-foreground) !important;
+  }
+
+  .ql-toolbar button:hover .ql-fill {
+    fill: var(--accent-foreground) !important;
+  }
+
+  .ql-toolbar .ql-picker-label {
+    color: var(--foreground) !important;
+    border-radius: 4px;
+  }
+
+  .ql-toolbar .ql-picker-label:hover {
+    color: var(--foreground) !important;
+    background-color: var(--sidebar-accent) !important;
+  }
+
+  /* Picker Options */
+  .ql-picker-options {
+    transition-duration: 300ms;
+    background-color: var(--card) !important;
+    --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    border-radius: 0.75rem;
+    color: var(--card-foreground);
+    border-width: 1px !important;
+    border-color: var(--border) !important;
+    margin-top: 0px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .ql-picker-item {
+    border-radius: 4px;
+  }
+
+  .ql-picker-item.ql-selected {
+    color: var(--foreground) !important;
+  }
+
+  .ql-picker-item:hover {
+    background-color: var(--sidebar-accent) !important;
+    color: var(--foreground) !important;
+  }
+
+  @media (max-width: 40rem) {
+    .ql-container.ql-snow {
+      top: 70px;
+    }
   }
 }
