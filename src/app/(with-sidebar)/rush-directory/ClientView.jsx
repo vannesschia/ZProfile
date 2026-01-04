@@ -66,26 +66,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
     router.refresh();
   };
 
-  // Filter and sort rushees (no class grouping - all rushees from current term together)
-  const grouped = safeRushees
-    .filter((rushee) => {
-      if (cutStatusFilter === "all") return true;
-      return rushee.cut_status === cutStatusFilter;
-    })
-    .reduce((acc, rushee) => {
-      const className = (rushee.class_name || "eta").trim().toLowerCase();
-      if (!className) return acc; // skip empty class names
-      if (!acc[className]) acc[className] = [];
-      acc[className].push(rushee);
-      return acc;
-    }, {});
-
-  // Sort each class by name
-  Object.values(grouped).forEach((classMembers) => {
-    classMembers.sort((a, b) => a.name.localeCompare(b.name));
-  });
-
-  // Filter and sort rushees (no class grouping - all rushees from current term together)
+  // Filter and sort rushees - single consolidated list with all filters applied
   const filteredRushees = safeRushees
     .filter((rushee) => {
       // Filter by cut status
@@ -102,15 +83,6 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
       );
     })
     .sort((a, b) => a.name.localeCompare(b.name));
-
-  // const filteredRushees = Object.entries(grouped)
-  //   // .sort(sectionComparator) // α → β → γ → …
-  //   .flatMap(([_, rushees]) =>
-  //     rushees.filter((r) =>
-  //       r.name.toLowerCase().includes(search.toLowerCase()) &&
-  //       cutStatusFilter === "all" || r.cut_status === cutStatusFilter
-  //     )
-  //   );
 
   const selectedRushee = selectedModal !== null ? filteredRushees[selectedModal] : null;
 
@@ -352,44 +324,21 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
         }
       </Dialog>
 
-      {Object.entries(grouped)
-        // .sort(sectionComparator) // α → β → γ → …
-        .map(([className, classMembers]) => {
-          const filtered = classMembers.filter((m) =>
-            m.name.toLowerCase().includes(search.toLowerCase()) &&
-            majorFilter.every(maj => m.major.includes(maj)) &&
-            minorFilter.every(min => m.minor.includes(min)) &&
-            (gradeFilter.length === 0 || gradeFilter.includes(m.grade)) &&
-            (gradYearFilter.length === 0 || gradYearFilter.includes(m.graduation_year))
-          );
-          if (filtered.length === 0) return null;
-
-          return (
-            <section key={className} className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">
-                {className}
-              </h2>
-              <div className="flex flex-wrap gap-4 justify-start items-start">
-                {filtered.map((rushee) => {
-                  const filteredIndex = filteredRushees.findIndex(r => r.id === rushee.id);
-                  return (
-                    <RusheeCard
-                      key={rushee.id || rushee.uniqname}
-                      rushee={rushee}
-                      userReaction={userReactions[rushee.id] || 'none'}
-                      isStarred={safeUserStars.has(rushee.id)}
-                      onUpdate={handleUpdate}
-                      openModal={() => {
-                        setIsModalOpen(true);
-                        setSelectedModal(filteredIndex);
-                      }}
-                    />
-                  )
-                })}
-              </div>
-            </section>
-          );
-        })}
+      <div className="flex flex-wrap gap-4 justify-start items-start">
+        {filteredRushees.map((rushee, index) => (
+          <RusheeCard
+            key={rushee.id || rushee.uniqname}
+            rushee={rushee}
+            userReaction={userReactions[rushee.id] || 'none'}
+            isStarred={safeUserStars.has(rushee.id)}
+            onUpdate={handleUpdate}
+            openModal={() => {
+              setIsModalOpen(true);
+              setSelectedModal(index);
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
