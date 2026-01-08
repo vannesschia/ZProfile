@@ -84,8 +84,13 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
         (gradYearFilter.length === 0 || gradYearFilter.includes(rushee.graduation_year))
       );
     })
-    .sort((a, b) => a.name.localeCompare(b.name));
-
+    .sort((a, b) => {
+      if (a.cut_status === b.cut_status) {
+        return a.name.localeCompare(b.name);
+      }
+      return a.cut_status.localeCompare(b.cut_status);
+    });
+    
   const selectedRushee = selectedModal !== null ? filteredRushees[selectedModal] : null;
 
   return (

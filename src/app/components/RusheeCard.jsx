@@ -205,10 +205,13 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
 
     if (onUpdate) onUpdate();
   };
-
+  const isCut = rushee.cut_status === 'cut';
   return (
-    <Card
-      className="flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300"
+      
+     <Card
+      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300 ${
+        isCut ? 'opacity-40 grayscale' : ''
+      }`}
       onClick={openModal}
     >
       <div className="flex flex-row gap-3 w-full">
