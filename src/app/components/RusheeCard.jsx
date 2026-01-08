@@ -16,7 +16,7 @@ import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal }) {
+export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars}) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
@@ -126,7 +126,25 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
   };
 
   const handleStar = () => {
+    if (userStarCount === 3 && !currentStarred) return;
+    
     const newStarred = !currentStarred;
+
+    // Disable button immediately
+    setLoading(true);
+    
+    // Clear any pending debounce
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Cancel any pending request (last intent wins)
+    if (pendingRequest.current) {
+      // Note: We can't actually cancel fetch, but we'll ignore stale responses
+      pendingRequest.current = null;
+    }
+
+    // Apply optimistic update immediately
     setCurrentStarred(newStarred);
 
     // Update local count (framework only - no API calls)
@@ -135,6 +153,55 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
     } else {
       setStarCount(prev => Math.max(0, prev - 1));
     }
+
+    // Debounce the API call (300ms - coalesces rapid clicks)
+    debounceTimer.current = setTimeout(async () => {
+      const requestId = Date.now();
+      pendingRequest.current = requestId;
+
+      try {
+        const response = await fetch('/api/rushees/stars', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rushee_id: rushee.id,
+            starred: newStarred,
+            safeUserStars: safeUserStars
+          })
+        });
+
+        const data = await response.json();
+
+        // Ignore stale responses (if a newer request was made)
+        if (pendingRequest.current !== requestId) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update reaction');
+        }
+
+        // Update with server response (reconcile optimistic update)
+        setCurrentStarred(data.starred);
+        setStarCount(data.star_count === null ? starCount : data.star_count);
+        
+        if (onUpdate) onUpdate();
+      } catch (error) {
+        // Revert optimistic update on error
+        setCurrentStarred(currentStarred);
+        setStarCount(rushee.starCount);
+
+        console.error("Error updating star:", error);
+        toast.error(error.message || "Failed to update reaction");
+      } finally {
+        if (pendingRequest.current === requestId) {
+          pendingRequest.current = null;
+        }
+        setLoading(false);
+      }
+    }, 300);
+
+    
 
     if (onUpdate) onUpdate();
   };
@@ -239,6 +306,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
                 e.stopPropagation();
                 handleStar();
               }}
+              disabled={loading}
             >
               <Star className={`h-3 w-3 mr-1 ${currentStarred ? 'fill-current' : ''}`} />
               {starCount > 0 && starCount}

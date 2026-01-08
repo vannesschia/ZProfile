@@ -50,8 +50,19 @@ export default async function RusheePage() {
       .eq('member_uniqname', uniqname)
       .in('rushee_id', rusheeIds);
 
+    // Fetch Stars
+    const { data: stars } = await supabase
+      .from('rushee_stars')
+      .select('rushee_id')
+      .eq('member_uniqname', uniqname)
+      .in('rushee_id', rusheeIds);
+
     reactions?.forEach(r => {
       userReactions[r.rushee_id] = r.reaction_type;
+    });
+
+    stars?.forEach(s => {
+      userStars.add(s.rushee_id);
     });
   }
   let comments;

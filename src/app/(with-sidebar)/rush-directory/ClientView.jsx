@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import RusheeModal from "./components/rushee-modal";
+import { Card } from "@/components/ui/card";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
@@ -60,6 +61,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
+  const userStarCount = safeUserStars.size;
 
   const handleUpdate = () => {
     // Refresh server data to get updated counts and user reactions
@@ -149,6 +151,9 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             setFilterList={setFilterList}
           />
         </Popover>
+        <Card className="flex flex-row ml-auto mr-17 h-9.5 gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center">
+              <Star className="h-5 w-5 fill-current text-yellow-500" /><p>Remaining Stars: {3 - userStarCount || 0}</p>
+        </Card>
       </div>
       <div className={`flex flex-wrap flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
         {filterList.map(f => {
@@ -336,6 +341,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
               setIsModalOpen(true);
               setSelectedModal(index);
             }}
+            userStarCount={userStarCount}
+            safeUserStars={safeUserStars}
           />
         ))}
       </div>
