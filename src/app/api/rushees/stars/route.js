@@ -98,6 +98,7 @@ export async function POST(req) {
       .from('rushee_stars')
       .delete()
       .eq('rushee_id', rushee_id)
+      .eq('member_uniqname', uniqname);
 
       if (starError) {
         console.error("Error deleting star reaction:", starError);
