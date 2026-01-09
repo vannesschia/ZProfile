@@ -165,8 +165,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             rushee_id: rushee.id,
-            starred: newStarred,
-            safeUserStars: safeUserStars
+            starred: newStarred
           })
         });
 
@@ -192,7 +191,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
         setStarCount(rushee.starCount);
 
         console.error("Error updating star:", error);
-        toast.error(error.message || "Failed to update reaction");
+        toast.error(error.message || "Failed to update star");
       } finally {
         if (pendingRequest.current === requestId) {
           pendingRequest.current = null;
