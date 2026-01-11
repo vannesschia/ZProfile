@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/popover"
 import RusheeModal from "./components/rushee-modal";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
@@ -58,6 +59,9 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [cutStatusFilter, setCutStatusFilter] = useState("active"); // "active" or "cut" or "all"
   const [selectedModal, setSelectedModal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(null); // "cut" or "reactivate" or null
+  const [selectedRusheeIds, setSelectedRusheeIds] = useState(new Set());
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -66,6 +70,77 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const handleUpdate = () => {
     // Refresh server data to get updated counts and user reactions
     router.refresh();
+  };
+
+  const handleToggleSelectionMode = (mode) => {
+    if (selectionMode === mode) {
+      // If clicking the same button, confirm the action
+      handleConfirmSelection();
+    } else {
+      // Enter selection mode
+      setSelectionMode(mode);
+      setSelectedRusheeIds(new Set());
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(null);
+    setSelectedRusheeIds(new Set());
+  };
+
+  const handleToggleRusheeSelection = (rusheeId, rushee) => {
+    if (!selectionMode) return;
+    
+    // Only allow selection based on mode
+    if (selectionMode === "cut" && rushee.cut_status !== "active") return;
+    if (selectionMode === "reactivate" && rushee.cut_status !== "cut") return;
+
+    setSelectedRusheeIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(rusheeId)) {
+        newSet.delete(rusheeId);
+      } else {
+        newSet.add(rusheeId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleConfirmSelection = async () => {
+    if (selectedRusheeIds.size === 0) {
+      setSelectionMode(null);
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const cutStatus = selectionMode === "cut" ? "cut" : "active";
+      const response = await fetch('/api/rushees/cut-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rushee_ids: Array.from(selectedRusheeIds),
+          cut_status: cutStatus
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update rushee status');
+      }
+
+      // Reset selection mode and refresh
+      setSelectionMode(null);
+      setSelectedRusheeIds(new Set());
+      toast.success(`Successfully ${selectionMode === "cut" ? "cut" : "reactivated"} ${selectedRusheeIds.size} rushee${selectedRusheeIds.size > 1 ? 's' : ''}`);
+      router.refresh();
+    } catch (error) {
+      console.error("Error updating rushee status:", error);
+      toast.error(error.message || "Failed to update rushee status");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Filter and sort rushees - single consolidated list with all filters applied
@@ -156,6 +231,53 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             setFilterList={setFilterList}
           />
         </Popover>
+        {isAdmin && (
+          <div className="flex gap-2 ml-4">
+            <Button
+              variant={selectionMode === "cut" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleToggleSelectionMode("cut")}
+              disabled={isUpdating}
+              className={selectionMode === "cut" ? "bg-red-600 hover:bg-red-700 text-white" : ""}
+            >
+              {selectionMode === "cut" ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Confirm Cut ({selectedRusheeIds.size})
+                </>
+              ) : (
+                "Cut Rushees"
+              )}
+            </Button>
+            <Button
+              variant={selectionMode === "reactivate" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleToggleSelectionMode("reactivate")}
+              disabled={isUpdating}
+              className={selectionMode === "reactivate" ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+            >
+              {selectionMode === "reactivate" ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Confirm Reactivate ({selectedRusheeIds.size})
+                </>
+              ) : (
+                "Reactivate Rushees"
+              )}
+            </Button>
+            {selectionMode && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelSelection}
+                disabled={isUpdating}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        )}
         <Card className="flex flex-row ml-auto mr-17 h-9.5 gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center">
               <Star className="h-5 w-5 fill-current text-yellow-500" /><p>Remaining Stars: {3 - userStarCount || 0}</p>
         </Card>
@@ -183,6 +305,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                   placeholder="Filter by major"
                   removeFilter={() => {
                     setFilterList(prev => prev.filter(ff => ff != "major"));
+                    setMajorFilter([]);
+                    setSelectedRusheeIds(new Set());
                   }}
                 />
               </div>
@@ -207,6 +331,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                   placeholder="Filter by minor"
                   removeFilter={() => {
                     setFilterList(prev => prev.filter(ff => ff != "minor"));
+                    setMinorFilter([]);
+                    setSelectedRusheeIds(new Set());
                   }}
                 />
               </div>
@@ -222,7 +348,11 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                     <XIcon
                       className="h-4 cursor-pointer text-muted-foreground"
                       onPointerDown={(e) => e.preventDefault()}
-                      onClick={() => { setFilterList(prev => prev.filter(ff => ff != "grade")) }}
+                      onClick={() => { 
+                        setFilterList(prev => prev.filter(ff => ff != "grade"));
+                        setGradeFilter([]);
+                        setSelectedRusheeIds(new Set());
+                      }}
                     />
                   </Button>
                 </DropdownMenuTrigger>
@@ -261,7 +391,11 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                     <XIcon
                       className="h-4 cursor-pointer text-muted-foreground"
                       onPointerDown={(e) => e.preventDefault()}
-                      onClick={() => setFilterList(prev => prev.filter(ff => ff != "grad_year"))}
+                      onClick={() => {
+                        setFilterList(prev => prev.filter(ff => ff != "grad_year"));
+                        setGradYearFilter([]);
+                        setSelectedRusheeIds(new Set());
+                      }}
                     />
                   </Button>
                 </DropdownMenuTrigger>
@@ -343,11 +477,17 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             isStarred={safeUserStars.has(rushee.id)}
             onUpdate={handleUpdate}
             openModal={() => {
-              setIsModalOpen(true);
-              setSelectedModal(index);
+              if (selectionMode) {
+                handleToggleRusheeSelection(rushee.id, rushee);
+              } else {
+                setIsModalOpen(true);
+                setSelectedModal(index);
+              }
             }}
             userStarCount={userStarCount}
             safeUserStars={safeUserStars}
+            isSelected={selectedRusheeIds.has(rushee.id)}
+            selectionMode={selectionMode}
           />
         ))}
       </div>

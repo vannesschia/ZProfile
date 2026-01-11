@@ -16,7 +16,7 @@ import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars}) {
+export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars, isSelected = false, selectionMode = null }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
@@ -206,11 +206,25 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
     if (onUpdate) onUpdate();
   };
   const isCut = rushee.cut_status === 'cut';
+  const borderWidth = isSelected ? 'border-3' : 'border';
+  const canSelect = selectionMode && (
+    (selectionMode === "cut" && rushee.cut_status === "active") ||
+    (selectionMode === "reactivate" && rushee.cut_status === "cut")
+  );
+  
+  // Make cut rushees brighter in reactivation mode
+  const isInReactivationMode = selectionMode === "reactivate";
+  const shouldDimCut = isCut && !isInReactivationMode;
+  
   return (
       
      <Card
-      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300 ${
-        isCut ? 'opacity-40 grayscale' : ''
+      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl ${borderWidth} min-w-[340px] max-w-[340px] transition-colors duration-300 ${
+        shouldDimCut ? 'opacity-40 grayscale' : ''
+      } ${
+        isSelected ? 'border-primary ring-2 ring-primary' : 'hover:border-muted-foreground'
+      } ${
+        selectionMode && canSelect ? 'cursor-pointer' : selectionMode ? 'opacity-50 cursor-not-allowed' : ''
       }`}
       onClick={openModal}
     >
@@ -231,7 +245,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
         )}
 
         {/* Card Content */}
-        <div className="flex-1 space-y-2 w-full flex flex-col items-start">
+        <div className="flex-1 space-y-2 w-full flex flex-col items-start justify-between">
           <div className="flex flex-col space-y-1 items-start justify-start w-full">
             <h2 className="text-base font-semibold">{rushee.name}</h2>
             <p className="text-xs text-muted-foreground leading-tight">{rushee.email_address}</p>
@@ -265,7 +279,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
           </div>
 
           {/* Interactive reaction buttons */}
-          <div className="flex flex-wrap gap-1.5 pt-1 w-full items-center">
+          <div className="flex flex-wrap gap-1.5 pt-1 w-full hfull items-end">
             <Button
               size="sm"
               variant={currentReaction === 'like' ? 'default' : 'outline'}
