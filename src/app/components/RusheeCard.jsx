@@ -165,8 +165,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             rushee_id: rushee.id,
-            starred: newStarred,
-            safeUserStars: safeUserStars
+            starred: newStarred
           })
         });
 
@@ -192,7 +191,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
         setStarCount(rushee.starCount);
 
         console.error("Error updating star:", error);
-        toast.error(error.message || "Failed to update reaction");
+        toast.error(error.message || "Failed to update star");
       } finally {
         if (pendingRequest.current === requestId) {
           pendingRequest.current = null;
@@ -279,7 +278,11 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
           </div>
 
           {/* Interactive reaction buttons */}
+<<<<<<< HEAD
           <div className="flex flex-wrap gap-1.5 pt-1 w-full hfull items-end">
+=======
+          <div className="flex flex-wrap gap-1.5 pt-1 w-full h-full items-end">
+>>>>>>> 400bfbca525b4875b76ca94d8ce48431e18c90c5
             <Button
               size="sm"
               variant={currentReaction === 'like' ? 'default' : 'outline'}
