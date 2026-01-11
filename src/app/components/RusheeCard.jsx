@@ -264,7 +264,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
           </div>
 
           {/* Interactive reaction buttons */}
-          <div className="flex flex-wrap gap-1.5 pt-1 w-full items-center">
+          <div className="flex flex-wrap gap-1.5 pt-1 w-full h-full items-end">
             <Button
               size="sm"
               variant={currentReaction === 'like' ? 'default' : 'outline'}
