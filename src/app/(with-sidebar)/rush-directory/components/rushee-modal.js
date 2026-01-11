@@ -91,7 +91,15 @@ export default function RusheeModal({
             {!isPhotoEnlarged &&
               <>
                 <div className="flex flex-col text-left text-sm justify-between">
-                  <div className="text-2xl">{rushee.name}</div>
+                  <div
+                    className={`text-2xl w-fit px-1
+                      ${rushee.likelihood === "green" ? "bg-green-700" : ""}
+                      ${rushee.likelihood === "yellow" ? "bg-yellow-700" : ""}
+                      ${rushee.likelihood === "red" ? "bg-red-700" : ""}
+                      `}
+                  >
+                    {rushee.name}
+                  </div>
                   <div className="text-muted-foreground">{rushee.email_address}</div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {rushee.major?.map((m, i) => (
