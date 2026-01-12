@@ -11,12 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  ContextMenu,
+  ContextMenuCheckboxItem,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import RusheeCommentsCard from "./rushee-comments-card";
 import RusheeNotesCard from "./rushee-notes-card";
 import { ChevronLeft, ChevronRight, Star, ThumbsDown, ThumbsUp, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { updateRusheeLikelihood } from "../_lib/actions";
 
 export default function RusheeModal({
   rushee,
@@ -32,6 +48,19 @@ export default function RusheeModal({
   nextRushee,
 }) {
   const [isPhotoEnlarged, setIsPhotoEnlarged] = useState(false);
+  const [likelihood, setLikelihood] = useState(rushee.likelihood);
+
+  useEffect(() => {
+    if (likelihood === rushee.likelihood) return;
+
+    const debounce = setTimeout(() => {
+      updateRusheeLikelihood(rushee.id, likelihood);
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [likelihood]);
+
+  const changeLikelihood = (color) => setLikelihood(color);
 
   return (
     <DialogContent
@@ -91,15 +120,24 @@ export default function RusheeModal({
             {!isPhotoEnlarged &&
               <>
                 <div className="flex flex-col text-left text-sm justify-between">
-                  <div
-                    className={`text-2xl w-fit px-1
-                      ${rushee.likelihood === "green" ? "bg-green-700" : ""}
-                      ${rushee.likelihood === "yellow" ? "bg-yellow-700" : ""}
-                      ${rushee.likelihood === "red" ? "bg-red-700" : ""}
+                  <ContextMenu>
+                    <ContextMenuTrigger
+                      className={`text-2xl w-fit px-1
+                        ${likelihood === "green" ? "bg-green-700" : ""}
+                        ${likelihood === "yellow" ? "bg-yellow-700" : ""}
+                        ${likelihood === "red" ? "bg-red-700" : ""}
                       `}
-                  >
-                    {rushee.name}
-                  </div>
+                    >
+                      {rushee.name}
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-52">
+                      <ContextMenuRadioGroup value={likelihood} onValueChange={changeLikelihood}>
+                        <ContextMenuRadioItem value="green" className="text-green-700">Green</ContextMenuRadioItem>
+                        <ContextMenuRadioItem value="yellow" className="text-yellow-700">Yellow</ContextMenuRadioItem>
+                        <ContextMenuRadioItem value="red" className="text-red-700">Red</ContextMenuRadioItem>
+                      </ContextMenuRadioGroup>
+                    </ContextMenuContent>
+                  </ContextMenu>
                   <div className="text-muted-foreground">{rushee.email_address}</div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {rushee.major?.map((m, i) => (

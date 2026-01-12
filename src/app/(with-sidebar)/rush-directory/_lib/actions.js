@@ -32,3 +32,14 @@ export async function updateRusheeNotes(rushee_id, body) {
 
   if (error) throw error;
 }
+
+export async function updateRusheeLikelihood(rushee_id, likelihood) {
+  const supabase = await getServerClient();
+
+  const { error } = await supabase
+    .from("rushees")
+    .update(likelihood)
+    .eq("id", id);
+
+  if (error) throw error;
+}

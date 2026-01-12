@@ -16,14 +16,14 @@ import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars}) {
+export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
   const [dislikeCount, setDislikeCount] = useState(rushee.dislike_count || 0);
   const [starCount, setStarCount] = useState(rushee.star_count || 0);
   const [loading, setLoading] = useState(false);
-  
+
   // Debounce and coalesce rapid clicks (last intent wins)
   const debounceTimer = useRef(null);
   const pendingRequest = useRef(null);
@@ -32,7 +32,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
   const handleReaction = (reactionType) => {
     // Disable button immediately
     setLoading(true);
-    
+
     // Clear any pending debounce
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -46,7 +46,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
 
     // Calculate new reaction
     const newReaction = currentReaction === reactionType ? 'none' : reactionType;
-    
+
     // Optimistic UI update
     const oldReaction = optimisticState.current.reaction;
     let newLikeCount = optimisticState.current.likeCount;
@@ -101,19 +101,19 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
         setCurrentReaction(data.reaction_type);
         setLikeCount(data.like_count);
         setDislikeCount(data.dislike_count);
-        optimisticState.current = { 
-          reaction: data.reaction_type, 
-          likeCount: data.like_count, 
-          dislikeCount: data.dislike_count 
+        optimisticState.current = {
+          reaction: data.reaction_type,
+          likeCount: data.like_count,
+          dislikeCount: data.dislike_count
         };
-        
+
         if (onUpdate) onUpdate();
       } catch (error) {
         // Revert optimistic update on error
         setCurrentReaction(optimisticState.current.reaction);
         setLikeCount(optimisticState.current.likeCount);
         setDislikeCount(optimisticState.current.dislikeCount);
-        
+
         console.error("Error updating reaction:", error);
         toast.error(error.message || "Failed to update reaction");
       } finally {
@@ -127,12 +127,12 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
 
   const handleStar = () => {
     if (userStarCount === 3 && !currentStarred) return;
-    
+
     const newStarred = !currentStarred;
 
     // Disable button immediately
     setLoading(true);
-    
+
     // Clear any pending debounce
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -183,7 +183,7 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
         // Update with server response (reconcile optimistic update)
         setCurrentStarred(data.starred);
         setStarCount(data.star_count === null ? starCount : data.star_count);
-        
+
         if (onUpdate) onUpdate();
       } catch (error) {
         // Revert optimistic update on error
@@ -200,17 +200,15 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
       }
     }, 300);
 
-    
-
     if (onUpdate) onUpdate();
   };
+
   const isCut = rushee.cut_status === 'cut';
+
   return (
-      
-     <Card
-      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300 ${
-        isCut ? 'opacity-40 grayscale' : ''
-      }`}
+    <Card
+      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl border min-w-[340px] max-w-[340px] hover:border-muted-foreground transition-colors duration-300 ${isCut ? 'opacity-40 grayscale' : ''
+        }`}
       onClick={openModal}
     >
       <div className="flex flex-row gap-3 w-full">
