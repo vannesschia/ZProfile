@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { updateRusheeLikelihood } from "../_lib/actions";
+import { toast } from "sonner";
 
 export default function RusheeModal({
   rushee,
@@ -49,6 +50,9 @@ export default function RusheeModal({
 }) {
   const [isPhotoEnlarged, setIsPhotoEnlarged] = useState(false);
   const [likelihood, setLikelihood] = useState(rushee.likelihood);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const changeLikelihood = (color) => setLikelihood(color);
 
   useEffect(() => {
     if (likelihood === rushee.likelihood) return;
@@ -60,7 +64,33 @@ export default function RusheeModal({
     return () => clearTimeout(debounce);
   }, [likelihood]);
 
-  const changeLikelihood = (color) => setLikelihood(color);
+  const handleCutStatusChange = async (newStatus) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/rushees/cut-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rushee_ids: [rushee.id],
+          cut_status: newStatus
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update rushee status');
+      }
+
+      toast.success(`Successfully ${newStatus === "cut" ? "cut" : "reactivated"} ${rushee.name}`);
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error("Error updating rushee status:", error);
+      toast.error(error.message || "Failed to update rushee status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <DialogContent
@@ -138,6 +168,34 @@ export default function RusheeModal({
                       </ContextMenuRadioGroup>
                     </ContextMenuContent>
                   </ContextMenu>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <>
+                        {rushee.cut_status === 'active' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleCutStatusChange('cut')}
+                            disabled={isUpdating}
+                            className="bg-red-600 hover:bg-red-600 hover:opacity-80 transition-opacity"
+                          >
+                            Cut Rushee
+                          </Button>
+                        )}
+                        {rushee.cut_status === 'cut' && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleCutStatusChange('active')}
+                            disabled={isUpdating}
+                            className="bg-green-600 hover:bg-green-600 hover:opacity-80 transition-opacity"
+                          >
+                            Reactivate Rushee
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
                   <div className="text-muted-foreground">{rushee.email_address}</div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {rushee.major?.map((m, i) => (
