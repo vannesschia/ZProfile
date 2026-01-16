@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, UserPen, Handshake, ClipboardCheck, Bug, LogOut } from "lucide-react"
+import { Home, Book, TreePine, UserPen, Handshake, ClipboardCheck, Bug, LogOut, Users } from "lucide-react"
 
 import {
   Sidebar,
@@ -33,6 +33,11 @@ const items = [
     title: "Brothers Directory",
     url: "/brothers",
     icon: Handshake,
+  },
+  {
+    title: "Rush Directory",
+    url: "/rush-directory",
+    icon: Users,
   },
   {
     title: "Family Tree",
