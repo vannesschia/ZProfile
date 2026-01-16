@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
@@ -59,7 +59,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [filterList, setFilterList] = useState([]);
   const [hideFilter, setHideFilter] = useState(true);
   const [cutStatusFilter, setCutStatusFilter] = useState("active"); // "active" or "cut" or "all"
-  const [selectedModal, setSelectedModal] = useState(null);
+  const [selectedModalRusheeId, setSelectedModalRusheeId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(null); // "cut" or "reactivate" or null
   const [selectedRusheeIds, setSelectedRusheeIds] = useState(new Set());
@@ -146,6 +146,18 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
     }
   };
 
+  // Helper function to get likelihood priority (lower number = higher priority)
+  const getLikelihoodPriority = (likelihood) => {
+    const likelihoodValue = likelihood || "none";
+    const priorityMap = {
+      "green": 0,
+      "yellow": 1,
+      "red": 2,
+      "none": 3
+    };
+    return priorityMap[likelihoodValue] ?? 3;
+  };
+
   // Filter and sort rushees - single consolidated list with all filters applied
   const filteredRushees = safeRushees
     .filter((rushee) => {
@@ -163,13 +175,55 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
       );
     })
     .sort((a, b) => {
-      if (a.cut_status === b.cut_status) {
-        return a.name.localeCompare(b.name);
+      // First priority: active vs cut (active first)
+      const aCutStatus = a.cut_status === "active" ? 0 : 1;
+      const bCutStatus = b.cut_status === "active" ? 0 : 1;
+      if (aCutStatus !== bCutStatus) {
+        return aCutStatus - bCutStatus;
       }
-      return a.cut_status.localeCompare(b.cut_status);
+
+      // Second priority: likelihood (green, yellow, red, none)
+      const aLikelihood = likelihoods.get(a.id) || a.likelihood || "none";
+      const bLikelihood = likelihoods.get(b.id) || b.likelihood || "none";
+      const aLikelihoodPriority = getLikelihoodPriority(aLikelihood);
+      const bLikelihoodPriority = getLikelihoodPriority(bLikelihood);
+      if (aLikelihoodPriority !== bLikelihoodPriority) {
+        return aLikelihoodPriority - bLikelihoodPriority;
+      }
+
+      // Third priority: name (alphabetical)
+      return a.name.localeCompare(b.name);
     });
     
-  const selectedRushee = selectedModal !== null ? filteredRushees[selectedModal] : null;
+  // Find selected rushee by ID
+  const selectedRushee = selectedModalRusheeId !== null 
+    ? filteredRushees.find(r => r.id === selectedModalRusheeId) || null
+    : null;
+  
+  // Close modal if selected rushee is no longer in filtered list
+  useEffect(() => {
+    if (isModalOpen && selectedModalRusheeId && !selectedRushee) {
+      setIsModalOpen(false);
+      setSelectedModalRusheeId(null);
+    }
+  }, [isModalOpen, selectedModalRusheeId, selectedRushee]);
+  
+  // Helper functions for next/prev navigation by ID
+  const getNextRusheeId = () => {
+    if (!selectedModalRusheeId || filteredRushees.length === 0) return null;
+    const currentIndex = filteredRushees.findIndex(r => r.id === selectedModalRusheeId);
+    if (currentIndex === -1) return null;
+    const nextIndex = (currentIndex + 1) % filteredRushees.length;
+    return filteredRushees[nextIndex]?.id || null;
+  };
+  
+  const getPrevRusheeId = () => {
+    if (!selectedModalRusheeId || filteredRushees.length === 0) return null;
+    const currentIndex = filteredRushees.findIndex(r => r.id === selectedModalRusheeId);
+    if (currentIndex === -1) return null;
+    const prevIndex = (currentIndex - 1 + filteredRushees.length) % filteredRushees.length;
+    return filteredRushees[prevIndex]?.id || null;
+  };
 
   return (
     <div>
@@ -469,8 +523,14 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             dislikeCount={selectedRushee.dislike_count}
             starCount={selectedRushee.star_count}
             onUpdate={handleUpdate}
-            nextRushee={() => setSelectedModal(prev => (prev + 1) % filteredRushees.length)}
-            prevRushee={() => setSelectedModal(prev => (prev - 1 + filteredRushees.length) % filteredRushees.length)}
+            nextRushee={() => {
+              const nextId = getNextRusheeId();
+              if (nextId) setSelectedModalRusheeId(nextId);
+            }}
+            prevRushee={() => {
+              const prevId = getPrevRusheeId();
+              if (prevId) setSelectedModalRusheeId(prevId);
+            }}
             likelihoods={likelihoods}
             setLikelihoods={setLikelihoods}
           />
@@ -490,7 +550,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 handleToggleRusheeSelection(rushee.id, rushee);
               } else {
                 setIsModalOpen(true);
-                setSelectedModal(index);
+                setSelectedModalRusheeId(rushee.id);
               }
             }}
             userStarCount={userStarCount}
