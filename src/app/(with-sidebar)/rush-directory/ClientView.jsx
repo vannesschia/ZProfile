@@ -62,6 +62,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [selectionMode, setSelectionMode] = useState(null); // "cut" or "reactivate" or null
   const [selectedRusheeIds, setSelectedRusheeIds] = useState(new Set());
   const [isUpdating, setIsUpdating] = useState(false);
+  const [likelihoods, setLikelihoods] = useState(new Map(rushees.map(rushee => [rushee.id, rushee.likelihood])));
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -464,6 +465,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             onUpdate={handleUpdate}
             nextRushee={() => setSelectedModal(prev => (prev + 1) % filteredRushees.length)}
             prevRushee={() => setSelectedModal(prev => (prev - 1 + filteredRushees.length) % filteredRushees.length)}
+            likelihoods={likelihoods}
+            setLikelihoods={setLikelihoods}
           />
         }
       </Dialog>
@@ -488,6 +491,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             safeUserStars={safeUserStars}
             isSelected={selectedRusheeIds.has(rushee.id)}
             selectionMode={selectionMode}
+            likelihood={likelihoods.get(rushee.id) || "green"}
           />
         ))}
       </div>

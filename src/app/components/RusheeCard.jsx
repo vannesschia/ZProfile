@@ -16,7 +16,18 @@ import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
-export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, openModal, userStarCount, safeUserStars, isSelected = false, selectionMode = null }) {
+export default function RusheeCard({
+  rushee,
+  userReaction,
+  isStarred,
+  onUpdate,
+  openModal,
+  userStarCount,
+  safeUserStars,
+  isSelected = false,
+  selectionMode = null,
+  likelihood,
+}) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
   const [likeCount, setLikeCount] = useState(rushee.like_count || 0);
@@ -209,21 +220,21 @@ export default function RusheeCard({ rushee, userReaction, isStarred, onUpdate, 
     (selectionMode === "cut" && rushee.cut_status === "active") ||
     (selectionMode === "reactivate" && rushee.cut_status === "cut")
   );
-  
+
   // Make cut rushees brighter in reactivation mode
   const isInReactivationMode = selectionMode === "reactivate";
   const shouldDimCut = isCut && !isInReactivationMode;
-  
+
   return (
-      
-     <Card
-      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl ${borderWidth} min-w-[340px] max-w-[340px] transition-colors duration-300 ${
-        shouldDimCut ? 'opacity-40 grayscale' : ''
-      } ${
-        isSelected ? 'border-primary ring-2 ring-primary' : 'hover:border-muted-foreground'
-      } ${
-        selectionMode && canSelect ? 'cursor-pointer' : selectionMode ? 'opacity-50 cursor-not-allowed' : ''
-      }`}
+    <Card
+      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl ${borderWidth} min-w-[340px] max-w-[340px] transition-colors duration-300
+        ${shouldDimCut ? 'opacity-40 grayscale' : ''}
+        ${isSelected ? 'border-primary ring-2 ring-primary' : 'hover:border-muted-foreground'}
+        ${selectionMode && canSelect ? 'cursor-pointer' : selectionMode ? 'opacity-50 cursor-not-allowed' : ''}
+        ${likelihood === "green" ? "border-green-700 hover:border-green-800" : ""}
+        ${likelihood === "yellow" ? "border-yellow-700 hover:border-yellow-600" : ""}
+        ${likelihood === "red" ? "border-red-700 hover:border-red-800" : ""}
+      `}
       onClick={openModal}
     >
       <div className="flex flex-row gap-3 w-full">

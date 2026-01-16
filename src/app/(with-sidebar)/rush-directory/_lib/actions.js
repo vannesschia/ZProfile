@@ -38,7 +38,7 @@ export async function updateRusheeLikelihood(id, likelihood) {
 
   const { error } = await supabase
     .from("rushees")
-    .update(likelihood)
+    .update({ likelihood: likelihood })
     .eq("id", id);
 
   if (error) throw error;
