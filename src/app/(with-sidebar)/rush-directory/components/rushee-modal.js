@@ -175,26 +175,39 @@ export default function RusheeModal({
               <>
                 <div className="flex flex-col flex-1 text-left text-sm justify-between">
                   <div className="flex flex-row gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          className={`cursor-pointer text-primary text-2xl w-fit px-1
-                            ${likelihood === "green" ? "bg-green-700 hover:bg-green-800" : ""}
-                            ${likelihood === "yellow" ? "bg-yellow-700 hover:bg-yellow-600" : ""}
-                            ${likelihood === "red" ? "bg-red-700 hover:bg-red-800" : ""}
-                          `}
-                        >
-                          {rushee.name}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-52">
-                        <DropdownMenuRadioGroup value={likelihood} onValueChange={changeLikelihood}>
-                          <DropdownMenuRadioItem value="green" className="text-green-700">Green</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="yellow" className="text-yellow-700">Yellow</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="red" className="text-red-700">Red</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {isAdmin ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            className={`cursor-pointer text-primary text-2xl w-fit px-1
+                              ${likelihood === "green" ? "bg-green-700 hover:bg-green-800" : ""}
+                              ${likelihood === "yellow" ? "bg-yellow-700 hover:bg-yellow-800" : ""}
+                              ${likelihood === "red" ? "bg-red-700 hover:bg-red-800" : ""}
+                            `}
+                          >
+                            {rushee.name}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-52">
+                          <DropdownMenuRadioGroup value={likelihood} onValueChange={changeLikelihood}>
+                            <DropdownMenuRadioItem value="green" className="text-green-700">Green</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="yellow" className="text-yellow-700">Yellow</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="red" className="text-red-700">Red</DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Button
+                        className={`cursor-default text-primary text-2xl w-fit px-1
+                              ${likelihood === "green" ? "bg-green-700 hover:bg-green-700" : ""}
+                              ${likelihood === "yellow" ? "bg-yellow-700 hover:bg-yellow-700" : ""}
+                              ${likelihood === "red" ? "bg-red-700 hover:bg-red-700" : ""}
+                            `}
+                      >
+                        {rushee.name}
+                      </Button>
+                    )
+                    }
                     <div className="flex ml-auto items-center gap-2">
                       {isAdmin && (
                         <>
