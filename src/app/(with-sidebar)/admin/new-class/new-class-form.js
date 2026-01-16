@@ -30,8 +30,11 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { addNewClass } from "./add-new-class";
+import { getBrowserClient } from "@/lib/supbaseClient";
+import { setRusheeToPledges } from "./_lib/queries";
 
-export default function NewClassForm() {
+export default function NewClassForm({prefill}) {
+
   const router = useRouter();
   const [footerHover, setFooterHover] = useState(true);
 
@@ -44,13 +47,15 @@ export default function NewClassForm() {
     )
   });
 
+  const membersDefault = prefill
+    ? prefill.map((m) => ({ name: m.name ?? "", uniqname: m.uniqname ?? "" }))
+    : Array(20).fill(null).map(() => ({ name: "", uniqname: "" }));
+
   const form = useForm({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      members: Array(20).fill(null).map(() => ({ name: "", uniqname: "" }))
-    }
+    defaultValues: { members: membersDefault },
   });
 
   const { control } = form;
@@ -61,9 +66,13 @@ export default function NewClassForm() {
   });
 
   async function onSubmit(values) {
-    const error = await addNewClass(
-      values.members.filter(member => member.name !== "" && member.name !== "")
-    );
+    const supabase = getBrowserClient()
+    const error = prefill 
+      ? await setRusheeToPledges(supabase) 
+      : await addNewClass(values.members.filter(
+          member => member.name !== "" && member.name !== ""
+        ));
+    console.log(error)
 
     if (error) {
       console.error("Failed to add new class.");

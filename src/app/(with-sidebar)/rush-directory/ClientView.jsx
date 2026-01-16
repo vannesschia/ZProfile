@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -34,6 +34,8 @@ import {
 import RusheeModal from "./components/rushee-modal";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import Link from "next/link";
+import ImportMembersModal from "./components/csv-upload-modal";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
@@ -171,8 +173,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
 
   return (
     <div>
-      <div className="flex flex-row items-center gap-2 mb-4">
-        <div className="relative w-full lg:w-1/2 xl:w-1/4">
+      <div className="flex flex-col md:flex-row gap-2 mb-4">
+        <div className="relative">
           <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
           <Input
             type="search"
@@ -185,58 +187,59 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
         <div className="flex gap-2">
           <Button
             variant={cutStatusFilter === "active" ? "default" : "outline"}
-            size="sm"
             onClick={() => setCutStatusFilter("active")}
           >
             Active
           </Button>
           <Button
             variant={cutStatusFilter === "cut" ? "default" : "outline"}
-            size="sm"
             onClick={() => setCutStatusFilter("cut")}
           >
             Cut
           </Button>
           <Button
             variant={cutStatusFilter === "all" ? "default" : "outline"}
-            size="sm"
             onClick={() => setCutStatusFilter("all")}
           >
             All
           </Button>
+          <Popover open={mainFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="!text-muted-foreground cursor-pointer"
+                onClick={() => {
+                  if (filterList.length === 0) {
+                    setMainFilterOpen(prev => !prev);
+                  } else {
+                    setHideFilter(prev => !prev);
+                  }
+                }}
+              >
+                <div className={`flex flex-row gap-2 items-center ${hideFilter && filterList.length !== 0 ? "text-green-500" : ""}`}>
+                  <ListFilter />Filter
+                </div>
+              </Button>
+            </PopoverTrigger>
+            <FilterPopoverContent
+              open={mainFilterOpen}
+              setOpen={setMainFilterOpen}
+              hideFilter={hideFilter}
+              setHideFilter={setHideFilter}
+              filterList={filterList}
+              setFilterList={setFilterList}
+            />
+          </Popover>
         </div>
-        <Popover open={mainFilterOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="!text-muted-foreground ml-4 cursor-pointer"
-              onClick={() => {
-                if (filterList.length === 0) {
-                  setMainFilterOpen(prev => !prev);
-                } else {
-                  setHideFilter(prev => !prev);
-                }
-              }}
-            >
-              <div className={`flex flex-row gap-2 items-center ${hideFilter && filterList.length !== 0 ? "text-green-500" : ""}`}>
-                <ListFilter />Filter
-              </div>
-            </Button>
-          </PopoverTrigger>
-          <FilterPopoverContent
-            open={mainFilterOpen}
-            setOpen={setMainFilterOpen}
-            hideFilter={hideFilter}
-            setHideFilter={setHideFilter}
-            filterList={filterList}
-            setFilterList={setFilterList}
-          />
-        </Popover>
+        <Card className="flex flex-row gap-2 shadow-none w-fit h-full pt-2 px-3 pb-2 text-sm items-center rounded-md">
+          <Star className="h-[1em] w-[1em] fill-current text-yellow-500" /><p className="leading-tight">Remaining Stars: {3 - userStarCount || 0}</p>
+        </Card>
+      </div>
+      <div>
         {isAdmin && (
-          <div className="flex gap-2 ml-4">
+          <div className="flex gap-2 mb-4 w-full flex-wrap">
             <Button
               variant={selectionMode === "cut" ? "default" : "outline"}
-              size="sm"
               onClick={() => handleToggleSelectionMode("cut")}
               disabled={isUpdating}
               className={selectionMode === "cut" ? "bg-red-600 hover:bg-red-700 text-white" : ""}
@@ -252,7 +255,6 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             </Button>
             <Button
               variant={selectionMode === "reactivate" ? "default" : "outline"}
-              size="sm"
               onClick={() => handleToggleSelectionMode("reactivate")}
               disabled={isUpdating}
               className={selectionMode === "reactivate" ? "bg-green-600 hover:bg-green-700 text-white" : ""}
@@ -277,11 +279,15 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 Cancel
               </Button>
             )}
+            <ImportMembersModal />
+            <Button asChild variant="outline">
+              <Link href="/admin/new-class?prefill=true">
+                {/* <Medal />New Class */}
+                Import New Class
+              </Link>
+            </Button>
           </div>
         )}
-        <Card className="flex flex-row ml-auto mr-17 h-9.5 gap-2 shadow-none pt-2 px-3 pb-2 text-sm items-center">
-              <Star className="h-5 w-5 fill-current text-yellow-500" /><p>Remaining Stars: {3 - userStarCount || 0}</p>
-        </Card>
       </div>
       <div className={`flex flex-wrap flex-col sm:flex-row gap-4 mb-4 ${hideFilter ? "hidden" : ""}`}>
         {filterList.map(f => {
@@ -513,7 +519,7 @@ function FilterPopoverContent({
     setFilterList(prev => [...prev, name]);
   }
   return (
-    <PopoverContent className="p-1">
+    <PopoverContent className="p-1" align="center">
       <div className="grid">
         <span className="font-medium text-sm m-3">Filter by...</span>
         <div className="flex flex-col">
