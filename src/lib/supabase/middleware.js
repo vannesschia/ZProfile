@@ -26,6 +26,8 @@ export async function updateSession(request) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  const uniqname = user.email.split("@")[0];
+
   // 3. Redirect unauthenticated users to the home page.
   if (!user && pathname !== '/' && !pathname.startsWith('/auth/sign-in')) {
     const url = new URL('/', request.url);
@@ -50,6 +52,31 @@ export async function updateSession(request) {
       const url = new URL('/dashboard', request.url)
       return NextResponse.redirect(url)
     }
+  }
+
+  // Find if user has attended a rush event
+  const { data: rushEventIds} = await supabase
+    .from('rush_events')
+    .select('id');
+
+  const { data: eventsAttended } = await supabase
+    .from('event_attendance')
+    .select('event_id')
+    .eq('uniqname', uniqname);
+
+  const listRushEventsIds = rushEventIds.map(obj => obj.id);
+  let hasAttendedRushEvent = false;
+
+  eventsAttended.forEach(obj => {
+    if (listRushEventsIds.includes(obj.event_id)) {
+      hasAttendedRushEvent = true;
+    }
+  })
+
+  // Redirect brothers who have not attended a rush event 
+  if (user && !hasAttendedRushEvent && pathname === "/rush-directory") {
+    const url = new URL('/dashboard', request.url);
+    return NextResponse.redirect(url);
   }
 
   return res;

@@ -27,9 +27,28 @@ export default async function WithNavbarLayout({ children }) {
     .eq('uniqname', uniqname)
     .single();
 
+  const { data: rushEventIds} = await supabase
+    .from('rush_events')
+    .select('id');
+
+  const listRushEventsIds = rushEventIds.map(obj => obj.id);
+
+  const { data: eventsAttended } = await supabase
+    .from('event_attendance')
+    .select('event_id')
+    .eq('uniqname', uniqname);
+
+  let hasAttendedRushEvent = false;
+
+  eventsAttended.forEach(obj => {
+    if (listRushEventsIds.includes(obj.event_id)) {
+      hasAttendedRushEvent = true;
+    }
+  })
+
   return (
       <SidebarProvider>
-        <AppSidebar user={ member }/>
+        <AppSidebar user={ member } hasAttendedRushEvent={ hasAttendedRushEvent }/>
         <SidebarInset>
           <header className="flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
             <div className="flex flex-row items-center gap-2">
