@@ -215,7 +215,7 @@ export default function RusheeCard({
   };
 
   const isCut = rushee.cut_status === 'cut';
-  const borderWidth = isSelected ? 'border-3' : 'border';
+  const borderWidth = isSelected ? 'border-4' : 'border-3';
   const canSelect = selectionMode && (
     (selectionMode === "cut" && rushee.cut_status === "active") ||
     (selectionMode === "reactivate" && rushee.cut_status === "cut")

@@ -18,7 +18,7 @@ import {
 
 import { NavUser } from "./nav-user"
 
-const items = [
+let items = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -82,7 +82,11 @@ const admin_items = [
   },
 ]
 
-export function AppSidebar({ user }) {
+export function AppSidebar({ user, hasAttendedRushEvent }) {
+  if (!hasAttendedRushEvent) {
+    items = items.filter((item) => item.title !== "Rush Directory");
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="pb-0">
