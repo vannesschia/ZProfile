@@ -53,6 +53,7 @@ export default function RusheeModal({
 }) {
   const [isPhotoEnlarged, setIsPhotoEnlarged] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [fontSize, setFontSize] = useState("14px");
   const likelihood = likelihoods.get(rushee.id);
 
   const timerRef = useRef(null);
@@ -349,13 +350,17 @@ export default function RusheeModal({
           </div>
         }
       </div>
-      <RusheeNotesCard
-        key={rushee.id}
-        rushee={rushee}
-        isAdmin={isAdmin}
-        notes={notes}
-        onUpdate={onUpdate}
-      />
+      <div className="flex flex-col h-full min-h-0 overflow-hidden">
+        <RusheeNotesCard
+          key={rushee.id}
+          rushee={rushee}
+          isAdmin={isAdmin}
+          notes={notes}
+          onUpdate={onUpdate}
+          fontSize={fontSize}
+          setFontSize={setFontSize}
+        />
+      </div>
     </DialogContent>
   )
 }
