@@ -114,7 +114,7 @@ export default function RusheeModal({
 
   return (
     <DialogContent
-      className={`h-[98%] sm:h-3/4 grid grid-rows-1 sm:grid-rows-none sm:grid-cols-2 max-h-full w-full sm:w-3/4 [&>button:last-child]:-m-2 overflow-visible
+      className={`h-[98%] sm:h-3/4 grid grid-rows-1 sm:grid-rows-none sm:grid-cols-2 max-h-full w-full sm:w-3/4 [&>button:last-child]:-m-2 overflow-visible border-3
         ${likelihood === "green" ? "border-green-700 hover:border-green-800" : ""}
         ${likelihood === "yellow" ? "border-yellow-700 hover:border-yellow-600" : ""}
         ${likelihood === "red" ? "border-red-700 hover:border-red-800" : ""}
@@ -170,6 +170,44 @@ export default function RusheeModal({
                   : <ZoomIn />
                 }
               </Button>
+              {isPhotoEnlarged && (
+                <div className="absolute top-0 left-0 p-2 bg-black/50 backdrop-blur-sm rounded-br-lg">
+                  {isAdmin ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          className={`cursor-pointer text-white text-2xl w-fit px-1 font-semibold
+                            ${likelihood === "green" ? "bg-green-700/80 hover:bg-green-800/80" : ""}
+                            ${likelihood === "yellow" ? "bg-yellow-700/80 hover:bg-yellow-800/80" : ""}
+                            ${likelihood === "red" ? "bg-red-700/80 hover:bg-red-800/80" : ""}
+                            ${!likelihood ? "bg-primary/80 hover:bg-primary/90" : ""}
+                          `}
+                        >
+                          {rushee.name}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-52">
+                        <DropdownMenuRadioGroup value={likelihood} onValueChange={changeLikelihood}>
+                          <DropdownMenuRadioItem value="green" className="text-green-700">Green</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="yellow" className="text-yellow-700">Yellow</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="red" className="text-red-700">Red</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Button
+                      className={`cursor-default text-white text-2xl w-fit px-1 font-semibold
+                            ${likelihood === "green" ? "bg-green-700/80 hover:bg-green-700/80" : ""}
+                            ${likelihood === "yellow" ? "bg-yellow-700/80 hover:bg-yellow-700/80" : ""}
+                            ${likelihood === "red" ? "bg-red-700/80 hover:bg-red-700/80" : ""}
+                            ${!likelihood ? "bg-primary/80 hover:bg-primary/80" : ""}
+                          `}
+                    >
+                      {rushee.name}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             {!isPhotoEnlarged &&
               <>
