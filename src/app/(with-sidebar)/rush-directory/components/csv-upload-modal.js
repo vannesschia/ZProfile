@@ -393,7 +393,7 @@ export default function ImportRusheesModal({ onImported }) {
             <code>profile_picture_url</code>. <br />
             Duplicate uniqnames in CSV will update existing rushees with the last occurrence.{" "}
             You can also import just images without a CSV to update profile pictures for existing rushees.{" "}
-            Images should be named like <code>uniqname.jpg</code> to auto-match. Images can be added to existing rushees even if they're not in the CSV.
+            Images should be named like <code>uniqname.jpg</code> to auto-match. Images can be added to existing rushees even if they&apos;re not in the CSV.
           </DialogDescription>
         </DialogHeader>
 
