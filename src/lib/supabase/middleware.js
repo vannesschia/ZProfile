@@ -26,8 +26,6 @@ export async function updateSession(request) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const uniqname = user.email.split("@")[0];
-
   // 3. Redirect unauthenticated users to the home page.
   if (!user && pathname !== '/' && !pathname.startsWith('/auth/sign-in')) {
     const url = new URL('/', request.url);
@@ -58,6 +56,11 @@ export async function updateSession(request) {
   const { data: rushEventIds} = await supabase
     .from('rush_events')
     .select('id');
+
+  let uniqname = '';
+  if (user) {
+    uniqname = user.email.split("@")[0];
+  }
 
   const { data: eventsAttended } = await supabase
     .from('event_attendance')
