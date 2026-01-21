@@ -51,35 +51,34 @@ export async function updateSession(request) {
       return NextResponse.redirect(url)
     }
   }
-
+  
   // Find if user has attended a rush event
-  const { data: rushEventIds} = await supabase
+  if (user) {
+    const uniqname = user.email.split("@")[0];
+
+    const { data: rushEventIds} = await supabase
     .from('rush_events')
     .select('id');
 
-  let uniqname = '';
-  if (user) {
-    uniqname = user.email.split("@")[0];
-  }
-
-  const { data: eventsAttended } = await supabase
+    const { data: eventsAttended } = await supabase
     .from('event_attendance')
     .select('event_id')
     .eq('uniqname', uniqname);
 
-  const listRushEventsIds = rushEventIds.map(obj => obj.id);
-  let hasAttendedRushEvent = false;
+    const listRushEventsIds = rushEventIds.map(obj => obj.id);
+    let hasAttendedRushEvent = false;
 
-  eventsAttended.forEach(obj => {
-    if (listRushEventsIds.includes(obj.event_id)) {
-      hasAttendedRushEvent = true;
+    eventsAttended.forEach(obj => {
+      if (listRushEventsIds.includes(obj.event_id)) {
+        hasAttendedRushEvent = true;
+      }
+    })
+
+    // Redirect brothers who have not attended a rush event 
+    if (!hasAttendedRushEvent && pathname === "/rush-directory") {
+      const url = new URL('/dashboard', request.url);
+      return NextResponse.redirect(url);
     }
-  })
-
-  // Redirect brothers who have not attended a rush event 
-  if (user && !hasAttendedRushEvent && pathname === "/rush-directory") {
-    const url = new URL('/dashboard', request.url);
-    return NextResponse.redirect(url);
   }
 
   return res;
