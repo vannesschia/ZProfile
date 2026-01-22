@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -23,6 +23,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -65,6 +67,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [selectedRusheeIds, setSelectedRusheeIds] = useState(new Set());
   const [isUpdating, setIsUpdating] = useState(false);
   const [likelihoods, setLikelihoods] = useState(new Map(rushees.map(rushee => [rushee.id, rushee.likelihood])));
+  const [sortBy, setSortBy] = useState("name"); // "name", "likelihood", "likes", "dislikes", "stars", "comments"
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -193,16 +196,56 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
         return aCutStatus - bCutStatus;
       }
 
-      // Second priority: likelihood (green, yellow, red, none)
-      const aLikelihood = likelihoods.get(a.id) || a.likelihood || "none";
-      const bLikelihood = likelihoods.get(b.id) || b.likelihood || "none";
-      const aLikelihoodPriority = getLikelihoodPriority(aLikelihood);
-      const bLikelihoodPriority = getLikelihoodPriority(bLikelihood);
-      if (aLikelihoodPriority !== bLikelihoodPriority) {
-        return aLikelihoodPriority - bLikelihoodPriority;
+      // Second priority: sort by selected option
+      if (sortBy === "name") {
+        // When sorting by name, just sort alphabetically (no likelihood)
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "likelihood") {
+        // Sort by likelihood (green, yellow, red, none), then name
+        const aLikelihood = likelihoods.get(a.id) || a.likelihood || "none";
+        const bLikelihood = likelihoods.get(b.id) || b.likelihood || "none";
+        const aLikelihoodPriority = getLikelihoodPriority(aLikelihood);
+        const bLikelihoodPriority = getLikelihoodPriority(bLikelihood);
+        if (aLikelihoodPriority !== bLikelihoodPriority) {
+          return aLikelihoodPriority - bLikelihoodPriority;
+        }
+        // Tie-breaker: name
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "likes") {
+        const aLikes = a.like_count || 0;
+        const bLikes = b.like_count || 0;
+        if (aLikes !== bLikes) {
+          return bLikes - aLikes; // Descending (most likes first)
+        }
+        // Tie-breaker: name
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "dislikes") {
+        const aDislikes = a.dislike_count || 0;
+        const bDislikes = b.dislike_count || 0;
+        if (aDislikes !== bDislikes) {
+          return bDislikes - aDislikes; // Descending (most dislikes first)
+        }
+        // Tie-breaker: name
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "stars") {
+        const aStars = a.star_count || 0;
+        const bStars = b.star_count || 0;
+        if (aStars !== bStars) {
+          return bStars - aStars; // Descending (most stars first)
+        }
+        // Tie-breaker: name
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "comments") {
+        const aComments = commentCounts.get(a.id) || 0;
+        const bComments = commentCounts.get(b.id) || 0;
+        if (aComments !== bComments) {
+          return bComments - aComments; // Descending (most comments first)
+        }
+        // Tie-breaker: name
+        return a.name.localeCompare(b.name);
       }
 
-      // Third priority: name (alphabetical)
+      // Fallback: name (alphabetical)
       return a.name.localeCompare(b.name);
     });
     
@@ -295,6 +338,55 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
               setFilterList={setFilterList}
             />
           </Popover>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="!text-muted-foreground cursor-pointer">
+                <div className="flex flex-row gap-2 items-center">
+                  <ArrowUpDown className="h-4 w-4" />
+                  Sort: {sortBy === "name" ? "Name" : sortBy === "likelihood" ? "Likelihood" : sortBy === "likes" ? "Likes" : sortBy === "dislikes" ? "Dislikes" : sortBy === "stars" ? "Stars" : "Comments"}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={sortBy} onValueChange={setSortBy}>
+                <DropdownMenuRadioItem value="name">
+                  Name
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="likelihood">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-3 w-3" />
+                    Likelihood
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="likes">
+                  <div className="flex items-center gap-2">
+                    <ThumbsUp className="h-3 w-3" />
+                    Likes
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dislikes">
+                  <div className="flex items-center gap-2">
+                    <ThumbsDown className="h-3 w-3" />
+                    Dislikes
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="stars">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-3 w-3" />
+                    Stars
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="comments">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-3 w-3" />
+                    Comments
+                  </div>
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <Card className="flex flex-row gap-2 shadow-none w-fit h-full pt-2 px-3 pb-2 text-sm items-center rounded-md">
           <Star className="h-[1em] w-[1em] fill-current text-yellow-500" /><p className="leading-tight">Remaining Stars: {3 - userStarCount || 0}</p>
