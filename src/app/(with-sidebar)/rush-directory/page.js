@@ -27,9 +27,12 @@ export default async function RusheePage() {
     return <p>Error loading rushees.</p>;
   }
 
+  // Explicitly check admin status - admins always have access, no exceptions
+  const isAdmin = member?.admin === true;
+
   // Check if user has attended a rush event (required for access)
-  // Admins always have access
-  if (!member.admin) {
+  // Admins always have access and bypass this check entirely
+  if (!isAdmin) {
     const { data: rushEvents, error: rushEventsError } = await supabase
       .from('event_attendance')
       .select(`
@@ -92,7 +95,7 @@ export default async function RusheePage() {
       : Promise.resolve({ data: null }),
     
     // Fetch comments
-    getRusheeComments(rushees, uniqname, member.admin).catch(error => {
+    getRusheeComments(rushees, uniqname, isAdmin).catch(error => {
       console.error("Error getting rushee comments:", error);
       return [];
     }),
@@ -132,7 +135,7 @@ export default async function RusheePage() {
           comments={comments}
           notes={notes}
           uniqname={uniqname}
-          isAdmin={member.admin}
+          isAdmin={isAdmin}
           userReactions={userReactions}
           userStars={userStars}
         />
