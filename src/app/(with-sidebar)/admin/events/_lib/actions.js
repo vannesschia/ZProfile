@@ -2,6 +2,83 @@
 
 import { getServerClient } from "@/lib/supabaseServer";
 import { getMembers, getPledges } from "./queries";
+import { revalidatePath } from "next/cache";
+
+/**
+ * Syncs rushees from event_attendance for rush events.
+ * Ensures rushees exist for all brothers who attended rush events.
+ */
+async function syncRusheesFromEventAttendance(supabase, eventId) {
+  // Get all unique uniqnames from event_attendance for this rush event
+  const { data: attendance, error: attendanceError } = await supabase
+    .from('event_attendance')
+    .select('uniqname')
+    .eq('event_id', eventId);
+
+  if (attendanceError || !attendance) {
+    console.error("Error fetching attendance for rushee sync:", attendanceError);
+    return;
+  }
+
+  const uniqueUniqnames = [...new Set(attendance.map(a => a.uniqname))];
+
+  if (uniqueUniqnames.length === 0) {
+    return;
+  }
+
+  // Get member info for these uniqnames
+  const { data: members, error: membersError } = await supabase
+    .from('members')
+    .select('uniqname, name, email_address')
+    .in('uniqname', uniqueUniqnames);
+
+  if (membersError || !members) {
+    console.error("Error fetching members for rushee sync:", membersError);
+    return;
+  }
+
+  // Get existing rushees
+  const { data: existingRushees, error: existingError } = await supabase
+    .from('rushees')
+    .select('uniqname')
+    .in('uniqname', uniqueUniqnames);
+
+  if (existingError) {
+    console.error("Error fetching existing rushees:", existingError);
+    return;
+  }
+
+  const existingUniqnames = new Set(existingRushees?.map(r => r.uniqname) || []);
+
+  // Create rushees for members who don't have one yet
+  const rusheesToCreate = members
+    .filter(m => !existingUniqnames.has(m.uniqname))
+    .map(member => ({
+      uniqname: member.uniqname,
+      name: member.name,
+      email_address: member.email_address || `${member.uniqname}@umich.edu`,
+      cut_status: 'active',
+      likelihood: null,
+      like_count: 0,
+      dislike_count: 0,
+      star_count: 0,
+      major: [],
+      minor: [],
+      grade: null,
+      graduation_year: null,
+      profile_picture_url: null,
+    }));
+
+  if (rusheesToCreate.length > 0) {
+    const { error: insertError } = await supabase
+      .from('rushees')
+      .insert(rusheesToCreate);
+
+    if (insertError) {
+      console.error("Error creating rushees:", insertError);
+    }
+  }
+}
 
 export async function submitEventEdit({ event_type, values, id }) {
   const { name, event_date, committee, attendance, unexcused_absences, excused_absences } = values;
@@ -38,6 +115,11 @@ export async function submitEventEdit({ event_type, values, id }) {
 
     if (eventAttendanceInsertError) {
       throw new Error(`Failed to insert attendance for event with ID ${id}: ${eventAttendanceInsertError.message}`);
+    }
+
+    // Sync rushees from event attendance for rush events
+    if (event_type === "rush_event") {
+      await syncRusheesFromEventAttendance(supabase, id);
     }
   }
 
@@ -76,6 +158,13 @@ export async function submitEventEdit({ event_type, values, id }) {
       }
     }
   }
+
+  // Revalidate rush directory when rush events are updated
+  if (event_type === "rush_event") {
+    // Final sync to ensure all attendance records are processed
+    await syncRusheesFromEventAttendance(supabase, id);
+    revalidatePath("/rush-directory");
+  }
 }
 
 export async function submitEventCreate({ event_type, values }) {
@@ -105,6 +194,11 @@ export async function submitEventCreate({ event_type, values }) {
 
     if (eventAttendanceInsertError) {
       throw new Error(`Failed to insert attendance: ${eventAttendanceInsertError.message}`);
+    }
+
+    // Sync rushees from event attendance for rush events
+    if (event_type === "rush_event") {
+      await syncRusheesFromEventAttendance(supabase, id);
     }
   }
 
@@ -143,10 +237,24 @@ export async function submitEventCreate({ event_type, values }) {
       }
     }
   }
+
+  // Revalidate rush directory when rush events are created
+  if (event_type === "rush_event") {
+    // Final sync to ensure all attendance records are processed
+    await syncRusheesFromEventAttendance(supabase, id);
+    revalidatePath("/rush-directory");
+  }
 }
 
 export async function deleteEvent(id) {
   const supabase = await getServerClient();
+
+  // Fetch event type before deleting to revalidate rush directory if needed
+  const { data: event } = await supabase
+    .from('events')
+    .select('event_type')
+    .eq('id', id)
+    .single();
 
   const { error } = await supabase
     .from('events')
@@ -155,5 +263,10 @@ export async function deleteEvent(id) {
 
   if (error) {
     throw new Error(`Failed to delete event with ID ${id}: ${error.message}`);
+  }
+
+  // Revalidate rush directory when rush events are deleted
+  if (event?.event_type === "rush_event") {
+    revalidatePath("/rush-directory");
   }
 }
