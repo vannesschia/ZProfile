@@ -23,8 +23,37 @@ export default async function RusheePage() {
     .single();
 
   if (memberError) {
-    console.error("Error fetching rushees:", error.message);
+    console.error("Error fetching member:", memberError.message);
     return <p>Error loading rushees.</p>;
+  }
+
+  // Check if user has attended a rush event (required for access)
+  // Admins always have access
+  if (!member.admin) {
+    const { data: rushEvents, error: rushEventsError } = await supabase
+      .from('event_attendance')
+      .select(`
+        events!inner (
+          event_type
+        )
+      `)
+      .eq('uniqname', uniqname)
+      .eq('events.event_type', 'rush_event')
+      .limit(1);
+
+    if (rushEventsError) {
+      console.error("Error checking rush event attendance:", rushEventsError.message);
+      return <p>Error loading rushees.</p>;
+    }
+
+    if (!rushEvents || rushEvents.length === 0) {
+      return (
+        <main className="m-4 flex flex-col gap-2">
+          <span className="text-2xl font-bold tracking-tight leading-tight">Rush Directory</span>
+          <p className="text-muted-foreground">You need to attend a rush event to access the rush directory.</p>
+        </main>
+      );
+    }
   }
 
   // Fetch rushees for current term (most recent term)
@@ -42,46 +71,55 @@ export default async function RusheePage() {
   let userReactions = {};
   let userStars = new Set();
 
-  if (rusheeIds.length > 0) {
-    // Fetch reactions
-    const { data: reactions } = await supabase
-      .from('rushee_reactions')
-      .select('rushee_id, reaction_type')
-      .eq('member_uniqname', uniqname)
-      .in('rushee_id', rusheeIds);
+  // Parallelize all independent queries after rushees are fetched
+  const [reactionsResult, starsResult, commentsResult, notesResult] = await Promise.all([
+    // Fetch reactions (only if there are rushees)
+    rusheeIds.length > 0
+      ? supabase
+          .from('rushee_reactions')
+          .select('rushee_id, reaction_type')
+          .eq('member_uniqname', uniqname)
+          .in('rushee_id', rusheeIds)
+      : Promise.resolve({ data: null }),
+    
+    // Fetch Stars (only if there are rushees)
+    rusheeIds.length > 0
+      ? supabase
+          .from('rushee_stars')
+          .select('rushee_id')
+          .eq('member_uniqname', uniqname)
+          .in('rushee_id', rusheeIds)
+      : Promise.resolve({ data: null }),
+    
+    // Fetch comments
+    getRusheeComments(rushees, uniqname, member.admin).catch(error => {
+      console.error("Error getting rushee comments:", error);
+      return [];
+    }),
+    
+    // Fetch notes
+    getRusheeNotes().catch(error => {
+      console.error("Error getting rushee notes:", error);
+      return [];
+    })
+  ]);
 
-    // Fetch Stars
-    const { data: stars } = await supabase
-      .from('rushee_stars')
-      .select('rushee_id')
-      .eq('member_uniqname', uniqname)
-      .in('rushee_id', rusheeIds);
-
-    reactions?.forEach(r => {
+  // Process reactions
+  if (reactionsResult.data) {
+    reactionsResult.data.forEach(r => {
       userReactions[r.rushee_id] = r.reaction_type;
     });
+  }
 
-    stars?.forEach(s => {
+  // Process stars
+  if (starsResult.data) {
+    starsResult.data.forEach(s => {
       userStars.add(s.rushee_id);
     });
   }
-  let comments;
 
-  try {
-    comments = await getRusheeComments(rushees, uniqname, member.admin);
-  } catch (error) {
-    console.error(error);
-    return <p>Error getting rushee comments.</p>
-  }
-
-  let notes;
-
-  try {
-    notes = await getRusheeNotes();
-  } catch (error) {
-    console.error(error);
-    return <p>Error getting rushee notes.</p>
-  }
+  const comments = commentsResult;
+  const notes = notesResult;
 
   return (
     <main className="m-4 flex flex-col gap-2">
