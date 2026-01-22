@@ -69,6 +69,17 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
   const userStarCount = safeUserStars.size;
+  
+  // Calculate comment counts per rushee (excluding deleted comments)
+  const commentCounts = new Map();
+  if (Array.isArray(comments)) {
+    comments.forEach(comment => {
+      // Only count non-deleted comments
+      if (comment.rushee_id && !comment.deleted_at) {
+        commentCounts.set(comment.rushee_id, (commentCounts.get(comment.rushee_id) || 0) + 1);
+      }
+    });
+  }
 
   const handleUpdate = () => {
     // Refresh server data to get updated counts and user reactions
@@ -558,6 +569,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             isSelected={selectedRusheeIds.has(rushee.id)}
             selectionMode={selectionMode}
             likelihood={likelihoods.get(rushee.id) || "green"}
+            commentCount={commentCounts.get(rushee.id) || 0}
           />
         ))}
       </div>
