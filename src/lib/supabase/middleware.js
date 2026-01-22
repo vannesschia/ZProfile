@@ -52,32 +52,38 @@ export async function updateSession(request) {
     }
   }
   
-  // Find if user has attended a rush event
-  if (user) {
+  // Check rush directory access - redirect non-admins who haven't attended rush events
+  if (user && pathname === "/rush-directory") {
     const uniqname = user.email.split("@")[0];
+    
+    // First check if user is an admin - admins always have access
+    const { data: member } = await supabase
+      .from('members')
+      .select('admin')
+      .eq('uniqname', uniqname)
+      .single();
 
-    const { data: rushEventIds} = await supabase
-    .from('rush_events')
-    .select('id');
+    const isAdmin = member?.admin === true;
+    
+    // Admins are never redirected - they always have access
+    if (!isAdmin) {
+      // Check if non-admin has attended a rush event
+      const { data: rushEvents } = await supabase
+        .from('event_attendance')
+        .select(`
+          events!inner (
+            event_type
+          )
+        `)
+        .eq('uniqname', uniqname)
+        .eq('events.event_type', 'rush_event')
+        .limit(1);
 
-    const { data: eventsAttended } = await supabase
-    .from('event_attendance')
-    .select('event_id')
-    .eq('uniqname', uniqname);
-
-    const listRushEventsIds = rushEventIds.map(obj => obj.id);
-    let hasAttendedRushEvent = false;
-
-    eventsAttended.forEach(obj => {
-      if (listRushEventsIds.includes(obj.event_id)) {
-        hasAttendedRushEvent = true;
+      // Redirect non-admins who have not attended a rush event
+      if (!rushEvents || rushEvents.length === 0) {
+        const url = new URL('/dashboard', request.url);
+        return NextResponse.redirect(url);
       }
-    })
-
-    // Redirect brothers who have not attended a rush event 
-    if (!hasAttendedRushEvent && pathname === "/rush-directory") {
-      const url = new URL('/dashboard', request.url);
-      return NextResponse.redirect(url);
     }
   }
 

@@ -18,7 +18,7 @@ import {
 
 import { NavUser } from "./nav-user"
 
-let items = [
+const baseItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -83,9 +83,12 @@ const admin_items = [
 ]
 
 export function AppSidebar({ user, hasAttendedRushEvent }) {
-  if (!hasAttendedRushEvent) {
-    items = items.filter((item) => item.title !== "Rush Directory");
-  }
+  // Show Rush Directory for admins OR users who have attended a rush event
+  // Create a fresh copy of items each time to avoid mutation issues
+  const isAdmin = user?.admin === true;
+  const items = isAdmin || hasAttendedRushEvent
+    ? baseItems // Include Rush Directory
+    : baseItems.filter((item) => item.title !== "Rush Directory"); // Exclude Rush Directory
 
   return (
     <Sidebar collapsible="icon">
@@ -132,7 +135,7 @@ export function AppSidebar({ user, hasAttendedRushEvent }) {
           </SidebarGroupContent>
           <SidebarGroupContent className="mt-8">
             <SidebarMenu>
-              {user.admin && admin_items.map((item) => (
+              {isAdmin && admin_items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
