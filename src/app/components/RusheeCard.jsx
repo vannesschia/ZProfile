@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, Star } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Star, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -27,6 +27,7 @@ export default function RusheeCard({
   isSelected = false,
   selectionMode = null,
   likelihood,
+  commentCount = 0,
 }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
@@ -227,7 +228,7 @@ export default function RusheeCard({
 
   return (
     <Card
-      className={`flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl ${borderWidth} min-w-[340px] max-w-[340px] transition-colors duration-300
+      className={`relative flex flex-col gap-3 p-2.5 items-start shadow-sm rounded-xl ${borderWidth} min-w-[340px] max-w-[340px] transition-colors duration-300
         ${shouldDimCut ? 'opacity-40 grayscale' : ''}
         ${isSelected ? 'border-primary ring-2 ring-primary' : 'hover:border-muted-foreground'}
         ${selectionMode && canSelect ? 'cursor-pointer' : selectionMode ? 'opacity-50 cursor-not-allowed' : ''}
@@ -339,6 +340,11 @@ export default function RusheeCard({
             </Button>
           </div>
         </div>
+      </div>
+      {/* Comment count in bottom right */}
+      <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-sm font-medium">
+        <MessageCircle className="h-3 w-3" />
+        <span>{commentCount}</span>
       </div>
     </Card>
   );
