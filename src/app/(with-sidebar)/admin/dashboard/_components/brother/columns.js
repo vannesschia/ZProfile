@@ -67,6 +67,19 @@ export function getColumns({data, requirement}) {
       },
     },
     {
+      accessorKey: "rush_attendance_points",
+      header: "Rush Attendance Points",
+      meta: { widthClass: "min-w-[100px]" },
+      cell: ({ getValue }) => {
+        const value = getValue()
+        return (
+          <span className="inline-block rounded-md border px-2 py-1 font-medium min-w-[100px] max-w-[100px] text-center bg-muted/50">
+            {value ?? 0}
+          </span>
+        )
+      },
+    },
+    {
       accessorKey: "committee_points",
       header: "Committee Points",
       meta: { widthClass: "min-w-[100px]" },

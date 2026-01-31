@@ -10,13 +10,15 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ChevronDown, Milestone, Search, CalendarSearch, Plus, Medal } from "lucide-react"
+import { ChevronDown, Milestone, Search, CalendarSearch, Plus, Medal, ArrowUpDown } from "lucide-react"
 import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -31,7 +33,8 @@ export default function AdminViewTable({
   rushEventsAttendance,
   studyTableAttendance,
   brotherView,
-  brotherRequirement
+  brotherRequirement,
+  brotherRushAttendanceCounts = {}
 }) {
   // General Tabs Logic
   const router = useRouter();
@@ -144,14 +147,46 @@ export default function AdminViewTable({
 
   // Brother States
   const [searchBrother, setSearchBrother] = useState("");
+  const [brotherSortBy, setBrotherSortBy] = useState("name"); // "name" | "attendance_points" | "rush_attendance_points" | "committee_points" | "chapters"
 
   const filteredBrothers = useMemo(() => {
-    if (!searchBrother) return brotherView
-    const brother = searchBrother.toLowerCase()
-    return brotherView.filter(
-      (row) => row.name.toLowerCase().includes(brother) || row.uniqname.toLowerCase().includes(brother)
-    )
-  }, [brotherView, searchBrother])
+    let list = brotherView.map((row) => ({
+      ...row,
+      rush_attendance_points: brotherRushAttendanceCounts[row.uniqname] ?? 0,
+    }));
+    if (searchBrother) {
+      const brother = searchBrother.toLowerCase();
+      list = list.filter(
+        (row) => row.name.toLowerCase().includes(brother) || row.uniqname.toLowerCase().includes(brother)
+      );
+    }
+    // Sort by selected option (descending for numeric; name alphabetical); tie-break by name
+    const sorted = [...list].sort((a, b) => {
+      if (brotherSortBy === "name") {
+        return (a.name ?? "").localeCompare(b.name ?? "");
+      }
+      let aVal, bVal;
+      if (brotherSortBy === "attendance_points") {
+        aVal = Number(a.total_attendance_points ?? 0);
+        bVal = Number(b.total_attendance_points ?? 0);
+      } else if (brotherSortBy === "rush_attendance_points") {
+        aVal = Number(brotherRushAttendanceCounts[a.uniqname] ?? a.rush_attendance_points ?? a.rush_events_attended ?? 0);
+        bVal = Number(brotherRushAttendanceCounts[b.uniqname] ?? b.rush_attendance_points ?? b.rush_events_attended ?? 0);
+      } else if (brotherSortBy === "committee_points") {
+        aVal = Number(a.committee_points?.acquired ?? 0);
+        bVal = Number(b.committee_points?.acquired ?? 0);
+      } else if (brotherSortBy === "chapters") {
+        aVal = Number(a.chapters_attended ?? 0);
+        bVal = Number(b.chapters_attended ?? 0);
+      } else {
+        return (a.name ?? "").localeCompare(b.name ?? "");
+      }
+      // Numeric sort descending; tie-break by name
+      if (aVal !== bVal) return bVal - aVal;
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    });
+    return sorted;
+  }, [brotherView, searchBrother, brotherSortBy, brotherRushAttendanceCounts])
 
   const brotherStats = brotherView.reduce(
     (acc, row) => {
@@ -230,16 +265,38 @@ export default function AdminViewTable({
           )}
 
           {activeTab === "brother" && (
-            <div className="relative sm:w-64 w-full">
-              <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
-              <Input
-                type="search"
-                className="pl-8 text-sm"
-                placeholder="Search"
-                value={searchBrother}
-                onChange={(e) => setSearchBrother(e.target.value)}
-              />
-            </div>
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <ArrowUpDown className="h-4 w-4 mr-1" />
+                    Sort: {brotherSortBy === "name" ? "Name" : brotherSortBy === "attendance_points" ? "Attendance Points" : brotherSortBy === "rush_attendance_points" ? "Rush Attendance" : brotherSortBy === "committee_points" ? "Committee Points" : "Chapters"}
+                    <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuLabel>Sort brothers by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup value={brotherSortBy} onValueChange={setBrotherSortBy}>
+                    <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="attendance_points">Attendance Points</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="rush_attendance_points">Rush Attendance Points</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="committee_points">Committee Points</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="chapters">Chapters</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="relative sm:w-64 w-full">
+                <Search className="text-muted-foreground pointer-events-none absolute pl-2 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="search"
+                  className="pl-8 text-sm"
+                  placeholder="Search"
+                  value={searchBrother}
+                  onChange={(e) => setSearchBrother(e.target.value)}
+                />
+              </div>
+            </>
           )}
 
           {activeTab === "events" && (

@@ -7,7 +7,7 @@ export function BrotherOverviewAdminTable({ data, requirement }) {
 
   return (
     <div>
-      <TestingDataTable data={data} columns={columns} setPageSize={20} setPagination={true} emptyStateMessage="No brothers." initialSorting={[{ id: "name", desc: false }]}/>
+      <TestingDataTable data={data} columns={columns} setPageSize={20} setPagination={true} emptyStateMessage="No brothers." initialSorting={[]}/>
     </div>
   )
 }

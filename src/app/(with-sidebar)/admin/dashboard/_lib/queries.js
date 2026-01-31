@@ -93,6 +93,29 @@ export async function getBrotherAdminView(supabase) {
   return data;
 }
 
+/**
+ * Fetch rush event attendance count per brother (uniqname).
+ * Used for sorting brothers by rush attendance points.
+ * @param {object} supabase - The Supabase client.
+ * @returns {Promise<Record<string, number>>} - Object mapping uniqname to count of rush events attended.
+ */
+export async function getBrotherRushAttendanceCounts(supabase) {
+  const { data, error } = await supabase
+    .from('event_attendance')
+    .select('uniqname, events!inner(event_type)')
+    .eq('events.event_type', 'rush_event');
+  if (error) {
+    console.error(error);
+    return {};
+  }
+  const counts = (data || []).reduce((acc, row) => {
+    const u = row.uniqname;
+    if (u) acc[u] = (acc[u] || 0) + 1;
+    return acc;
+  }, {});
+  return counts;
+}
+
 // ****************************************************************************
 // Helper Functions
 // ****************************************************************************

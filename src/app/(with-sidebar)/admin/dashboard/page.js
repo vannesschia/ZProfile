@@ -9,7 +9,8 @@ import {
   getAllStudyTablesAttendance,
   getPledgeAdminView,
   getBrotherAdminView,
-  getBrotherRequirement
+  getBrotherRequirement,
+  getBrotherRushAttendanceCounts
 } from "./_lib/queries";
 import { getServerClient } from "@/lib/supabaseServer";
 
@@ -27,6 +28,7 @@ export default async function AdminPledgeView() {
     studyTableAttendance,
     brotherView,
     brotherRequirement,
+    brotherRushAttendanceCounts,
   ] = await Promise.all([
     getMilestones(supabase),
     getPledgeAdminView(supabase),
@@ -38,6 +40,7 @@ export default async function AdminPledgeView() {
     getAllStudyTablesAttendance(supabase),
     getBrotherAdminView(supabase),
     getBrotherRequirement(supabase),
+    getBrotherRushAttendanceCounts(supabase),
   ]);
 
   return (
@@ -52,6 +55,7 @@ export default async function AdminPledgeView() {
       studyTableAttendance={studyTableAttendance}
       brotherView={brotherView}
       brotherRequirement={brotherRequirement}
+      brotherRushAttendanceCounts={brotherRushAttendanceCounts ?? {}}
     />
   );
 }
