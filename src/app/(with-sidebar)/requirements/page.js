@@ -123,8 +123,7 @@ export default async function MembersPage() {
                                     <ul className="list-disc pl-5 space-y-1">
                                         <li>Must attend Zeta Pi pledge study table once a week for at least one hour</li>
                                         <li>Will be held in Shapiro Tuesday and Wednesday evenings from 7pm to 10pm</li>
-                                        <li>Pledges are in charge of finding a table or booking a room for the study session</li>
-                                        <li>Submit proof of attending each week by submitting a selfie to the <strong><a href="https://forms.gle/WfjH6i5gznAej1A87">study table google form</a></strong></li>
+                                        <li>Submit proof of attending each week by submitting a selfie to the <strong><a href="https://forms.gle/bYJL1jPgd18fhaLv5">study table google form</a></strong></li>
                                         <li>Allowed to miss one week throughout the semester without notifying Ananthu or Zach at no penalty</li>
                                         <li>More than one missed study table must be made up for with either 1 committee point or 2 coffee chats.</li>
 
