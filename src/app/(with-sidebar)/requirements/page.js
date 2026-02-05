@@ -38,7 +38,7 @@ export default async function MembersPage() {
                                         <li><u><strong><a href="https://calendar.google.com/calendar/embed?src=c_c813756b791ff495bc94dc7041d7e02a10136be55730bd669288ee8717a1bfd4%40group.calendar.google.com&ctz=America%2FNew_York" target="_blank" rel="noopener noreferrer">Google Calendar</a></strong></u></li>
                                         <li><u><strong><a href="https://www.zprofile.tech/coffee-chat" target="_blank" rel="noopener noreferrer">Coffee Chat Form</a></strong></u></li>
                                         <li><u><strong><a href="https://drive.google.com/drive/folders/1_GnALj-7Gq_OYPatLA93B8vngQq5-v-8" target="_blank" rel="noopener noreferrer">Knowledgebase</a></strong></u></li>
-                                        <li><u><strong><a href="https://forms.gle/WfjH6i5gznAej1A87" target="_blank" rel="noopener noreferrer">Study table google form</a></strong></u></li>
+                                        <li><u><strong><a href="https://forms.gle/bYJL1jPgd18fhaLv5" target="_blank" rel="noopener noreferrer">Study table google form</a></strong></u></li>
                                         <li><u><strong><a href="https://groupme.com/join_group/110523698/OGCBP7U0" target="_blank" rel="noopener noreferrer">ZP Groupme</a></strong></u></li>
                                     </ul>
                                 </AccordionContent>
