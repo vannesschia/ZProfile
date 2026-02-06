@@ -43,6 +43,7 @@ export default function RusheeCommentsCard({
   rushee,
   uniqname,
   isAdmin,
+  anonymousMode = false,
   comments,
   onUpdate,
 }) {
@@ -111,9 +112,11 @@ export default function RusheeCommentsCard({
                     <strong className="mr-1">
                       {comment.isMine
                         ? "You"
-                        : isAdmin
-                          ? comment.author_name
-                          : getAnonymousName(comment.anon_handle.slice(8))
+                        : isAdmin && anonymousMode
+                          ? getAnonymousName(comment.author_uniqname ?? comment.id?.toString() ?? "")
+                          : isAdmin
+                            ? comment.author_name
+                            : getAnonymousName(comment.anon_handle?.slice(8) ?? "")
                       }
                     </strong>
                     <div className="font-light">
@@ -194,6 +197,7 @@ export default function RusheeCommentsCard({
                 const originalCommentBody = commentBody;
                 const tempId = `${Date.now()}`;
 
+                const postAnonymous = isAdmin && anonymousMode;
                 setClientComments(prev => [
                   {
                     id: tempId,
@@ -202,6 +206,7 @@ export default function RusheeCommentsCard({
                     created_at: new Date().toISOString(),
                     deleted_at: null,
                     isMine: true,
+                    is_anonymous: postAnonymous,
                   }, ...prev]);
                 setCommentBody("");
                 try {
@@ -209,6 +214,7 @@ export default function RusheeCommentsCard({
                     rushee_id: rushee.id,
                     author_uniqname: uniqname,
                     body: commentBody,
+                    is_anonymous: postAnonymous,
                   });
                   onUpdate();
                 } catch (error) {
