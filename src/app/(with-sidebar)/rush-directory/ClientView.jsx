@@ -446,7 +446,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             </Button>
             <Button
               variant="outline"
-              className={`gap-1.5 ${anonymousMode ? "bg-white text-black hover:bg-gray-100 hover:text-black dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
+              className={`gap-1.5 ${anonymousMode ? "bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
               onClick={() => setAnonymousMode(prev => !prev)}
             >
               <UserX className="h-4 w-4" />
