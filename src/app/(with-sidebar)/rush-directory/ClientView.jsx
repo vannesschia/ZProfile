@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -68,6 +68,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [isUpdating, setIsUpdating] = useState(false);
   const [likelihoods, setLikelihoods] = useState(new Map(rushees.map(rushee => [rushee.id, rushee.likelihood])));
   const [sortBy, setSortBy] = useState("name"); // "name", "likelihood", "likes", "dislikes", "stars", "comments"
+  const [anonymousMode, setAnonymousMode] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -443,6 +444,14 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 Import New Class
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              className={`gap-1.5 ${anonymousMode ? "bg-white text-black hover:bg-gray-100 hover:text-black dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
+              onClick={() => setAnonymousMode(prev => !prev)}
+            >
+              <UserX className="h-4 w-4" />
+              Anonymous
+            </Button>
           </div>
         )}
       </div>
@@ -620,6 +629,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             rushee={selectedRushee}
             uniqname={uniqname}
             isAdmin={isAdmin}
+            anonymousMode={anonymousMode}
             comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
             notes={notes.find(n => n.rushee_id === selectedRushee.id)?.body || ""}
             likeCount={selectedRushee.like_count}

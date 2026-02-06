@@ -7,7 +7,12 @@ export async function sendRusheeComment(commentData) {
 
   const { error } = await supabase
     .from("rushee_comments")
-    .insert({ ...commentData });
+    .insert({
+      rushee_id: commentData.rushee_id,
+      author_uniqname: commentData.author_uniqname,
+      body: commentData.body,
+      is_anonymous: commentData.is_anonymous ?? false,
+    });
 
   if (error) throw error;
 }

@@ -40,6 +40,7 @@ export default function RusheeModal({
   rushee,
   uniqname,
   isAdmin,
+  anonymousMode = false,
   comments,
   notes,
   likeCount,
@@ -344,6 +345,7 @@ export default function RusheeModal({
               rushee={rushee}
               uniqname={uniqname}
               isAdmin={isAdmin}
+              anonymousMode={anonymousMode}
               comments={comments}
               onUpdate={onUpdate}
             />
