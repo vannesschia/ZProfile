@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, Upload } from "lucide-react";
+import { ChevronDown, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -94,6 +94,7 @@ export default function ArchiveClientView({ uniqname }) {
   const [error, setError] = useState(null);
   const [pendingImportData, setPendingImportData] = useState(null);
   const [newClassName, setNewClassName] = useState("");
+  const [deleteClassDialogOpen, setDeleteClassDialogOpen] = useState(false);
   const importInputRef = useRef(null);
 
   useEffect(() => {
@@ -181,6 +182,15 @@ export default function ArchiveClientView({ uniqname }) {
     setPendingImportData(null);
   };
 
+  const handleDeleteCurrentClass = () => {
+    if (!currentClass) return;
+    const newClasses = { ...classes };
+    delete newClasses[currentClass];
+    const remaining = Object.keys(newClasses);
+    saveClasses(newClasses, remaining[0] || null);
+    setDeleteClassDialogOpen(false);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -210,18 +220,47 @@ export default function ArchiveClientView({ uniqname }) {
           </DropdownMenuContent>
         </DropdownMenu>
         {classNames.length > 0 && (
-          <Select value={currentClass || ""} onValueChange={(v) => { setCurrentClass(v); localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, v); }}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select class" />
-            </SelectTrigger>
-            <SelectContent>
-              {classNames.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <>
+            <Select value={currentClass || ""} onValueChange={(v) => { setCurrentClass(v); localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, v); }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classNames.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteClassDialogOpen(true)}
+              title="Delete this class"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <Dialog open={deleteClassDialogOpen} onOpenChange={setDeleteClassDialogOpen}>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>Delete class &quot;{currentClass}&quot;?</DialogTitle>
+                  <DialogDescription>
+                    This will remove this class from the archive. The data will be lost. This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteClassDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleDeleteCurrentClass}>
+                    Delete class
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
         {hasData && (
           <span className="text-sm text-muted-foreground">

@@ -124,6 +124,9 @@ export default async function RusheePage() {
   const comments = commentsResult;
   const notes = notesResult;
 
+  const { canAccessArchive } = await import("@/app/(with-sidebar)/archive/_lib/allowlist");
+  const showExportData = canAccessArchive(uniqname);
+
   return (
     <main className="m-4 flex flex-col gap-2">
       <span className="text-2xl font-bold tracking-tight leading-tight">Rush Directory</span>
@@ -138,6 +141,7 @@ export default async function RusheePage() {
           isAdmin={isAdmin}
           userReactions={userReactions}
           userStars={userStars}
+          showExportData={showExportData}
         />
       </Suspense>
     </main>

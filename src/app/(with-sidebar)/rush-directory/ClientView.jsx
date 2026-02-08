@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX, Download, ChevronDown } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -45,7 +45,7 @@ const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
-export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set(), archiveMode = false }) {
+export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set(), archiveMode = false, showExportData = false }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -71,6 +71,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [likelihoods, setLikelihoods] = useState(new Map(rushees.map(rushee => [rushee.id, rushee.likelihood])));
   const [sortBy, setSortBy] = useState("name"); // "name", "likelihood", "likes", "dislikes", "stars", "comments"
   const [anonymousMode, setAnonymousMode] = useState(false);
+  const [isClearingRushees, setIsClearingRushees] = useState(false);
+  const [deleteRusheesDialogOpen, setDeleteRusheesDialogOpen] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -88,8 +90,26 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   }
 
   const handleUpdate = () => {
-    // Refresh server data to get updated counts and user reactions
     router.refresh();
+  };
+
+  const handleDeleteAllRushees = async () => {
+    setIsClearingRushees(true);
+    try {
+      const res = await fetch("/api/rushees/clear-all", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || "Failed to delete rushees");
+        return;
+      }
+      toast.success("All rushees deleted.");
+      setDeleteRusheesDialogOpen(false);
+      router.refresh();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete rushees");
+    } finally {
+      setIsClearingRushees(false);
+    }
   };
 
   const buildExportData = () => {
@@ -110,55 +130,17 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
     });
   };
 
-  const handleExport = (format) => {
+  const handleExport = () => {
     const data = buildExportData();
     const timestamp = new Date().toISOString().slice(0, 10);
-    if (format === "json") {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rush-directory-export-${timestamp}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } else {
-      if (data.length === 0) {
-        toast.error("No data to export.");
-        return;
-      }
-      const headers = ["name", "email_address", "cut_status", "likelihood", "major", "minor", "grade", "graduation_year", "note", "comments"];
-      const rows = data.map(row => {
-        const commentsStr = (row.comments || [])
-          .map(c => {
-            const date = c.created_at ? new Date(c.created_at).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : "";
-            return `[${c.author_name || "Unknown"}${date ? ` - ${date}` : ""}]\n${(c.body || "").trim()}`;
-          })
-          .join("\n\n");
-        const noteStr = (row.note ?? "").trim();
-        return [
-          row.name ?? "",
-          row.email_address ?? "",
-          row.cut_status ?? "",
-          row.likelihood ?? "",
-          Array.isArray(row.major) ? row.major.join("; ") : (row.major ?? ""),
-          Array.isArray(row.minor) ? row.minor.join("; ") : (row.minor ?? ""),
-          row.grade ?? "",
-          row.graduation_year ?? "",
-          noteStr,
-          commentsStr,
-        ];
-      });
-      const escapeCsvCell = (cell) => `"${String(cell).replace(/"/g, '""')}"`;
-      const csvContent = [headers.join(","), ...rows.map(r => r.map(escapeCsvCell).join(","))].join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rush-directory-export-${timestamp}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    toast.success(`Exported as ${format.toUpperCase()}`);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rush-directory-export-${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as JSON");
   };
 
   const handleToggleSelectionMode = (mode) => {
@@ -517,23 +499,43 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 Import New Class
               </Link>
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-1.5">
-                  <Download className="h-4 w-4" />
-                  Export data
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport("json")}>
-                  Download as JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport("csv")}>
-                  Download as CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setDeleteRusheesDialogOpen(true)}
+              disabled={isClearingRushees}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete rushees
+            </Button>
+            <Dialog open={deleteRusheesDialogOpen} onOpenChange={setDeleteRusheesDialogOpen}>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>Delete all rushees?</DialogTitle>
+                  <DialogDescription>
+                    This will permanently remove all rushees and their reactions, stars, comments, and notes from the Rush Directory. This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteRusheesDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAllRushees}
+                    disabled={isClearingRushees}
+                  >
+                    {isClearingRushees ? "Deleting…" : "Delete all"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            {showExportData && (
+            <Button variant="outline" className="gap-1.5" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              Export data
+            </Button>
+            )}
             <Button
               variant="outline"
               className={`gap-1.5 ${anonymousMode ? "bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
