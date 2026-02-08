@@ -26,11 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import ClientMembersView from "../rush-directory/ClientView";
 
-const CLASSES_STORAGE_KEY = "zp-archive-classes";
 const CURRENT_CLASS_STORAGE_KEY = "zp-archive-current-class";
-const LEGACY_STORAGE_KEY = "zp-archive-data";
 
 function transformArchiveData(data, uniqname) {
   const rushees = data.map(({ comments, note, ...r }) => r);
@@ -57,40 +56,11 @@ function isValidArchiveItem(item) {
   );
 }
 
-function loadClassesFromStorage() {
-  try {
-    if (typeof window === "undefined") return { classes: {}, currentClass: null };
-    const raw = localStorage.getItem(CLASSES_STORAGE_KEY);
-    const current = localStorage.getItem(CURRENT_CLASS_STORAGE_KEY);
-    let classes = {};
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        classes = parsed;
-      }
-    }
-    // Migrate legacy single array to "Eta" class
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacyRaw && Object.keys(classes).length === 0) {
-      const parsed = JSON.parse(legacyRaw);
-      if (Array.isArray(parsed) && parsed.length > 0 && isValidArchiveItem(parsed[0])) {
-        classes = { Eta: parsed };
-        localStorage.setItem(CLASSES_STORAGE_KEY, JSON.stringify(classes));
-        localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, "Eta");
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
-      }
-    }
-    const classNames = Object.keys(classes);
-    const currentClass = current && classNames.includes(current) ? current : (classNames[0] || null);
-    return { classes, currentClass };
-  } catch (_) {
-    return { classes: {}, currentClass: null };
-  }
-}
-
 export default function ArchiveClientView({ uniqname }) {
   const [classes, setClasses] = useState({});
   const [currentClass, setCurrentClass] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [pendingImportData, setPendingImportData] = useState(null);
   const [newClassName, setNewClassName] = useState("");
@@ -98,19 +68,59 @@ export default function ArchiveClientView({ uniqname }) {
   const importInputRef = useRef(null);
 
   useEffect(() => {
-    const { classes: c, currentClass: cc } = loadClassesFromStorage();
-    setClasses(c);
-    setCurrentClass(cc);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch("/api/archive")
+      .then((res) => {
+        if (!res.ok) throw new Error(res.status === 403 ? "Forbidden" : "Failed to load archive");
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const c = data?.classes && typeof data.classes === "object" ? data.classes : {};
+        setClasses(c);
+        const names = Object.keys(c);
+        const stored = typeof window !== "undefined" ? localStorage.getItem(CURRENT_CLASS_STORAGE_KEY) : null;
+        const next = stored && names.includes(stored) ? stored : (names[0] || null);
+        setCurrentClass(next);
+        if (next && typeof window !== "undefined") localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, next);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message || "Failed to load archive");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, []);
 
-  const saveClasses = useCallback((newClasses, newCurrent = null) => {
-    if (typeof window === "undefined") return;
+  const saveClasses = useCallback(async (newClasses, newCurrent = null) => {
     const names = Object.keys(newClasses);
     const current = newCurrent ?? (names[0] || null);
-    localStorage.setItem(CLASSES_STORAGE_KEY, JSON.stringify(newClasses));
-    if (current) localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, current);
-    setClasses(newClasses);
-    setCurrentClass(current);
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classes: newClasses }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Failed to save archive");
+        toast.error(data.error || "Failed to save archive");
+        return;
+      }
+      setClasses(newClasses);
+      setCurrentClass(current);
+      if (current && typeof window !== "undefined") localStorage.setItem(CURRENT_CLASS_STORAGE_KEY, current);
+    } catch (err) {
+      setError(err.message || "Failed to save archive");
+      toast.error(err.message || "Failed to save archive");
+    } finally {
+      setSaving(false);
+    }
   }, []);
 
   const handleImport = (mode) => {
@@ -191,6 +201,14 @@ export default function ArchiveClientView({ uniqname }) {
     setDeleteClassDialogOpen(false);
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="text-muted-foreground">Loading archive…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -204,7 +222,7 @@ export default function ArchiveClientView({ uniqname }) {
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" disabled={saving}>
               <Upload className="h-4 w-4" />
               Import data
               <ChevronDown className="h-4 w-4 opacity-50" />
@@ -239,6 +257,7 @@ export default function ArchiveClientView({ uniqname }) {
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => setDeleteClassDialogOpen(true)}
               title="Delete this class"
+              disabled={saving}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

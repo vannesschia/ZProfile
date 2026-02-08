@@ -125,7 +125,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
           body: htmlToReadableText(body),
           created_at,
         })),
-        note: htmlToReadableText(noteBody),
+        note: noteBody,
       };
     });
   };
