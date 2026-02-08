@@ -28,6 +28,7 @@ export default function RusheeCard({
   selectionMode = null,
   likelihood,
   commentCount = 0,
+  archiveMode = false,
 }) {
   const [currentReaction, setCurrentReaction] = useState(userReaction || 'none');
   const [currentStarred, setCurrentStarred] = useState(isStarred || false);
@@ -288,7 +289,8 @@ export default function RusheeCard({
             )}
           </div>
 
-          {/* Interactive reaction buttons */}
+          {/* Interactive reaction buttons (hidden in archive mode) */}
+          {!archiveMode && (
           <div className="flex flex-wrap gap-1.5 pt-1 w-full hfull items-end">
             <Button
               size="sm"
@@ -339,6 +341,7 @@ export default function RusheeCard({
               {starCount > 0 && starCount}
             </Button>
           </div>
+          )}
         </div>
       </div>
       {/* Comment count in bottom right */}

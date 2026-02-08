@@ -52,38 +52,24 @@ export async function updateSession(request) {
     }
   }
   
-  // Check rush directory access - redirect non-admins who haven't attended rush events
+  // Check rush directory access: pledges never; non-admins only if attended one rush event this semester
   if (user && pathname === "/rush-directory") {
     const uniqname = user.email.split("@")[0];
-    
-    // First check if user is an admin - admins always have access
-    const { data: member } = await supabase
-      .from('members')
-      .select('admin')
-      .eq('uniqname', uniqname)
-      .single();
+    const { getRushDirectoryAccess } = await import('@/app/(with-sidebar)/rush-directory/_lib/rush-access');
+    const { allowed } = await getRushDirectoryAccess(supabase, uniqname);
+    if (!allowed) {
+      const url = new URL('/dashboard', request.url);
+      return NextResponse.redirect(url);
+    }
+  }
 
-    const isAdmin = member?.admin === true;
-    
-    // Admins are never redirected - they always have access
-    if (!isAdmin) {
-      // Check if non-admin has attended a rush event
-      const { data: rushEvents } = await supabase
-        .from('event_attendance')
-        .select(`
-          events!inner (
-            event_type
-          )
-        `)
-        .eq('uniqname', uniqname)
-        .eq('events.event_type', 'rush_event')
-        .limit(1);
-
-      // Redirect non-admins who have not attended a rush event
-      if (!rushEvents || rushEvents.length === 0) {
-        const url = new URL('/dashboard', request.url);
-        return NextResponse.redirect(url);
-      }
+  // Archive: only hardcoded allowlist (admins do not get access unless listed)
+  if (user && pathname === "/archive") {
+    const uniqname = user.email.split("@")[0];
+    const { canAccessArchive } = await import('@/app/(with-sidebar)/archive/_lib/allowlist');
+    if (!canAccessArchive(uniqname)) {
+      const url = new URL('/dashboard', request.url);
+      return NextResponse.redirect(url);
     }
   }
 

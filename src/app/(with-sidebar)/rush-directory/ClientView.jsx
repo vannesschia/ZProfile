@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -27,6 +27,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Popover,
@@ -38,12 +39,13 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
 import ImportMembersModal from "./components/csv-upload-modal";
+import { htmlToReadableText } from "./_util/utils";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
-export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
+export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set(), archiveMode = false, showExportData = false }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -69,6 +71,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const [likelihoods, setLikelihoods] = useState(new Map(rushees.map(rushee => [rushee.id, rushee.likelihood])));
   const [sortBy, setSortBy] = useState("name"); // "name", "likelihood", "likes", "dislikes", "stars", "comments"
   const [anonymousMode, setAnonymousMode] = useState(false);
+  const [isClearingRushees, setIsClearingRushees] = useState(false);
+  const [deleteRusheesDialogOpen, setDeleteRusheesDialogOpen] = useState(false);
 
   const safeRushees = Array.isArray(rushees) ? rushees : [];
   const safeUserStars = userStars instanceof Set ? userStars : new Set(Array.isArray(userStars) ? userStars : []);
@@ -86,8 +90,57 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   }
 
   const handleUpdate = () => {
-    // Refresh server data to get updated counts and user reactions
     router.refresh();
+  };
+
+  const handleDeleteAllRushees = async () => {
+    setIsClearingRushees(true);
+    try {
+      const res = await fetch("/api/rushees/clear-all", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || "Failed to delete rushees");
+        return;
+      }
+      toast.success("All rushees deleted.");
+      setDeleteRusheesDialogOpen(false);
+      router.refresh();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete rushees");
+    } finally {
+      setIsClearingRushees(false);
+    }
+  };
+
+  const buildExportData = () => {
+    return safeRushees.map(rushee => {
+      const rusheeComments = (comments || []).filter(c => c.rushee_id === rushee.id && !c.deleted_at);
+      const noteBody = (notes || []).find(n => n.rushee_id === rushee.id)?.body ?? "";
+      return {
+        ...rushee,
+        comments: rusheeComments.map(({ id, author_uniqname, author_name, body, created_at }) => ({
+          id,
+          author_uniqname,
+          author_name,
+          body: htmlToReadableText(body),
+          created_at,
+        })),
+        note: htmlToReadableText(noteBody),
+      };
+    });
+  };
+
+  const handleExport = () => {
+    const data = buildExportData();
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rush-directory-export-${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as JSON");
   };
 
   const handleToggleSelectionMode = (mode) => {
@@ -389,12 +442,14 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        {!archiveMode && (
         <Card className="flex flex-row gap-2 shadow-none w-fit h-full pt-2 px-3 pb-2 text-sm items-center rounded-md">
           <Star className="h-[1em] w-[1em] fill-current text-yellow-500" /><p className="leading-tight">Remaining Stars: {3 - userStarCount || 0}</p>
         </Card>
+        )}
       </div>
       <div>
-        {isAdmin && (
+        {isAdmin && !archiveMode && (
           <div className="flex gap-2 mb-4 w-full flex-wrap">
             <Button
               variant={selectionMode === "cut" ? "default" : "outline"}
@@ -444,6 +499,43 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 Import New Class
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setDeleteRusheesDialogOpen(true)}
+              disabled={isClearingRushees}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete rushees
+            </Button>
+            <Dialog open={deleteRusheesDialogOpen} onOpenChange={setDeleteRusheesDialogOpen}>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>Delete all rushees?</DialogTitle>
+                  <DialogDescription>
+                    This will permanently remove all rushees and their reactions, stars, comments, and notes from the Rush Directory. This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteRusheesDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAllRushees}
+                    disabled={isClearingRushees}
+                  >
+                    {isClearingRushees ? "Deleting…" : "Delete all"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            {showExportData && (
+            <Button variant="outline" className="gap-1.5" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              Export data
+            </Button>
+            )}
             <Button
               variant="outline"
               className={`gap-1.5 ${anonymousMode ? "bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
@@ -630,6 +722,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             uniqname={uniqname}
             isAdmin={isAdmin}
             anonymousMode={anonymousMode}
+            archiveMode={archiveMode}
             comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
             notes={notes.find(n => n.rushee_id === selectedRushee.id)?.body || ""}
             likeCount={selectedRushee.like_count}
@@ -672,6 +765,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             selectionMode={selectionMode}
             likelihood={likelihoods.get(rushee.id) || "green"}
             commentCount={commentCounts.get(rushee.id) || 0}
+            archiveMode={archiveMode}
           />
         ))}
       </div>

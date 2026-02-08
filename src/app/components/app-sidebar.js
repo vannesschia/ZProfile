@@ -1,4 +1,4 @@
-import { Home, Book, TreePine, UserPen, Handshake, ClipboardCheck, Bug, LogOut, Users } from "lucide-react"
+import { Home, Book, TreePine, UserPen, Handshake, ClipboardCheck, Bug, LogOut, Users, Archive } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +38,12 @@ const baseItems = [
     title: "Rush Directory",
     url: "/rush-directory",
     icon: Users,
+  },
+  {
+    title: "Archive",
+    url: "/archive",
+    icon: Archive,
+    archiveOnly: true,
   },
   {
     title: "Family Tree",
@@ -82,13 +88,16 @@ const admin_items = [
   },
 ]
 
-export function AppSidebar({ user, hasAttendedRushEvent }) {
+export function AppSidebar({ user, hasAttendedRushEvent, showArchive = false }) {
   // Show Rush Directory for admins OR users who have attended a rush event
-  // Create a fresh copy of items each time to avoid mutation issues
+  // Archive is shown only when showArchive (hardcoded allowlist), independent of admin
   const isAdmin = user?.admin === true;
-  const items = isAdmin || hasAttendedRushEvent
-    ? baseItems // Include Rush Directory
-    : baseItems.filter((item) => item.title !== "Rush Directory"); // Exclude Rush Directory
+  let items = isAdmin || hasAttendedRushEvent
+    ? baseItems
+    : baseItems.filter((item) => item.title !== "Rush Directory");
+  if (!showArchive) {
+    items = items.filter((item) => !item.archiveOnly);
+  }
 
   return (
     <Sidebar collapsible="icon">

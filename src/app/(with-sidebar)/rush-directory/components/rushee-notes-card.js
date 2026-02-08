@@ -32,6 +32,7 @@ const ReactQuill = dynamic(() => import('react-quill-new'), {
 export default function RusheeNotesCard({
   rushee,
   isAdmin,
+  archiveMode = false,
   notes,
   onUpdate,
   fontSize = "14px",
@@ -136,7 +137,7 @@ export default function RusheeNotesCard({
               <SelectItem value="24px">24px</SelectItem>
             </SelectContent>
           </Select>
-          {isAdmin && (
+          {isAdmin && !archiveMode && (
             <Button
               variant="outline"
               size="sm"
@@ -153,11 +154,11 @@ export default function RusheeNotesCard({
       <div className="flex-1 min-h-0 overflow-hidden relative">
         <ReactQuill
           theme="snow"
-          readOnly={!isAdmin}
-          modules={{ toolbar: isAdmin }}
+          readOnly={!isAdmin || archiveMode}
+          modules={{ toolbar: isAdmin && !archiveMode }}
           value={notesBody}
           onChange={setNotesBody}
-          placeholder={isAdmin ? "Add notes..." : "No notes available"}
+          placeholder={isAdmin && !archiveMode ? "Add notes..." : "No notes available"}
           className="h-full"
         />
       </div>
