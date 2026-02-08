@@ -44,6 +44,7 @@ export default function RusheeCommentsCard({
   uniqname,
   isAdmin,
   anonymousMode = false,
+  archiveMode = false,
   comments,
   onUpdate,
 }) {
@@ -129,7 +130,7 @@ export default function RusheeCommentsCard({
                         hour12: true
                       })}
                     </div>
-                    {((isAdmin && !isDeleted) || (!isAdmin && comment.isMine)) &&
+                    {!archiveMode && ((isAdmin && !isDeleted) || (!isAdmin && comment.isMine)) &&
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -178,6 +179,7 @@ export default function RusheeCommentsCard({
               )
             })}
           </div>
+          {!archiveMode && (
           <div className="relative">
             <Textarea
               placeholder="Add a comment..."
@@ -228,6 +230,7 @@ export default function RusheeCommentsCard({
               <Send className="h-5 w-5" />
             </Button>
           </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,0 +1,57 @@
+[
+  {
+    "id": 29,
+    "term_code": 2570,
+    "uniqname": "twtan",
+    "name": "Tiffany Tan",
+    "major": [],
+    "minor": [],
+    "grade": null,
+    "graduation_year": null,
+    "email_address": "twtan@umich.edu",
+    "profile_picture_url": "https://hynrujyblvaexghdlhkw.supabase.co/storage/v1/object/public/rushee-profile-pictures/twtan.jpeg",
+    "cut_status": "cut",
+    "likelihood": "yellow",
+    "like_count": 2,
+    "dislike_count": 0,
+    "star_count": 0,
+    "created_at": "2026-01-16T22:48:07.828716+00:00",
+    "comments": [],
+    "note": "ran for AAA freshmen rep (finish later) good experience in a group x2, she led the convo in a group seemed very interested, generic questions met a winterf"
+  },
+  {
+    "id": 46,
+    "term_code": 2570,
+    "uniqname": "manuli",
+    "name": "Joshua Li",
+    "major": ["Data Science"],
+    "minor": ["Astronomy and Astrophysics"],
+    "grade": "sophomore",
+    "graduation_year": null,
+    "email_address": "manuli@umich.edu",
+    "profile_picture_url": "https://hynrujyblvaexghdlhkw.supabase.co/storage/v1/object/public/rushee-profile-pictures/manuli.jpeg",
+    "cut_status": "cut",
+    "likelihood": "yellow",
+    "like_count": 17,
+    "dislike_count": 7,
+    "star_count": 5,
+    "created_at": "2026-01-21T00:18:10.465684+00:00",
+    "comments": [
+      {
+        "id": 78,
+        "author_uniqname": "vanessl",
+        "author_name": "Vanessa Lee",
+        "body": "makes me lowk uncomfortable, might just be me tho seems chill",
+        "created_at": "2026-01-29T02:20:34.328218+00:00"
+      },
+      {
+        "id": 73,
+        "author_uniqname": "amyllee",
+        "author_name": "Amy Lee",
+        "body": "COFFEE CHAT: We got matcha from the CSA fundraiser and chatted in UGLI! Really nice and good conversationalist.",
+        "created_at": "2026-01-28T04:50:08.815397+00:00"
+      }
+    ],
+    "note": "INFO 2Rushing againWasn't awkward at all talking to him againHOT COCOA..."
+  }
+]

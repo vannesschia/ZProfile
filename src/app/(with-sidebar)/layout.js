@@ -43,40 +43,20 @@ export default async function WithNavbarLayout({ children }) {
     console.error("Error fetching member:", memberError?.message);
   }
 
-  // Check if user has attended a rush event
-  // Admins always have access, but we still check for non-admins
-  const isAdmin = member?.admin === true;
-  
-  let hasAttendedRushEvent = false;
-  
-  // Admins always have access, but we still check attendance for consistency
-  // For non-admins, we need to check if they attended a rush event
-  if (!isAdmin) {
-    const { data: rushEvents, error: rushEventsError } = await supabase
-      .from('event_attendance')
-      .select(`
-        events!inner (
-          event_type
-        )
-      `)
-      .eq('uniqname', uniqname)
-      .eq('events.event_type', 'rush_event')
-      .limit(1);
+  // Rush directory: visible only to admins or (non-pledges who attended one rush event this semester)
+  const { getRushDirectoryAccess } = await import('@/app/(with-sidebar)/rush-directory/_lib/rush-access');
+  const { showInSidebar: hasAttendedRushEvent } = await getRushDirectoryAccess(supabase, uniqname);
 
-    if (!rushEventsError && rushEvents && rushEvents.length > 0) {
-      hasAttendedRushEvent = true;
-    }
-  } else {
-    // Admins always have access
-    hasAttendedRushEvent = true;
-  }
+  // Archive: visible only to hardcoded allowlist (not admins by default)
+  const { canAccessArchive } = await import('@/app/(with-sidebar)/archive/_lib/allowlist');
+  const showArchive = canAccessArchive(uniqname);
 
   // Ensure member object has admin property explicitly set
   const memberForSidebar = member || { admin: false, name: null, email_address: null, profile_picture_url: null };
   
   return (
       <SidebarProvider>
-        <AppSidebar user={ memberForSidebar } hasAttendedRushEvent={ hasAttendedRushEvent }/>
+        <AppSidebar user={ memberForSidebar } hasAttendedRushEvent={ hasAttendedRushEvent } showArchive={ showArchive }/>
         <SidebarInset>
           <header className="flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
             <div className="flex flex-row items-center gap-2">

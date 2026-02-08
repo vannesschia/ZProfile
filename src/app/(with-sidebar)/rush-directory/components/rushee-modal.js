@@ -41,6 +41,7 @@ export default function RusheeModal({
   uniqname,
   isAdmin,
   anonymousMode = false,
+  archiveMode = false,
   comments,
   notes,
   likeCount,
@@ -60,6 +61,7 @@ export default function RusheeModal({
   const timerRef = useRef(null);
 
   const changeLikelihood = (color) => {
+    if (archiveMode) return;
     setLikelihoods(prev => {
       const newLikelihoods = new Map(prev);
       newLikelihoods.set(rushee.id, color);
@@ -174,7 +176,7 @@ export default function RusheeModal({
               </Button>
               {isPhotoEnlarged && (
                 <div className="absolute top-0 left-0 p-2 bg-black/50 backdrop-blur-sm rounded-br-lg">
-                  {isAdmin ? (
+                  {isAdmin && !archiveMode ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -215,7 +217,7 @@ export default function RusheeModal({
               <>
                 <div className="flex flex-col flex-1 text-left text-sm justify-between">
                   <div className="flex flex-row gap-2">
-                    {isAdmin ? (
+                    {isAdmin && !archiveMode ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -249,7 +251,7 @@ export default function RusheeModal({
                     )
                     }
                     <div className="flex ml-auto items-center gap-2">
-                      {isAdmin && (
+                      {isAdmin && !archiveMode && (
                         <>
                           {rushee.cut_status === 'active' && (
                             <Button
@@ -346,6 +348,7 @@ export default function RusheeModal({
               uniqname={uniqname}
               isAdmin={isAdmin}
               anonymousMode={anonymousMode}
+              archiveMode={archiveMode}
               comments={comments}
               onUpdate={onUpdate}
             />
@@ -357,6 +360,7 @@ export default function RusheeModal({
           key={rushee.id}
           rushee={rushee}
           isAdmin={isAdmin}
+          archiveMode={archiveMode}
           notes={notes}
           onUpdate={onUpdate}
           fontSize={fontSize}

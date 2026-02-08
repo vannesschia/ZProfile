@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import RusheeCard from "@/app/components/RusheeCard";
-import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX } from "lucide-react";
+import { Book, BookOpenText, GraduationCap, ListFilter, Plus, School, Search, XIcon, Star, Check, X, Medal, ThumbsUp, ThumbsDown, ArrowUpDown, MessageCircle, TrendingUp, UserX, Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import handleMajorMinorSearch from "@/app/components/majors-api";
 import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
@@ -27,6 +27,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Popover,
@@ -38,12 +39,13 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
 import ImportMembersModal from "./components/csv-upload-modal";
+import { htmlToReadableText } from "./_util/utils";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
-export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set() }) {
+export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set(), archiveMode = false }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
@@ -88,6 +90,75 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const handleUpdate = () => {
     // Refresh server data to get updated counts and user reactions
     router.refresh();
+  };
+
+  const buildExportData = () => {
+    return safeRushees.map(rushee => {
+      const rusheeComments = (comments || []).filter(c => c.rushee_id === rushee.id && !c.deleted_at);
+      const noteBody = (notes || []).find(n => n.rushee_id === rushee.id)?.body ?? "";
+      return {
+        ...rushee,
+        comments: rusheeComments.map(({ id, author_uniqname, author_name, body, created_at }) => ({
+          id,
+          author_uniqname,
+          author_name,
+          body: htmlToReadableText(body),
+          created_at,
+        })),
+        note: htmlToReadableText(noteBody),
+      };
+    });
+  };
+
+  const handleExport = (format) => {
+    const data = buildExportData();
+    const timestamp = new Date().toISOString().slice(0, 10);
+    if (format === "json") {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rush-directory-export-${timestamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      if (data.length === 0) {
+        toast.error("No data to export.");
+        return;
+      }
+      const headers = ["name", "email_address", "cut_status", "likelihood", "major", "minor", "grade", "graduation_year", "note", "comments"];
+      const rows = data.map(row => {
+        const commentsStr = (row.comments || [])
+          .map(c => {
+            const date = c.created_at ? new Date(c.created_at).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : "";
+            return `[${c.author_name || "Unknown"}${date ? ` - ${date}` : ""}]\n${(c.body || "").trim()}`;
+          })
+          .join("\n\n");
+        const noteStr = (row.note ?? "").trim();
+        return [
+          row.name ?? "",
+          row.email_address ?? "",
+          row.cut_status ?? "",
+          row.likelihood ?? "",
+          Array.isArray(row.major) ? row.major.join("; ") : (row.major ?? ""),
+          Array.isArray(row.minor) ? row.minor.join("; ") : (row.minor ?? ""),
+          row.grade ?? "",
+          row.graduation_year ?? "",
+          noteStr,
+          commentsStr,
+        ];
+      });
+      const escapeCsvCell = (cell) => `"${String(cell).replace(/"/g, '""')}"`;
+      const csvContent = [headers.join(","), ...rows.map(r => r.map(escapeCsvCell).join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rush-directory-export-${timestamp}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    toast.success(`Exported as ${format.toUpperCase()}`);
   };
 
   const handleToggleSelectionMode = (mode) => {
@@ -389,12 +460,14 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        {!archiveMode && (
         <Card className="flex flex-row gap-2 shadow-none w-fit h-full pt-2 px-3 pb-2 text-sm items-center rounded-md">
           <Star className="h-[1em] w-[1em] fill-current text-yellow-500" /><p className="leading-tight">Remaining Stars: {3 - userStarCount || 0}</p>
         </Card>
+        )}
       </div>
       <div>
-        {isAdmin && (
+        {isAdmin && !archiveMode && (
           <div className="flex gap-2 mb-4 w-full flex-wrap">
             <Button
               variant={selectionMode === "cut" ? "default" : "outline"}
@@ -444,6 +517,23 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
                 Import New Class
               </Link>
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-1.5">
+                  <Download className="h-4 w-4" />
+                  Export data
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport("json")}>
+                  Download as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("csv")}>
+                  Download as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="outline"
               className={`gap-1.5 ${anonymousMode ? "bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 dark:hover:text-black" : ""}`}
@@ -630,6 +720,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             uniqname={uniqname}
             isAdmin={isAdmin}
             anonymousMode={anonymousMode}
+            archiveMode={archiveMode}
             comments={comments.filter(c => c.rushee_id === selectedRushee.id)}
             notes={notes.find(n => n.rushee_id === selectedRushee.id)?.body || ""}
             likeCount={selectedRushee.like_count}
@@ -672,6 +763,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
             selectionMode={selectionMode}
             likelihood={likelihoods.get(rushee.id) || "green"}
             commentCount={commentCounts.get(rushee.id) || 0}
+            archiveMode={archiveMode}
           />
         ))}
       </div>
