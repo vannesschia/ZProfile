@@ -1,8 +1,6 @@
 "use client"
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { toast } from "sonner"
-import { getBrowserClient } from "@/lib/supbaseClient"
 import { ProgressTabAdmin } from "@/app/components/progress-block"
 import { PledgeOverviewAdminTable } from "@/app/(with-sidebar)/admin/dashboard/_components/pledge/data-table"
 import { BrotherOverviewAdminTable } from "@/app/(with-sidebar)/admin/dashboard/_components/brother/data-table"
@@ -36,26 +34,8 @@ export default function AdminViewTable({
   studyTableAttendance,
   brotherView,
   brotherRequirement,
-  brotherRushAttendanceCounts = {},
-  requirementOverrides = {},
+  brotherRushAttendanceCounts = {}
 }) {
-  const supabase = getBrowserClient()
-  const [ccOverrides, setCCOverrides] = useState(requirementOverrides)
-
-  const onUpdateCCRequired = useCallback(async (uniqname, acquired, newStillNeeds, currentMilestoneCC, unexcusedAbsences = 0) => {
-    const newEffectiveRequired = acquired + Math.max(0, Math.floor(Number(newStillNeeds)))
-    const offset = newEffectiveRequired - Number(currentMilestoneCC) - 3 * Number(unexcusedAbsences)
-    try {
-      const { error } = await supabase
-        .from("pledge_coffee_chat_requirement")
-        .upsert({ uniqname, required_offset: offset }, { onConflict: "uniqname" })
-      if (error) throw error
-      setCCOverrides((prev) => ({ ...prev, [uniqname]: offset }))
-      toast.success("Coffee chat requirement updated for all milestones.")
-    } catch (err) {
-      toast.error(err?.message || "Failed to update requirement.")
-    }
-  }, [supabase])
   // General Tabs Logic
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -374,8 +354,6 @@ export default function AdminViewTable({
             data={filteredProgress}
             milestones={milestones}
             currentMilestone={currentMilestone}
-            ccOverrides={ccOverrides}
-            onUpdateCCRequired={onUpdateCCRequired}
           />
         </div>
       </TabsContent>

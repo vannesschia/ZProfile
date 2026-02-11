@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 
-function effectiveCC(baseCC, ccOffset = 0, unexcusedAbsences = 0) {
-  return baseCC + Number(ccOffset) + 3 * Number(unexcusedAbsences);
-}
-
-export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommitteePoints, ccOffset = 0, unexcusedAbsences = 0 }) {
+export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommitteePoints }) {
   const [milestone, setMilestone] = useState(0);
   const keys = Object.keys(pledgeProgress);
 
@@ -17,8 +13,7 @@ export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommi
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       const currMilestone = pledgeProgress[key];
-      const ccRequired = effectiveCC(currMilestone.cc, ccOffset, unexcusedAbsences);
-      if(currMilestone.daysLeft < 0 && (numCoffeeChats < ccRequired || numCommitteePoints < currMilestone.cp)) {
+      if(currMilestone.daysLeft < 0 && (numCoffeeChats < currMilestone.cc || numCommitteePoints < currMilestone.cp)) {
         setMilestone(i);
         break;
       } else if(currMilestone.daysLeft >= 0) {
@@ -26,7 +21,7 @@ export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommi
         break;
       }
     }
-  }, [pledgeProgress, ccOffset, unexcusedAbsences]);
+  }, [pledgeProgress]);
 
   return (
     <>
@@ -62,13 +57,13 @@ export default function MilestoneTabs({ numCoffeeChats, pledgeProgress, numCommi
         </div>
 
         <div className="flex flex-row justify-between md:justify-normal md:gap-12 p-6">
-          <div className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && numCoffeeChats < effectiveCC(pledgeProgress[keys[milestone]].cc, ccOffset, unexcusedAbsences) ? "text-red-800" : "text-primary" } flex flex-col gap-4`}>
+          <div className={`${pledgeProgress[keys[milestone]].daysLeft < 0 && numCoffeeChats < pledgeProgress[keys[milestone]].cc ? "text-red-800" : "text-primary" } flex flex-col gap-4`}>
             <p className="not-first:text-sm tracking-tight leading-tight">Coffee Chats</p>
             <div className="flex flex-col gap-2 items-start">
               <div className="flex flex-row items-end">
                 <Coffee className="w-8 h-8 mr-2"/>
                 <p className={`font-medium text-3xl`}>{ numCoffeeChats }</p>
-                <p className="font-medium text-base text-muted-foreground">/{ effectiveCC(pledgeProgress[keys[milestone]].cc, ccOffset, unexcusedAbsences) }</p>
+                <p className="font-medium text-base text-muted-foreground">/{ pledgeProgress[keys[milestone]].cc }</p>
               </div>
             </div>
           </div>
