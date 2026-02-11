@@ -161,6 +161,41 @@ export async function getInvCommitteeEventCount(supabase) {
 }
 
 /**
+ * Fetch pledge-event-only absence counts per pledge.
+ * @param {object} supabase - The Supabase client.
+ * @returns {Promise<Record<string, { excused: number, unexcused: number }>>} - Map of uniqname to counts.
+ */
+export async function getPledgeEventAbsenceCounts(supabase) {
+  const { data, error } = await supabase
+    .from('event_absences')
+    .select('uniqname, absence_type, events!inner(event_type)')
+    .eq('events.event_type', 'pledge_event');
+
+  if (error) return {};
+
+  const map = {};
+  for (const row of data || []) {
+    if (!map[row.uniqname]) map[row.uniqname] = { excused: 0, unexcused: 0 };
+    if (row.absence_type === 'excused') map[row.uniqname].excused += 1;
+    else if (row.absence_type === 'unexcused') map[row.uniqname].unexcused += 1;
+  }
+  return map;
+}
+
+/**
+ * Fetch per-pledge coffee chat requirement overrides.
+ * @param {object} supabase - The Supabase client.
+ * @returns {Promise<Array>} - Rows with uniqname, required_offset.
+ */
+export async function getPledgeCoffeeChatRequirements(supabase) {
+  const { data, error } = await supabase
+    .from('pledge_coffee_chat_requirement')
+    .select('uniqname, required_offset');
+  if (error) return [];
+  return data || [];
+}
+
+/**
  * Fetch requirements for brothers.
  * @param {object} supabase - The Supabase client.
  * @returns {Promise<json>} - Values for last day of semester and point requirement count.

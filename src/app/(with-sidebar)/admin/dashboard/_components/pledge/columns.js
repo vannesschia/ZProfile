@@ -1,10 +1,77 @@
 "use client"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { Badge } from "@/components/ui/badge"
-import { XCircle, CheckCircle2, CircleDashed } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { XCircle, CheckCircle2, CircleDashed, Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
+
+function CoffeeChatsEditableCell({ acquired, stillNeeds, bg, onUpdate }) {
+  const [localNeeds, setLocalNeeds] = useState(stillNeeds)
+  const [isEditing, setIsEditing] = useState(false)
+  useEffect(() => { setLocalNeeds(stillNeeds); }, [stillNeeds])
+  const displayNeeds = isEditing ? localNeeds : stillNeeds
+
+  const apply = (val) => {
+    const n = Math.max(0, Math.floor(Number(val)))
+    setLocalNeeds(n)
+    onUpdate?.(n)
+  }
+
+  return (
+    <div className={cn("flex flex-row items-center gap-1 min-w-[180px]", bg, "rounded-md border px-2 py-1")}>
+      <span className="font-medium shrink-0">{acquired}</span>
+      <span className="text-muted-foreground shrink-0">· need</span>
+      {isEditing ? (
+        <Input
+          type="number"
+          min={0}
+          value={localNeeds}
+          onChange={(e) => setLocalNeeds(Math.max(0, parseInt(e.target.value, 10) || 0))}
+          onBlur={() => { apply(localNeeds); setIsEditing(false); }}
+          onKeyDown={(e) => e.key === "Enter" && (apply(localNeeds), setIsEditing(false))}
+          className="h-7 w-12 text-center py-0 px-1 shrink-0"
+          autoFocus
+        />
+      ) : (
+        <div className="flex items-center gap-0.5 shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            onClick={() => apply(displayNeeds - 1)}
+            disabled={displayNeeds <= 0}
+            aria-label="Decrease"
+          >
+            <Minus className="h-3 w-3" />
+          </Button>
+          <button
+            type="button"
+            className="min-w-[1.5rem] font-medium text-center tabular-nums hover:underline"
+            onClick={() => setIsEditing(true)}
+            aria-label="Edit needs"
+          >
+            {displayNeeds}
+          </button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            onClick={() => apply(displayNeeds + 1)}
+            aria-label="Increase"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function getTargets(milestones, currentMilestone) {
   const map = {
@@ -21,7 +88,7 @@ function levelBg(value, target, status) {
   return "bg-red-50 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700"
 }
 
-export function getColumns({milestones, currentMilestone}) {
+export function getColumns({ milestones, currentMilestone, ccOverrides = {}, onUpdateCCRequired }) {
   const { cc, cp } = getTargets(milestones, currentMilestone);
 
   function makeNeedsThenNameSorter({ cc, cp }) {
@@ -35,13 +102,17 @@ export function getColumns({milestones, currentMilestone}) {
       const needsCPA = aCP < cp
       const needsCPB = bCP < cp
 
-      // Coffee Chats (target = cc + extra_needed)
+      // Coffee Chats (target = cc + offset + 3*unexcused; offset applies to all milestones)
       const aCC = a.coffee_chats || {}
       const bCC = b.coffee_chats || {}
       const aCCAcq = Number(aCC.acquired ?? 0)
       const bCCAcq = Number(bCC.acquired ?? 0)
-      const needsCCA = aCCAcq < (cc + Number(aCC.extra_needed ?? 0))
-      const needsCCB = bCCAcq < (cc + Number(bCC.extra_needed ?? 0))
+      const aUnexcused = Number(a.unexcused_absences ?? 0)
+      const bUnexcused = Number(b.unexcused_absences ?? 0)
+      const aRequired = cc + (Number(ccOverrides[a.uniqname]) || 0) + 3 * aUnexcused
+      const bRequired = cc + (Number(ccOverrides[b.uniqname]) || 0) + 3 * bUnexcused
+      const needsCCA = aCCAcq < aRequired
+      const needsCCB = bCCAcq < bRequired
 
       // Priority: both unmet (2) > one unmet (1) > none (0)
       const prioA = (needsCPA ? 1 : 0) + (needsCCA ? 1 : 0)
@@ -84,18 +155,24 @@ export function getColumns({milestones, currentMilestone}) {
     {
       accessorKey: "coffee_chats",
       header: "Coffee Chats",
-      meta: { widthClass: "min-w-[100px]" },
+      meta: { widthClass: "min-w-[180px]" },
       cell: ({ row, getValue }) => {
         const value = getValue();
-        const bg = levelBg(value.acquired, cc + value.extra_needed, row.original.status)
+        const uniqname = row.original.uniqname;
+        const acquired = Number(value?.acquired ?? 0);
+        const unexcused = Number(row.original.unexcused_absences ?? 0);
+        const offset = Number(ccOverrides[uniqname]) || 0;
+        const effectiveRequired = cc + offset + 3 * unexcused;
+        const stillNeeds = Math.max(0, effectiveRequired - acquired);
+        const bg = levelBg(acquired, effectiveRequired, row.original.status);
         return (
-          <div className="flex flex-row gap-1 min-w-[150px] max-w-[150px]">
-            <span className={cn("inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full", bg)}>
-              {value.acquired}
-            </span>
-            {value.extra_needed > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{value.extra_needed}</span>}
-          </div>
-        )
+          <CoffeeChatsEditableCell
+            acquired={acquired}
+            stillNeeds={stillNeeds}
+            bg={bg}
+            onUpdate={(newStillNeeds) => onUpdateCCRequired?.(uniqname, acquired, newStillNeeds, cc, unexcused)}
+          />
+        );
       },
     },
     {

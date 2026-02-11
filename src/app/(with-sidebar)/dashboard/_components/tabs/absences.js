@@ -5,7 +5,8 @@ import { getServerClient } from "@/lib/supabaseServer";
 
 export default async function Absences({ uniqname, role }) {
   const supabase = await getServerClient();
-  const absences = await getAbsenceCounts(uniqname, supabase);
+  const eventType = role?.role === 'pledge' ? 'pledge_event' : null;
+  const absences = await getAbsenceCounts(uniqname, supabase, eventType ? { eventType } : {});
   
   return (
     <ProgressTab title={"Absences"} className="md:max-w-[20rem]">

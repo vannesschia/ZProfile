@@ -5,28 +5,31 @@
 /**
  * Returns the count of excused and unexcused absences for a user.
  * @param {string} uniqname - The user's uniqname.
+ * @param {object} supabase - Supabase client.
+ * @param {object} options - { eventType: 'pledge_event' } to only count pledge-event absences.
  * @returns {Promise<Object>} - Object with excused and unexcused absence counts.
  */
-export async function getAbsenceCounts(uniqname, supabase) {
-  // Excused count
-  const { count: excusedCount, error: eErr } = await supabase
-    .from('event_absences')
-    .select('*', { head: true, count: 'exact' })
-    .eq('uniqname', uniqname)
-    .eq('absence_type', 'excused');
-  if (eErr) throw eErr;
+export async function getAbsenceCounts(uniqname, supabase, options = {}) {
+  const { eventType } = options;
 
-  // Unexcused count
-  const { count: unexcusedCount, error: uErr } = await supabase
+  const { data: rows, error } = await supabase
     .from('event_absences')
-    .select('*', { head: true, count: 'exact' })
-    .eq('uniqname', uniqname)
-    .eq('absence_type', 'unexcused');
-  if (uErr) throw uErr;
+    .select('absence_type, events!inner(event_type)')
+    .eq('uniqname', uniqname);
+
+  if (error) throw error;
+
+  let filtered = rows || [];
+  if (eventType) {
+    filtered = filtered.filter((r) => r.events?.event_type === eventType);
+  }
+
+  const excusedCount = filtered.filter((r) => r.absence_type === 'excused').length;
+  const unexcusedCount = filtered.filter((r) => r.absence_type === 'unexcused').length;
 
   return {
-    excused: excusedCount || 0,
-    unexcused: unexcusedCount || 0,
+    excused: excusedCount,
+    unexcused: unexcusedCount,
   };
 }
 
@@ -98,6 +101,22 @@ export async function getCoffeeChatsCount(uniqname, supabase) {
   const {data, error} = await supabase.rpc('get_approved_coffee_chat_count', {uniqname: uniqname});
   if (error) throw error;
   return data;
+}
+
+/**
+ * Returns the pledge's coffee chat requirement offset (admin-set adjustment for all milestones).
+ * @param {string} uniqname - The pledge's uniqname.
+ * @param {object} supabase - Supabase client.
+ * @returns {Promise<number>} - Offset (0 if no row).
+ */
+export async function getPledgeCoffeeChatOffset(uniqname, supabase) {
+  const { data, error } = await supabase
+    .from('pledge_coffee_chat_requirement')
+    .select('required_offset')
+    .eq('uniqname', uniqname)
+    .maybeSingle();
+  if (error) return 0;
+  return Number(data?.required_offset ?? 0);
 }
 
 // ****************************************************************************
