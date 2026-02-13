@@ -1,8 +1,16 @@
 "use client"
 import dynamic from "next/dynamic"
 import { Badge } from "@/components/ui/badge"
-import { XCircle, CheckCircle2, CircleDashed } from "lucide-react"
+import { XCircle, CheckCircle2, CircleDashed, Ellipsis } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { CoffeeChatOffsetDialog } from "./coffee-chat-offset-dialog"
+import { useState } from "react"
 
 const EventsModal = dynamic(() => import("../events-modal"), { ssr: false })
 
@@ -35,13 +43,15 @@ export function getColumns({milestones, currentMilestone}) {
       const needsCPA = aCP < cp
       const needsCPB = bCP < cp
 
-      // Coffee Chats (target = cc + extra_needed)
+      // Coffee Chats (target = cc + extra_needed + coffee_chat_offset)
       const aCC = a.coffee_chats || {}
       const bCC = b.coffee_chats || {}
       const aCCAcq = Number(aCC.acquired ?? 0)
       const bCCAcq = Number(bCC.acquired ?? 0)
-      const needsCCA = aCCAcq < (cc + Number(aCC.extra_needed ?? 0))
-      const needsCCB = bCCAcq < (cc + Number(bCC.extra_needed ?? 0))
+      const aExtraNeeded = Number(aCC.extra_needed ?? 0) + Number(a.coffee_chat_offset ?? 0)
+      const bExtraNeeded = Number(bCC.extra_needed ?? 0) + Number(b.coffee_chat_offset ?? 0)
+      const needsCCA = aCCAcq < (cc + aExtraNeeded)
+      const needsCCB = bCCAcq < (cc + bExtraNeeded)
 
       // Priority: both unmet (2) > one unmet (1) > none (0)
       const prioA = (needsCPA ? 1 : 0) + (needsCCA ? 1 : 0)
@@ -87,13 +97,15 @@ export function getColumns({milestones, currentMilestone}) {
       meta: { widthClass: "min-w-[100px]" },
       cell: ({ row, getValue }) => {
         const value = getValue();
-        const bg = levelBg(value.acquired, cc + value.extra_needed, row.original.status)
+        const coffeeChatOffset = Number(row.original.coffee_chat_offset ?? 0);
+        const totalExtraNeeded = Number(value.extra_needed ?? 0) + coffeeChatOffset;
+        const bg = levelBg(value.acquired, cc + totalExtraNeeded, row.original.status)
         return (
           <div className="flex flex-row gap-1 min-w-[150px] max-w-[150px]">
             <span className={cn("inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full", bg)}>
               {value.acquired}
             </span>
-            {value.extra_needed > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{value.extra_needed}</span>}
+            {totalExtraNeeded > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{totalExtraNeeded}</span>}
           </div>
         )
       },
@@ -140,5 +152,73 @@ export function getColumns({milestones, currentMilestone}) {
         }
       },
     },
+    {
+      id: "actions",
+      header: "",
+      meta: { widthClass: "min-w-[50px]" },
+      cell: ({ row }) => {
+        return <PledgeActionsCell pledge={row.original} />
+      },
+    },
   ]
+}
+
+function PledgeActionsCell({ pledge }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleMenuItemClick = (e) => {
+    e.preventDefault();
+    setDropdownOpen(false);
+    // Use requestAnimationFrame to ensure dropdown closes before dialog opens
+    requestAnimationFrame(() => {
+      setDialogOpen(true);
+    });
+  };
+
+  const handleDialogClose = (open) => {
+    setDialogOpen(open);
+    if (!open) {
+      // Ensure dropdown is closed when dialog closes
+      setDropdownOpen(false);
+    }
+  };
+
+  return (
+    <>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <button 
+            className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent"
+            onClick={(e) => {
+              // Prevent event bubbling
+              e.stopPropagation();
+            }}
+          >
+            <Ellipsis className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onInteractOutside={(e) => {
+            // Allow closing when clicking outside
+            setDropdownOpen(false);
+          }}
+        >
+          <DropdownMenuItem 
+            onSelect={handleMenuItemClick}
+          >
+            Manage Coffee Chat Requirement
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <CoffeeChatOffsetDialog
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+        pledge={pledge}
+      />
+    </>
+  );
 }

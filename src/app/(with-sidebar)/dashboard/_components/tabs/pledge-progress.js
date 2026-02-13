@@ -9,10 +9,24 @@ export default async function PledgeProgress({ uniqname }) {
   const numCommitteePoints = await getCommitteePointCount(uniqname, supabase);
   const pledgeProgressCounts = await getPledgeProgressCounts(uniqname, supabase);
   const numCoffeeChats = await getCoffeeChatsCount(uniqname, supabase);
+  
+  // Fetch coffee_chat_offset from members table
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('coffee_chat_offset')
+    .eq('uniqname', uniqname)
+    .single();
+  
+  const coffeeChatOffset = memberData?.coffee_chat_offset ?? 0;
 
   return (
     <>
-      <MilestoneTabs pledgeProgress={pledgeProgressCounts} numCoffeeChats={numCoffeeChats} numCommitteePoints={numCommitteePoints}/>
+      <MilestoneTabs 
+        pledgeProgress={pledgeProgressCounts} 
+        numCoffeeChats={numCoffeeChats} 
+        numCommitteePoints={numCommitteePoints}
+        coffeeChatOffset={coffeeChatOffset}
+      />
     </>
   )
 }

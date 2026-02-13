@@ -8,11 +8,51 @@
  * @returns {Promise<table>} - Pledge table information.
  */
 export async function getPledgeAdminView(supabase) {
-  const { data, error } = await supabase
+  // First, get the pledge view data
+  const { data: viewData, error: viewError } = await supabase
     .from('pledge_admin_view')
     .select('*');
-  if (error) console.error(error);
-  return data;
+  
+  if (viewError) {
+    console.error(viewError);
+    return [];
+  }
+
+  if (!viewData || viewData.length === 0) {
+    return [];
+  }
+
+  // Get coffee_chat_offset from members table for all pledges
+  const uniqnames = viewData.map(row => row.uniqname).filter(Boolean);
+  
+  if (uniqnames.length === 0) {
+    return viewData;
+  }
+
+  const { data: membersData, error: membersError } = await supabase
+    .from('members')
+    .select('uniqname, coffee_chat_offset')
+    .in('uniqname', uniqnames);
+
+  if (membersError) {
+    console.error(membersError);
+    // Return view data without coffee_chat_offset if fetch fails
+    return viewData.map(row => ({ ...row, coffee_chat_offset: 0 }));
+  }
+
+  // Create a map of uniqname to coffee_chat_offset
+  const offsetMap = new Map();
+  if (membersData) {
+    membersData.forEach(member => {
+      offsetMap.set(member.uniqname, member.coffee_chat_offset ?? 0);
+    });
+  }
+
+  // Merge coffee_chat_offset into view data
+  return viewData.map(row => ({
+    ...row,
+    coffee_chat_offset: offsetMap.get(row.uniqname) ?? 0
+  }));
 }
 
 /**
