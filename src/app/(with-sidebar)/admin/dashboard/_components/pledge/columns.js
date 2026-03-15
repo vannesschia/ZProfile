@@ -48,8 +48,8 @@ export function getColumns({milestones, currentMilestone}) {
       const bCC = b.coffee_chats || {}
       const aCCAcq = Number(aCC.acquired ?? 0)
       const bCCAcq = Number(bCC.acquired ?? 0)
-      const aExtraNeeded = Number(aCC.extra_needed ?? 0) + Number(a.coffee_chat_offset ?? 0)
-      const bExtraNeeded = Number(bCC.extra_needed ?? 0) + Number(b.coffee_chat_offset ?? 0)
+      const aExtraNeeded = Number(aCC.extra_needed ?? 0)
+      const bExtraNeeded = Number(bCC.extra_needed ?? 0)
       const needsCCA = aCCAcq < (cc + aExtraNeeded)
       const needsCCB = bCCAcq < (cc + bExtraNeeded)
 
@@ -97,15 +97,34 @@ export function getColumns({milestones, currentMilestone}) {
       meta: { widthClass: "min-w-[100px]" },
       cell: ({ row, getValue }) => {
         const value = getValue();
-        const coffeeChatOffset = Number(row.original.coffee_chat_offset ?? 0);
-        const totalExtraNeeded = Number(value.extra_needed ?? 0) + coffeeChatOffset;
-        const bg = levelBg(value.acquired, cc + totalExtraNeeded, row.original.status)
+        const bg = levelBg(value.acquired, cc, row.original.status)
+        const acquired = Number(value.acquired ?? 0);
+        const extraNeeded = Number(value.extra_needed ?? 0);
+        const segmentStart = cc;
+        const segmentEnd = cc + extraNeeded;
+        const clampedAcquired = Math.min(Math.max(acquired, segmentStart), segmentEnd);
+        const progressPct = extraNeeded > 0 ? ((clampedAcquired - segmentStart) / extraNeeded) * 100 : 0;
         return (
           <div className="flex flex-row gap-1 min-w-[150px] max-w-[150px]">
             <span className={cn("inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[100px] w-full", bg)}>
               {value.acquired}
             </span>
-            {totalExtraNeeded > 0 && <span className="inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]"> +{totalExtraNeeded}</span>}
+            {value.extra_needed > 0 && 
+              <span 
+                className={cn(
+                  "inline-block rounded-md border px-2 py-1 font-medium text-center min-w-[50px]",
+                  progressPct >= 100
+                    ? "bg-green-50 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
+                    : "bg-neutral-50 text-neutral-800 border-neutral-200 dark:bg-neutral-900 dark:text-neutral-200 dark:border-neutral-700"
+                )}
+                style={
+                  extraNeeded > 0 && progressPct < 100
+                    ? {
+                        backgroundImage: `linear-gradient(to right, rgba(115,115,115,0.35) 0%, rgba(115,115,115,0.35) ${progressPct}%, transparent ${progressPct}%, transparent 100%)`,
+                      }
+                    : undefined
+                }
+              > +{value.extra_needed}</span>}
           </div>
         )
       },

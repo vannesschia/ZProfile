@@ -23,6 +23,33 @@ import { formatMonthDayNumeric, capitalizeFirstLetter } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+const MILESTONE_CONFIG = {
+  "1": { cc: "first_milestone_cc", cp: "first_milestone_cp", due: "first_milestone_due_date", statusKey: "first_status" },
+  "2": { cc: "second_milestone_cc", cp: "second_milestone_cp", due: "second_milestone_due_date", statusKey: "second_status" },
+  "3": { cc: "final_milestone_cc", cp: "final_milestone_cp", due: "final_milestone_due_date", statusKey: "final_status" },
+}
+
+function getDefaultMilestone(milestones) {
+  if (!milestones) return "1"
+
+  const today = new Date()
+  const milestonesWithDates = Object.entries(MILESTONE_CONFIG)
+    .map(([id, cfg]) => {
+      const raw = milestones[cfg.due]
+      const date = raw ? new Date(raw) : null
+      return { id, date }
+    })
+    .filter((m) => m.date instanceof Date && !Number.isNaN(m.date.getTime()))
+    .sort((a, b) => a.date - b.date)
+
+  if (!milestonesWithDates.length) return "1"
+
+  const upcoming = milestonesWithDates.find((m) => m.date >= today)
+  if (upcoming) return upcoming.id
+
+  return milestonesWithDates[milestonesWithDates.length - 1].id
+}
+
 export default function AdminViewTable({
   milestones,
   pledgeProgress,
@@ -52,16 +79,11 @@ export default function AdminViewTable({
   }, [searchParams]);
 
   // Pledge States
-  const [currentMilestone, setcurrentMilestone] = useState("1")
+  const [currentMilestone, setcurrentMilestone] = useState(() => getDefaultMilestone(milestones))
   const [search, setSearch] = useState("")
 
   const stats = useMemo(() => {
-    const keyMap = {
-      "1": { cc: "first_milestone_cc", cp: "first_milestone_cp", due: "first_milestone_due_date", statusKey: "first_status" },
-      "2": { cc: "second_milestone_cc", cp: "second_milestone_cp", due: "second_milestone_due_date", statusKey: "second_status" },
-      "3": { cc: "final_milestone_cc", cp: "final_milestone_cp", due: "final_milestone_due_date", statusKey: "final_status" },
-    };
-    const { cc, cp, due, statusKey } = keyMap[currentMilestone];
+    const { cc, cp, due, statusKey } = MILESTONE_CONFIG[currentMilestone];
     const coffeeChats = Number(milestones[cc]);
     const committeePoints = Number(milestones[cp]);
     const dueBy = formatMonthDayNumeric(milestones[due]);
