@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import searchCourses from "./search-courses";
+import { useState, useEffect } from "react";
+import searchCourses from "../_lib/queries";
 import CourseResults from "./course-results";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ListFilter, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { termCodeToWords } from "./term-functions";
+import { termCodeToWords } from "../_util/term-functions";
 import { Input } from "@/components/ui/input";
 
 export default function CourseSearch() {

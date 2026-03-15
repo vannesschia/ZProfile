@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { GalleryVerticalEnd } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { Button } from "../components/ui/button";
 

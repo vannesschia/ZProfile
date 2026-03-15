@@ -1,5 +1,5 @@
 import { getServerClient } from "@/lib/supabaseServer";
-import { RequirementsForm } from "./form";
+import { RequirementsForm } from "./_components/form";
 
 export default async function RequirementsFormPage() {
   const supabase = await getServerClient();

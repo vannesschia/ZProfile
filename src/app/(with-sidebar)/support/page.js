@@ -1,4 +1,4 @@
-import BugReportForm from "@/app/components/bug-report/bug-report-form";
+import BugReportForm from "./_components/bug-report-form";
 import { getServerClient } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";

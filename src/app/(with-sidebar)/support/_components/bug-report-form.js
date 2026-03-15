@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from "react-hook-form";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form"
 import { Button } from "@/components/ui/button";
 import { Loader2Icon } from "lucide-react";
-import handleIssuePost from "./issues-api";
+import handleIssuePost from "../_lib/queries";
 
 const formSchema = z.object({
   title: z.string().min(1),

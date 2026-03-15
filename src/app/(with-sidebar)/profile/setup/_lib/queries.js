@@ -1,4 +1,4 @@
-import { wordsToTermCode } from "../(with-sidebar)/course-directory/term-functions";
+import { wordsToTermCode } from "@/app/(with-sidebar)/course-directory/_util/term-functions";
 
 export default async function handleCourseSearch(term, input) {
   input = input.trim().toLowerCase().replace(/\s+/g, " ");

@@ -1,6 +1,5 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
-import { MyForm } from "@/app/components/profileForm";
 import {
   Card,
   CardAction,
@@ -10,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { termCodeToWords } from "../../course-directory/term-functions";
+import { ProfileForm } from "./_components/profile-form";
+import { termCodeToWords } from "../../course-directory/_util/term-functions";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +76,7 @@ export default async function ProfilePage() {
     <main className="p-0 sm:p-8">
       <h1 className="mb-6 text-2xl font-bold">Profile Setup</h1>
       <Card className="max-w-8xl">
-        {initialData ? <MyForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}
+        {initialData ? <ProfileForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}
       </Card>
     </main>
   );

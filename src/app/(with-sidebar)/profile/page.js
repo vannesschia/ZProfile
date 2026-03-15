@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import Link from "next/link";
-import { termCodeToWords } from "../course-directory/term-functions";
+import { termCodeToWords } from "../course-directory/_util/term-functions";
 import { FormatPhoneNumber } from "@/app/components/phone-number/format-phone-number";
 import { Button } from "@/components/ui/button";
 

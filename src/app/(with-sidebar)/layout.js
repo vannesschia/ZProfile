@@ -1,15 +1,10 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
   SidebarHeader
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import { AppSidebar } from "../components/app-sidebar";
 import { getServerClient } from "@/lib/supabaseServer";
 import DynamicBreadcrumb from "../components/DynamicBreadcrumb";
@@ -53,24 +48,24 @@ export default async function WithNavbarLayout({ children }) {
 
   // Ensure member object has admin property explicitly set
   const memberForSidebar = member || { admin: false, name: null, email_address: null, profile_picture_url: null };
-  
+
   return (
-      <SidebarProvider>
-        <AppSidebar user={ memberForSidebar } hasAttendedRushEvent={ hasAttendedRushEvent } showArchive={ showArchive }/>
-        <SidebarInset>
-          <header className="flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
-            <div className="flex flex-row items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4"
-              />
-              <DynamicBreadcrumb />
-            </div>
-            <ChangeThemeButton />
-          </header>
-          <main className="p-4">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
-    );
-  }
+    <SidebarProvider>
+      <AppSidebar user={memberForSidebar} hasAttendedRushEvent={hasAttendedRushEvent} showArchive={showArchive} />
+      <SidebarInset>
+        <header className="flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
+          <div className="flex flex-row items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <DynamicBreadcrumb />
+          </div>
+          <ChangeThemeButton />
+        </header>
+        <main className="p-4">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

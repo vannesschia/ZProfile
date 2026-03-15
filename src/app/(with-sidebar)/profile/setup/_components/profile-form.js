@@ -29,20 +29,20 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation";
-import { Trash, ListPlus, Loader2Icon } from "lucide-react";
-import { wordsToTermCode, isValidTerm } from "../(with-sidebar)/course-directory/term-functions";
+import { Trash, ListPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import MultiSelect from "./multiselect";
-import handleCourseSearch from "./classes-api";
 import { getBrowserClient } from "@/lib/supbaseClient";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import PhoneNumberInput from "./phone-number/phone-number";
 import Image from "next/image";
 import imageCompression from "browser-image-compression";
-import MajorMinorMultiSelect from "./MajorMinorMultiSelect.jsx";
-import handleMajorMinorSearch from "./majors-api.js";
-import ImageUpload from "./image-upload";
-import SubmitButton from "./submit-button";
+import { wordsToTermCode, isValidTerm } from "@/app/(with-sidebar)/course-directory/_util/term-functions";
+import SubmitButton from "@/app/components/submit-button";
+import ImageUpload from "@/app/components/image-upload";
+import handleMajorMinorSearch from "@/app/components/majors-api";
+import MajorMinorMultiSelect from "@/app/components/MajorMinorMultiSelect";
+import PhoneNumberInput from "@/app/components/phone-number/phone-number";
+import handleCourseSearch from "../_lib/queries";
+import MultiSelect from "@/app/components/multiselect";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name").transform((val) => val.trim()), //removes whitespace from name
@@ -61,7 +61,7 @@ const formSchema = z.object({
   )
 });
 
-export function MyForm({ initialData, userEmail }) {
+export function ProfileForm({ initialData, userEmail }) {
   const router = useRouter();
   const supabase = getBrowserClient();
 

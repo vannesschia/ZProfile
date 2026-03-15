@@ -1,4 +1,4 @@
-import CourseSearch from "@/app/(with-sidebar)/course-directory/course-search";
+import CourseSearch from "./_components/course-search";
 
 export const dynamic = "force-dynamic";
 

@@ -16,7 +16,7 @@ import {
 import {
   Input
 } from "@/components/ui/input"
-import { SelectDate } from "../events/_components/event-editor";
+import { SelectDate } from "../../events/_components/event-editor";
 import { useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { toast } from "sonner";

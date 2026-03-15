@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -16,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { termCodeToWords } from "./term-functions";
+import { termCodeToWords } from "../_util/term-functions";
 import { ChevronRight } from "lucide-react";
 
 export default function CourseResults({ results, query, filter }) {
