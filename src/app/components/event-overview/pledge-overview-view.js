@@ -13,7 +13,6 @@ export default function PledgeOverviewView({
   studyTable,
   adminView = false,
 }) {
-  console.log(coffeeChats);
   const router = useRouter();
   return (
     <div className="w-full bg-background border-2 border-secondary p-6 rounded-lg">

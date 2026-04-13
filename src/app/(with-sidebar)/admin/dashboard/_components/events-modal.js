@@ -6,8 +6,13 @@ import OverviewBrowser from "../../../../components/event-overview/overview-brow
 import PledgeOverviewBrowser from "../../../../components/event-overview/pledge-overview-browser"
 import { Eye } from "lucide-react"
 import { capitalizeFirstLetter } from "@/lib/utils"
+import PledgeProgressBrowser from "@/app/components/event-overview/tabs/pledge-progress-browser"
+import AbsencesBrowser from "@/app/components/event-overview/tabs/absences-browser"
+import ExtraTabBrowser from "@/app/components/event-overview/tabs/extra-tab-browser"
+import { getBrowserClient } from "@/lib/supbaseClient"
 
 export default function EventsModalClient({ role = "pledge", uniqname, name }) {
+  const supabase = getBrowserClient();
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -25,6 +30,11 @@ export default function EventsModalClient({ role = "pledge", uniqname, name }) {
               Viewing
             </span>
             <p className="text-2xl font-bold tracking-tight">{name}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-8 sm:gap-4 flex-wrap">
+            {role === "pledge" ? <PledgeProgressBrowser uniqname={uniqname}/> : null}
+            {role === "pledge" ? <ExtraTabBrowser uniqname={uniqname} memberRole={role} /> : null }
+            <AbsencesBrowser uniqname={uniqname} memberRole={role} />
           </div>
           {role === "pledge" ? <PledgeOverviewBrowser uniqname={uniqname} /> : null}
           <OverviewBrowser uniqname={uniqname} role={role} />

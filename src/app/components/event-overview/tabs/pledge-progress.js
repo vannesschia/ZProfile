@@ -1,11 +1,9 @@
 import { Laugh, Coffee, Badge, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCommitteePointCount, getPledgeProgressCounts, getCoffeeChatsCount } from "../../_lib/queries";
+import { getCommitteePointCount, getPledgeProgressCounts, getCoffeeChatsCount } from "../../../(with-sidebar)/dashboard/_lib/queries";
 import MilestoneTabs from "./milestone-tabs";
-import { getServerClient } from "@/lib/supabaseServer";
 
-export default async function PledgeProgress({ uniqname }) {
-  const supabase = await getServerClient();
+export default async function PledgeProgress({ uniqname, supabase }) {
   const numCommitteePoints = await getCommitteePointCount(uniqname, supabase);
   const pledgeProgressCounts = await getPledgeProgressCounts(uniqname, supabase);
   const numCoffeeChats = await getCoffeeChatsCount(uniqname, supabase);

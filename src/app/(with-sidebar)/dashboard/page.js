@@ -1,12 +1,11 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import AttendancePoints from "@/app/(with-sidebar)/dashboard/_components/tabs/attendance-points.js";
-import Absences from "@/app/(with-sidebar)/dashboard/_components/tabs/absences";
+import Absences from "@/app/components/event-overview/tabs/absences";
+import ExtraTab from "@/app/components/event-overview/tabs/extra-tab";
 import RushEvent from "@/app/(with-sidebar)/dashboard/_components/tabs/rush-event";
-import PledgeProgress from "@/app/(with-sidebar)/dashboard/_components/tabs/pledge-progress";
+import PledgeProgress from "@/app/components/event-overview/tabs/pledge-progress";
 import OverviewServer from "../../components/event-overview/overview-server";
 import PledgeOverviewServer from "../../components/event-overview/pledge-overview-server";
-import { nullable } from "zod";
-
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
@@ -27,10 +26,11 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col md:flex-row gap-4 overflow-x-auto">
-        {role.role == "pledge" ? <PledgeProgress uniqname={uniqname} /> : null}
+        {role.role == "pledge" ? <PledgeProgress uniqname={uniqname} supabase={supabase} /> : null}
         {role.role != "pledge" ? <AttendancePoints uniqname={uniqname} /> : null}
         {role.role != "pledge" ? <RushEvent uniqname={uniqname} /> : null}
-        <Absences uniqname={uniqname} role={role} />
+        {role.role == "pledge" ? <ExtraTab uniqname={uniqname} role={role} supabase={supabase} /> : null}
+        <Absences uniqname={uniqname} role={role} supabase={supabase} />
       </div>
       {role.role == "pledge" ? <PledgeOverviewServer uniqname={uniqname} /> : null}
       <OverviewServer uniqname={uniqname} role={role.role} />
