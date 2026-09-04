@@ -1,6 +1,7 @@
 import React from "react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,25 +34,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { getBrowserClient } from "@/lib/supbaseClient";
+import {
+  extractNameFromFilename,
+  matchImageToTargets,
+} from "../_util/utils";
 
 const supabase = getBrowserClient()
 
 const BUCKET = "rushee-profile-pictures";
 const TABLE = "rushees"
 
-function basenameNoExt(filename) {
-  const name = String(filename || "").trim();
-  const lastSlash = name.lastIndexOf("/");
-  const justName = lastSlash >= 0 ? name.slice(lastSlash + 1) : name;
-  const lastDot = justName.lastIndexOf(".");
-  return lastDot > 0 ? justName.slice(0, lastDot) : justName;
-}
-
 function extLower(filename) {
   const name = String(filename || "").trim();
   const lastDot = name.lastIndexOf(".");
   return lastDot >= 0 ? name.slice(lastDot + 1).toLowerCase() : "jpg";
+}
+
+// Stable identity for a File across re-renders.
+function fileKey(f) {
+  return `${f.name}__${f.size}__${f.lastModified}`;
 }
 
 // Parses strings like "{Computer Science}" or "{Cognitive Science, User Experience Design}"
@@ -90,12 +106,86 @@ function normalizeRow(raw) {
   };
 }
 
+// Searchable rushee picker for correcting/confirming a fuzzy image match.
+function RusheeCombobox({ value, targets, onChange, disabled }) {
+  const [open, setOpen] = React.useState(false);
+  const selected = targets.find((t) => t.uniqname === value) || null;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-[220px] justify-between font-normal"
+        >
+          <span className="truncate">
+            {selected ? `${selected.name} (${selected.uniqname})` : "Select rushee…"}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[280px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search rushee…" />
+          <CommandList>
+            <CommandEmpty>No rushee found.</CommandEmpty>
+            <CommandGroup>
+              {value && (
+                <CommandItem
+                  value="__unassign__"
+                  onSelect={() => {
+                    onChange(null);
+                    setOpen(false);
+                  }}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Unassign
+                </CommandItem>
+              )}
+              {targets.map((t) => (
+                <CommandItem
+                  key={t.uniqname}
+                  value={`${t.name} ${t.uniqname}`}
+                  onSelect={() => {
+                    onChange(t.uniqname);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${value === t.uniqname ? "opacity-100" : "opacity-0"}`}
+                  />
+                  <span className="truncate">
+                    {t.name}{" "}
+                    <span className="text-muted-foreground">({t.uniqname})</span>
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function ImportRusheesModal({ onImported }) {
   const [open, setOpen] = React.useState(false);
 
   const [imageFiles, setImageFiles] = React.useState([]);
   const [csvFile, setCsvFile] = React.useState(null);
   const [rows, setRows] = React.useState([]);
+
+  // Roster of existing rushees (fetched on open) used as fuzzy-match targets.
+  const [roster, setRoster] = React.useState(null);
+  const [rosterLoading, setRosterLoading] = React.useState(false);
+  const [rosterError, setRosterError] = React.useState(null);
+
+  // Per-image match state (parallel data, keyed by fileKey), user-editable.
+  const [matches, setMatches] = React.useState([]);
+  const matchesRef = React.useRef([]);
 
   const [globalErrors, setGlobalErrors] = React.useState([]);
   const [rowErrors, setRowErrors] = React.useState({});
@@ -104,20 +194,149 @@ export default function ImportRusheesModal({ onImported }) {
   const [isImporting, setIsImporting] = React.useState(false);
   const [summary, setSummary] = React.useState(null);
 
-  // Map images by uniqname using filename base (e.g., "vchia.jpg" -> "vchia")
+  React.useEffect(() => {
+    matchesRef.current = matches;
+  }, [matches]);
+
+  // Fetch the roster once the dialog is opened.
+  React.useEffect(() => {
+    if (!open || roster !== null) return;
+    let cancelled = false;
+    (async () => {
+      setRosterLoading(true);
+      setRosterError(null);
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select("uniqname, name");
+      if (cancelled) return;
+      if (error) {
+        setRosterError(error.message || "Failed to load rushees.");
+        setRoster([]);
+      } else {
+        setRoster(data || []);
+      }
+      setRosterLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, roster]);
+
+  // Match targets = existing rushees plus any new rushees from the CSV.
+  const matchTargets = React.useMemo(() => {
+    const map = new Map();
+    for (const t of roster || []) {
+      if (t?.uniqname) {
+        map.set(t.uniqname, { uniqname: t.uniqname, name: t.name || "" });
+      }
+    }
+    for (const r of rows) {
+      if (r?.uniqname && !map.has(r.uniqname)) {
+        map.set(r.uniqname, { uniqname: r.uniqname, name: r.name || "" });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      String(a.name).localeCompare(String(b.name))
+    );
+  }, [roster, rows]);
+
+  // (Re)build per-image matches whenever the files or targets change,
+  // preserving any assignments the user has manually edited.
+  React.useEffect(() => {
+    const prevByKey = new Map((matchesRef.current || []).map((m) => [m.key, m]));
+    const next = imageFiles.map((file) => {
+      const key = fileKey(file);
+      const prior = prevByKey.get(key);
+      if (prior && prior.userEdited) {
+        return { ...prior, file };
+      }
+      const res = matchImageToTargets(file.name, matchTargets);
+      return {
+        key,
+        file,
+        extractedName: extractNameFromFilename(file.name),
+        method: res.method,
+        uniqname: res.uniqname,
+        score: res.score,
+        confidence: res.confidence,
+        confirmed: res.confidence === "high" && !!res.uniqname,
+        userEdited: false,
+      };
+    });
+    setMatches(next);
+    matchesRef.current = next;
+  }, [imageFiles, matchTargets]);
+
+  function assignMatch(key, uniqname) {
+    setMatches((prev) =>
+      prev.map((m) =>
+        m.key === key
+          ? {
+              ...m,
+              uniqname,
+              confirmed: !!uniqname,
+              method: uniqname ? "manual" : "none",
+              userEdited: true,
+            }
+          : m
+      )
+    );
+  }
+
+  function acceptAllSuggestions() {
+    setMatches((prev) =>
+      prev.map((m) =>
+        m.uniqname && !m.confirmed
+          ? { ...m, confirmed: true, userEdited: true }
+          : m
+      )
+    );
+  }
+
+  // uniqname -> File for confirmed matches only.
   const imagesByUniqname = React.useMemo(() => {
     const m = new Map();
-    for (const f of imageFiles) {
-      const key = basenameNoExt(f.name);
-      if (key) m.set(key, f);
+    for (const mt of matches) {
+      if (mt.confirmed && mt.uniqname) m.set(mt.uniqname, mt.file);
     }
     return m;
-  }, [imageFiles]);
+  }, [matches]);
+
+  // uniqnames that more than one confirmed image points at (last-wins on import).
+  const duplicateUniqnames = React.useMemo(() => {
+    const count = new Map();
+    for (const mt of matches) {
+      if (mt.confirmed && mt.uniqname) {
+        count.set(mt.uniqname, (count.get(mt.uniqname) || 0) + 1);
+      }
+    }
+    return new Set(
+      Array.from(count.entries())
+        .filter(([, c]) => c > 1)
+        .map(([u]) => u)
+    );
+  }, [matches]);
+
+  const matchStats = React.useMemo(() => {
+    let confirmed = 0;
+    let needsReview = 0;
+    let unmatched = 0;
+    for (const m of matches) {
+      if (m.confirmed && m.uniqname) confirmed++;
+      else if (m.uniqname) needsReview++;
+      else unmatched++;
+    }
+    return { confirmed, needsReview, unmatched };
+  }, [matches]);
 
   function resetState() {
     setImageFiles([]);
     setCsvFile(null);
     setRows([]);
+    setMatches([]);
+    matchesRef.current = [];
+    setRoster(null);
+    setRosterError(null);
     setGlobalErrors([]);
     setRowErrors({});
     setProgress(0);
@@ -187,11 +406,10 @@ export default function ImportRusheesModal({ onImported }) {
   }
 
   const canImport = React.useMemo(() => {
-    // Allow import if there are CSV rows OR if there are images to process
-    if (!rows.length && imageFiles.length === 0) return false;
     if (globalErrors.length) return false;
-    return true;
-  }, [rows, globalErrors, imageFiles.length]);
+    if (rows.length > 0) return true; // CSV can be imported on its own
+    return matchStats.confirmed > 0; // image-only import needs ≥1 confirmed match
+  }, [rows.length, matchStats.confirmed, globalErrors]);
 
   async function runImport() {
     setIsImporting(true);
@@ -206,11 +424,11 @@ export default function ImportRusheesModal({ onImported }) {
     try {
       // Get all uniqnames from CSV rows (if any)
       const csvUniqnames = new Set(rows.map(r => r.uniqname));
-      
-      // Find images that match existing rushees not in CSV
+
+      // Confirmed image matches that point at rushees not in the CSV.
       const imageUniqnames = Array.from(imagesByUniqname.keys());
       const uniqnamesToCheck = imageUniqnames.filter(u => !csvUniqnames.has(u));
-      
+
       // Fetch existing rushees for images not in CSV (or all images if no CSV)
       let existingRushees = [];
       if (uniqnamesToCheck.length > 0) {
@@ -218,7 +436,7 @@ export default function ImportRusheesModal({ onImported }) {
           .from(TABLE)
           .select('uniqname')
           .in('uniqname', uniqnamesToCheck);
-        
+
         if (!error && data) {
           existingRushees = data.map(r => r.uniqname);
         }
@@ -226,10 +444,10 @@ export default function ImportRusheesModal({ onImported }) {
 
       // Total items to process: CSV rows + existing rushees with images
       const total = rows.length + existingRushees.length;
-      
+
       // If no rows and no existing rushees to update, nothing to do
       if (total === 0) {
-        setGlobalErrors((prev) => [...prev, "No matching rushees found for the uploaded images. Make sure image filenames match existing rushee uniqnames."]);
+        setGlobalErrors((prev) => [...prev, "No matching rushees found for the uploaded images. Confirm at least one image match before importing."]);
         setIsImporting(false);
         return;
       }
@@ -327,7 +545,7 @@ export default function ImportRusheesModal({ onImported }) {
         if (imgFile) {
           try {
             const profileUrl = await uploadImageAndGetPublicUrl(uniqname, imgFile);
-            
+
             // Update only the profile picture for existing rushees
             const { error } = await supabase
               .from(TABLE)
@@ -340,10 +558,9 @@ export default function ImportRusheesModal({ onImported }) {
             success++;
           } catch (e) {
             failed++;
-            const idx = rows.length + i;
             setRowErrors((prev) => ({
               ...prev,
-              [idx]: `Image update failed for ${uniqname}: ${e?.message || "Unknown error"}`,
+              [`img:${uniqname}`]: `Image update failed for ${uniqname}: ${e?.message || "Unknown error"}`,
             }));
           }
         }
@@ -351,9 +568,9 @@ export default function ImportRusheesModal({ onImported }) {
         setProgress(Math.round(((rows.length + i + 1) / total) * 100));
       }
 
-      setSummary({ 
-        total: rows.length || imagesProcessed, 
-        success, 
+      setSummary({
+        total: rows.length || imagesProcessed,
+        success,
         failed,
         imagesProcessed: imagesProcessed > 0 ? imagesProcessed : undefined,
         imageOnly: rows.length === 0 && imagesProcessed > 0
@@ -364,6 +581,23 @@ export default function ImportRusheesModal({ onImported }) {
     } finally {
       setIsImporting(false);
     }
+  }
+
+  function confidenceBadge(m) {
+    if (!m.uniqname) {
+      return <Badge className="bg-red-100 text-red-800">No match</Badge>;
+    }
+    if (m.method === "manual") {
+      return <Badge className="bg-blue-100 text-blue-900">Manual</Badge>;
+    }
+    if (m.method === "exact") {
+      return <Badge className="bg-green-100 text-green-800">Exact</Badge>;
+    }
+    const pct = Math.round((m.score || 0) * 100);
+    if (m.confidence === "high") {
+      return <Badge className="bg-green-100 text-green-800">Auto · {pct}%</Badge>;
+    }
+    return <Badge className="bg-yellow-100 text-yellow-900">Review · {pct}%</Badge>;
   }
 
   return (
@@ -393,7 +627,9 @@ export default function ImportRusheesModal({ onImported }) {
             <code>profile_picture_url</code>. <br />
             Duplicate uniqnames in CSV will update existing rushees with the last occurrence.{" "}
             You can also import just images without a CSV to update profile pictures for existing rushees.{" "}
-            Images should be named like <code>uniqname.jpg</code> to auto-match. Images can be added to existing rushees even if they&apos;re not in the CSV.
+            Images are auto-matched as long as the rushee&apos;s <b>full name appears in the
+            filename</b> (e.g. <code>IMG_1959 - Michael Vu.jpeg</code>); a filename that is just the{" "}
+            <code>uniqname.jpg</code> also works. Review and confirm matches before importing.
           </DialogDescription>
         </DialogHeader>
 
@@ -428,11 +664,14 @@ export default function ImportRusheesModal({ onImported }) {
                 className="sr-only"
               />
               <div className="text-xs text-muted-foreground">
-                Matching rule: <b>filename</b> must equal <code>uniqname</code>{" "}
-                (e.g. <code>amoomaw.png</code> → <code>amoomaw</code>).
+                Matched as long as the rushee&apos;s <b>full name is in the filename</b>{" "}
+                (<code>… - Amir Moomaw.png</code>); a bare <code>uniqname.png</code> works too.
               </div>
               <div className="text-xs">
                 Selected images: <b>{imageFiles.length}</b>
+                {rosterLoading && (
+                  <span className="text-muted-foreground"> · loading rushees…</span>
+                )}
               </div>
             </div>
 
@@ -487,12 +726,21 @@ export default function ImportRusheesModal({ onImported }) {
             </Alert>
           )}
 
-          {/* Preview */}
+          {rosterError && (
+            <Alert variant="destructive">
+              <AlertTitle>Could not load rushees for matching</AlertTitle>
+              <AlertDescription>{rosterError}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Preview + review */}
           {(rows.length > 0 || imageFiles.length > 0) && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">
-                  {rows.length > 0 ? `Preview (${rows.length} rows)` : `Images ready (${imageFiles.length} images)`}
+                  {rows.length > 0
+                    ? `CSV preview (${rows.length} rows)`
+                    : `Images ready (${imageFiles.length} images)`}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -510,28 +758,24 @@ export default function ImportRusheesModal({ onImported }) {
                 </div>
               </div>
 
-              <div className="rounded-md border w-full">
-                <ScrollArea className="h-[340px]">
-                  <Table className="overflow-auto">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-14">#</TableHead>
-                        <TableHead>uniqname</TableHead>
-                        {rows.length > 0 && (
-                          <>
-                            <TableHead>name</TableHead>
-                            <TableHead>major[]</TableHead>
-                            <TableHead>minor[]</TableHead>
-                            <TableHead>image match</TableHead>
-                          </>
-                        )}
-                        {rows.length === 0 && <TableHead>image file</TableHead>}
-                        <TableHead className="w-[240px] text-wrap">Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {rows.length > 0 ? (
-                        rows.map((r, idx) => {
+              {/* CSV rows table */}
+              {rows.length > 0 && (
+                <div className="rounded-md border w-full">
+                  <ScrollArea className="h-[240px]">
+                    <Table className="overflow-auto">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-14">#</TableHead>
+                          <TableHead>uniqname</TableHead>
+                          <TableHead>name</TableHead>
+                          <TableHead>major[]</TableHead>
+                          <TableHead>minor[]</TableHead>
+                          <TableHead>image match</TableHead>
+                          <TableHead className="w-[240px] text-wrap">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rows.map((r, idx) => {
                           const hasImg = imagesByUniqname.has(r.uniqname);
                           const err = rowErrors[idx];
 
@@ -548,12 +792,8 @@ export default function ImportRusheesModal({ onImported }) {
                               <TableCell className="text-muted-foreground">
                                 {r.minor.join(", ")}
                               </TableCell>
-                              <TableCell className="text-sm">
-                                {hasImg ? (
-                                  <span className="text-muted-foreground">Yes</span>
-                                ) : (
-                                  <span className="text-muted-foreground">No</span>
-                                )}
+                              <TableCell className="text-sm text-muted-foreground">
+                                {hasImg ? "Yes" : "No"}
                               </TableCell>
                               <TableCell className="text-sm">
                                 {err ? (
@@ -564,35 +804,113 @@ export default function ImportRusheesModal({ onImported }) {
                               </TableCell>
                             </TableRow>
                           );
-                        })
-                      ) : (
-                        Array.from(imagesByUniqname.entries()).map(([uniqname, file], idx) => {
-                          const err = rowErrors[idx];
+                        })}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </div>
+              )}
 
-                          return (
-                            <TableRow key={idx}>
-                              <TableCell className="text-muted-foreground">
-                                {idx + 1}
-                              </TableCell>
-                              <TableCell>{uniqname}</TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {file.name}
-                              </TableCell>
-                              <TableCell className="text-sm">
-                                {err ? (
-                                  <span className="text-destructive text-wrap">{err}</span>
-                                ) : (
-                                  <span className="text-muted-foreground">Ready</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
+              {/* Image matching review */}
+              {imageFiles.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-sm font-medium">
+                      Image matches ({imageFiles.length})
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-green-700">
+                        {matchStats.confirmed} confirmed
+                      </span>
+                      <span className="text-yellow-700">
+                        {matchStats.needsReview} to review
+                      </span>
+                      <span className="text-red-700">
+                        {matchStats.unmatched} unmatched
+                      </span>
+                      {matchStats.needsReview > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isImporting}
+                          onClick={acceptAllSuggestions}
+                        >
+                          Accept all suggestions
+                        </Button>
                       )}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </div>
+                    </div>
+                  </div>
+
+                  {matchStats.needsReview > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Lower-confidence matches must be confirmed (pick the rushee) or
+                      they will be skipped.
+                    </p>
+                  )}
+
+                  <div className="rounded-md border w-full">
+                    <ScrollArea className="h-[320px]">
+                      <Table className="overflow-auto">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-14">#</TableHead>
+                            <TableHead>file / detected name</TableHead>
+                            <TableHead>matched rushee</TableHead>
+                            <TableHead className="w-28">confidence</TableHead>
+                            <TableHead className="w-[200px]">status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {matches.map((m, idx) => {
+                            const err = rowErrors[`img:${m.uniqname}`];
+                            const isDup = m.uniqname && duplicateUniqnames.has(m.uniqname);
+                            return (
+                              <TableRow key={m.key}>
+                                <TableCell className="text-muted-foreground">
+                                  {idx + 1}
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  <div className="truncate max-w-[220px]" title={m.file.name}>
+                                    {m.file.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {m.extractedName || "—"}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <RusheeCombobox
+                                    value={m.uniqname}
+                                    targets={matchTargets}
+                                    disabled={isImporting || matchTargets.length === 0}
+                                    onChange={(u) => assignMatch(m.key, u)}
+                                  />
+                                </TableCell>
+                                <TableCell>{confidenceBadge(m)}</TableCell>
+                                <TableCell className="text-sm">
+                                  {err ? (
+                                    <span className="text-destructive text-wrap">{err}</span>
+                                  ) : isDup ? (
+                                    <span className="text-yellow-700">
+                                      Duplicate — another image also targets{" "}
+                                      {m.uniqname}
+                                    </span>
+                                  ) : m.confirmed && m.uniqname ? (
+                                    <span className="text-green-700">Will import</span>
+                                  ) : m.uniqname ? (
+                                    <span className="text-yellow-700">Needs confirmation</span>
+                                  ) : (
+                                    <span className="text-muted-foreground">Skipped</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
