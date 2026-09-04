@@ -630,9 +630,9 @@ export default function ImportRusheesModal({ onImported }) {
             <code>profile_picture_url</code>. <br />
             Duplicate uniqnames in CSV will update existing rushees with the last occurrence.{" "}
             You can also import just images without a CSV to update profile pictures for existing rushees.{" "}
-            Images are auto-matched to rushees by <b>filename</b>: either <code>uniqname.jpg</code>,{" "}
-            or a name in the filename like <code>IMG_1959 - Michael Vu.jpeg</code>. Review and
-            confirm matches before importing.
+            Images are auto-matched as long as the rushee&apos;s <b>full name appears in the
+            filename</b> (e.g. <code>IMG_1959 - Michael Vu.jpeg</code>); a filename that is just the{" "}
+            <code>uniqname.jpg</code> also works. Review and confirm matches before importing.
           </DialogDescription>
         </DialogHeader>
 
@@ -667,8 +667,8 @@ export default function ImportRusheesModal({ onImported }) {
                 className="sr-only"
               />
               <div className="text-xs text-muted-foreground">
-                Matched by <b>uniqname</b> (<code>amoomaw.png</code>) or by{" "}
-                <b>name</b> in the filename (<code>… - Amir Moomaw.png</code>).
+                Matched as long as the rushee&apos;s <b>full name is in the filename</b>{" "}
+                (<code>… - Amir Moomaw.png</code>); a bare <code>uniqname.png</code> works too.
               </div>
               <div className="text-xs">
                 Selected images: <b>{imageFiles.length}</b>
