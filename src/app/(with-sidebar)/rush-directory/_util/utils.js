@@ -72,7 +72,7 @@ export function extractNameFromFilename(filename) {
 
 // Lowercase, de-accent, and split into alpha tokens (dropping numbers and,
 // optionally, common camera/export junk words).
-export function nameTokens(str, { dropJunk = false } = {}) {
+function nameTokens(str, { dropJunk = false } = {}) {
   const s = String(str || "")
     .normalize("NFKD")
     .replace(/\p{Diacritic}/gu, "")
@@ -116,7 +116,7 @@ function diceCoefficient(a, b) {
  * the max with a token-containment score (handles missing middle names or
  * first-name-only files).
  */
-export function scoreNameMatch(nameA, nameB) {
+function scoreNameMatch(nameA, nameB) {
   const a = nameTokens(nameA, { dropJunk: true }).sort();
   const b = nameTokens(nameB, { dropJunk: true }).sort();
   if (!a.length || !b.length) return 0;
@@ -129,49 +129,37 @@ export function scoreNameMatch(nameA, nameB) {
 
 /**
  * Match one headshot filename against a list of targets ({ uniqname, name }).
- * Returns { method, uniqname, score, confidence, candidates }.
+ * Returns { method, uniqname, score, confidence }.
  *  - method:     "exact" (filename == uniqname) | "fuzzy" | "none"
  *  - confidence: "high" (auto-accept) | "medium" (needs confirm) | "none"
  * A match is only "high" when it clears the threshold AND beats the
  * runner-up by a margin, so ambiguous names are never auto-assigned.
  */
 export function matchImageToTargets(filename, targets, opts = {}) {
-  const {
-    highThreshold = 0.82,
-    margin = 0.08,
-    mediumThreshold = 0.5,
-    maxCandidates = 5,
-  } = opts;
+  const { highThreshold = 0.82, margin = 0.08, mediumThreshold = 0.5 } = opts;
 
   if (!Array.isArray(targets) || targets.length === 0) {
-    return { method: "none", uniqname: null, score: 0, confidence: "none", candidates: [] };
+    return { method: "none", uniqname: null, score: 0, confidence: "none" };
   }
 
   // 1) Exact uniqname match (backwards compatible with uniqname-named files).
   const rawBase = stripPathAndExt(filename).trim().toLowerCase();
   const exact = targets.find((t) => String(t.uniqname).toLowerCase() === rawBase);
   if (exact) {
-    return {
-      method: "exact",
-      uniqname: exact.uniqname,
-      score: 1,
-      confidence: "high",
-      candidates: [{ uniqname: exact.uniqname, name: exact.name, score: 1 }],
-    };
+    return { method: "exact", uniqname: exact.uniqname, score: 1, confidence: "high" };
   }
 
   // 2) Fuzzy match on the extracted person name.
   const extracted = extractNameFromFilename(filename);
   const scored = targets
-    .map((t) => ({ uniqname: t.uniqname, name: t.name || "", score: scoreNameMatch(extracted, t.name) }))
+    .map((t) => ({ uniqname: t.uniqname, score: scoreNameMatch(extracted, t.name) }))
     .sort((a, b) => b.score - a.score);
 
-  const candidates = scored.slice(0, maxCandidates);
   const best = scored[0];
   const second = scored[1];
 
   if (!best || best.score < mediumThreshold) {
-    return { method: "none", uniqname: null, score: best?.score || 0, confidence: "none", candidates };
+    return { method: "none", uniqname: null, score: best?.score || 0, confidence: "none" };
   }
 
   const clearWinner =
@@ -182,6 +170,5 @@ export function matchImageToTargets(filename, targets, opts = {}) {
     uniqname: best.uniqname,
     score: best.score,
     confidence: clearWinner ? "high" : "medium",
-    candidates,
   };
 }

@@ -207,7 +207,7 @@ export default function ImportRusheesModal({ onImported }) {
       setRosterError(null);
       const { data, error } = await supabase
         .from(TABLE)
-        .select("id, uniqname, name");
+        .select("uniqname, name");
       if (cancelled) return;
       if (error) {
         setRosterError(error.message || "Failed to load rushees.");
@@ -227,7 +227,7 @@ export default function ImportRusheesModal({ onImported }) {
     const map = new Map();
     for (const t of roster || []) {
       if (t?.uniqname) {
-        map.set(t.uniqname, { uniqname: t.uniqname, name: t.name || "", id: t.id });
+        map.set(t.uniqname, { uniqname: t.uniqname, name: t.name || "" });
       }
     }
     for (const r of rows) {
@@ -259,7 +259,6 @@ export default function ImportRusheesModal({ onImported }) {
         uniqname: res.uniqname,
         score: res.score,
         confidence: res.confidence,
-        candidates: res.candidates,
         confirmed: res.confidence === "high" && !!res.uniqname,
         userEdited: false,
       };
@@ -406,13 +405,11 @@ export default function ImportRusheesModal({ onImported }) {
     return publicUrl;
   }
 
-  const confirmedImageCount = matchStats.confirmed;
-
   const canImport = React.useMemo(() => {
     if (globalErrors.length) return false;
     if (rows.length > 0) return true; // CSV can be imported on its own
-    return confirmedImageCount > 0; // image-only import needs ≥1 confirmed match
-  }, [rows.length, confirmedImageCount, globalErrors]);
+    return matchStats.confirmed > 0; // image-only import needs ≥1 confirmed match
+  }, [rows.length, matchStats.confirmed, globalErrors]);
 
   async function runImport() {
     setIsImporting(true);
