@@ -112,7 +112,7 @@ function RusheeCombobox({ value, targets, onChange, disabled }) {
   const selected = targets.find((t) => t.uniqname === value) || null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -278,6 +278,16 @@ export default function ImportRusheesModal({ onImported }) {
               method: uniqname ? "manual" : "none",
               userEdited: true,
             }
+          : m
+      )
+    );
+  }
+
+  function confirmMatch(key) {
+    setMatches((prev) =>
+      prev.map((m) =>
+        m.key === key && m.uniqname
+          ? { ...m, confirmed: true, userEdited: true }
           : m
       )
     );
@@ -843,8 +853,8 @@ export default function ImportRusheesModal({ onImported }) {
 
                   {matchStats.needsReview > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      Lower-confidence matches must be confirmed (pick the rushee) or
-                      they will be skipped.
+                      Lower-confidence matches must be accepted (or corrected with the
+                      picker) before they import — otherwise they are skipped.
                     </p>
                   )}
 
@@ -857,7 +867,7 @@ export default function ImportRusheesModal({ onImported }) {
                             <TableHead>file / detected name</TableHead>
                             <TableHead>matched rushee</TableHead>
                             <TableHead className="w-28">confidence</TableHead>
-                            <TableHead className="w-[200px]">status</TableHead>
+                            <TableHead className="w-[220px]">status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -889,17 +899,50 @@ export default function ImportRusheesModal({ onImported }) {
                                 <TableCell className="text-sm">
                                   {err ? (
                                     <span className="text-destructive text-wrap">{err}</span>
-                                  ) : isDup ? (
-                                    <span className="text-yellow-700">
-                                      Duplicate — another image also targets{" "}
-                                      {m.uniqname}
-                                    </span>
                                   ) : m.confirmed && m.uniqname ? (
-                                    <span className="text-green-700">Will import</span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-green-700">Will import</span>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 w-7 p-0"
+                                        title="Clear match"
+                                        disabled={isImporting}
+                                        onClick={() => assignMatch(m.key, null)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                   ) : m.uniqname ? (
-                                    <span className="text-yellow-700">Needs confirmation</span>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 px-2 text-green-700"
+                                        disabled={isImporting}
+                                        onClick={() => confirmMatch(m.key)}
+                                      >
+                                        <Check className="h-4 w-4 mr-1" />
+                                        Accept
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 w-7 p-0"
+                                        title="Reject suggestion"
+                                        disabled={isImporting}
+                                        onClick={() => assignMatch(m.key, null)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                   ) : (
                                     <span className="text-muted-foreground">Skipped</span>
+                                  )}
+                                  {isDup && !err && (
+                                    <div className="text-xs text-yellow-700 mt-1">
+                                      Duplicate — also targets {m.uniqname}
+                                    </div>
                                   )}
                                 </TableCell>
                               </TableRow>
