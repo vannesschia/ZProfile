@@ -60,10 +60,14 @@ export default function RusheeCard({
     // Calculate new reaction
     const newReaction = currentReaction === reactionType ? 'none' : reactionType;
 
+    // Snapshot the last-known-good state before mutating it, so a failed request
+    // reverts to it rather than to the failed optimistic values.
+    const previousState = { ...optimisticState.current };
+
     // Optimistic UI update
-    const oldReaction = optimisticState.current.reaction;
-    let newLikeCount = optimisticState.current.likeCount;
-    let newDislikeCount = optimisticState.current.dislikeCount;
+    const oldReaction = previousState.reaction;
+    let newLikeCount = previousState.likeCount;
+    let newDislikeCount = previousState.dislikeCount;
 
     // Update optimistic counts
     if (oldReaction === 'like') {
@@ -123,9 +127,10 @@ export default function RusheeCard({
         if (onUpdate) onUpdate();
       } catch (error) {
         // Revert optimistic update on error
-        setCurrentReaction(optimisticState.current.reaction);
-        setLikeCount(optimisticState.current.likeCount);
-        setDislikeCount(optimisticState.current.dislikeCount);
+        setCurrentReaction(previousState.reaction);
+        setLikeCount(previousState.likeCount);
+        setDislikeCount(previousState.dislikeCount);
+        optimisticState.current = previousState;
 
         console.error("Error updating reaction:", error);
         toast.error(error.message || "Failed to update reaction");
@@ -142,6 +147,10 @@ export default function RusheeCard({
     if (userStarCount === 3 && !currentStarred) return;
 
     const newStarred = !currentStarred;
+
+    // Snapshot the pre-click state so a failed request can revert to it.
+    const previousStarred = currentStarred;
+    const previousStarCount = starCount;
 
     // Disable button immediately
     setLoading(true);
@@ -200,8 +209,8 @@ export default function RusheeCard({
         if (onUpdate) onUpdate();
       } catch (error) {
         // Revert optimistic update on error
-        setCurrentStarred(currentStarred);
-        setStarCount(rushee.starCount);
+        setCurrentStarred(previousStarred);
+        setStarCount(previousStarCount);
 
         console.error("Error updating star:", error);
         toast.error(error.message || "Failed to update star");

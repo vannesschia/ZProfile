@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ClientMembersView from "./ClientView";
 import { getRusheeComments, getRusheeNotes } from "./_lib/queries";
+import { getRushDirectoryAccess } from "./_lib/rush-access";
 
 export default async function RusheePage() {
   const supabase = await getServerClient();
@@ -16,47 +17,18 @@ export default async function RusheePage() {
 
   const uniqname = email.split("@")[0];
 
-  const { data: member, error: memberError } = await supabase
-    .from("members")
-    .select("admin")
-    .eq("email_address", email)
-    .single();
+  // Access is governed by getRushDirectoryAccess, shared with the middleware and
+  // the sidebar layout so all three stay in sync: pledges never; admins always;
+  // other members only if they attended a rush event this semester.
+  const { allowed, isAdmin } = await getRushDirectoryAccess(supabase, uniqname);
 
-  if (memberError) {
-    console.error("Error fetching member:", memberError.message);
-    return <p>Error loading rushees.</p>;
-  }
-
-  // Explicitly check admin status - admins always have access, no exceptions
-  const isAdmin = member?.admin === true;
-
-  // Check if user has attended a rush event (required for access)
-  // Admins always have access and bypass this check entirely
-  if (!isAdmin) {
-    const { data: rushEvents, error: rushEventsError } = await supabase
-      .from('event_attendance')
-      .select(`
-        events!inner (
-          event_type
-        )
-      `)
-      .eq('uniqname', uniqname)
-      .eq('events.event_type', 'rush_event')
-      .limit(1);
-
-    if (rushEventsError) {
-      console.error("Error checking rush event attendance:", rushEventsError.message);
-      return <p>Error loading rushees.</p>;
-    }
-
-    if (!rushEvents || rushEvents.length === 0) {
-      return (
-        <main className="m-4 flex flex-col gap-2">
-          <span className="text-2xl font-bold tracking-tight leading-tight">Rush Directory</span>
-          <p className="text-muted-foreground">You need to attend a rush event to access the rush directory.</p>
-        </main>
-      );
-    }
+  if (!allowed) {
+    return (
+      <main className="m-4 flex flex-col gap-2">
+        <span className="text-2xl font-bold tracking-tight leading-tight">Rush Directory</span>
+        <p className="text-muted-foreground">You need to attend a rush event to access the rush directory.</p>
+      </main>
+    );
   }
 
   // Fetch rushees for current term (most recent term)
