@@ -1,8 +1,10 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { NextResponse } from "next/server";
 
-// POST: Toggle star with proper locking and counter updates
-// Ensures: one star per member per rushee, atomic counter updates
+// POST: Toggle a member's star on a rushee and update the cached star_count.
+// One star per member per rushee (occupies a numbered slot, max 3 per member).
+// NOTE: the counter is updated with a read-then-write, which is NOT atomic under
+// concurrent requests; a DB-side increment/RPC would be needed for that.
 export async function POST(req) {
   try {
     const supabase = await getServerClient();
@@ -118,32 +120,21 @@ export async function POST(req) {
       
     }
 
-    // Calculate new counts
-    let newStarCount = rushee.star_count || 0;
+    // Calculate the new count, clamped so it can never go negative (and so we
+    // never return a bogus -1 to the client).
+    const newStarCount = Math.max(0, (rushee.star_count || 0) + (starred ? 1 : -1));
 
-    // Increment or decrement new star
-    if (starred) {
-      newStarCount = newStarCount + 1;
-    } else {
-      newStarCount = newStarCount - 1;
-    }
-
-    // Update counters 
-    if (newStarCount !== -1) {
-      const { error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('rushees')
-      .update({
-        star_count: newStarCount
-      })
+      .update({ star_count: newStarCount })
       .eq('id', rushee_id);
 
-      if (updateError) {
-        console.error("Error updating counters:", updateError);
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
-      }
+    if (updateError) {
+      console.error("Error updating counters:", updateError);
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       starred: starred,
       star_count: newStarCount

@@ -1,8 +1,10 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { NextResponse } from "next/server";
 
-// POST: Toggle reaction with proper locking and counter updates
-// Ensures: one reaction per member per rushee, atomic counter updates
+// POST: Toggle a member's reaction on a rushee and update the cached counters.
+// One reaction per member per rushee (enforced by the upsert's onConflict).
+// NOTE: counters are updated with a read-then-write, which is NOT atomic under
+// concurrent requests; a DB-side increment/RPC would be needed for that.
 export async function POST(req) {
   try {
     const supabase = await getServerClient();
@@ -23,7 +25,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid reaction_type" }, { status: 400 });
     }
 
-    // Get current reaction with row-level lock (ensures uniqueness)
+    // Get the member's current reaction (uniqueness is enforced by the upsert below)
     const { data: existingReaction } = await supabase
       .from('rushee_reactions')
       .select('reaction_type')
@@ -67,8 +69,7 @@ export async function POST(req) {
       return NextResponse.json({ error: reactionError.message }, { status: 500 });
     }
 
-    // Update counters atomically
-    // Get current counts first (with lock via transaction)
+    // Read the current cached counts, then recompute and write them back below.
     const { data: rushee } = await supabase
       .from('rushees')
       .select('like_count, dislike_count')
@@ -97,7 +98,7 @@ export async function POST(req) {
       newDislikeCount = newDislikeCount + 1;
     }
 
-    // Update counters (Postgres row-level lock ensures atomicity)
+    // Persist the recalculated counters (read-then-write; see note at top).
     const { error: updateError } = await supabase
       .from('rushees')
       .update({

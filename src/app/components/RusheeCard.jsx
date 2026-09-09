@@ -221,8 +221,6 @@ export default function RusheeCard({
         setLoading(false);
       }
     }, 300);
-
-    if (onUpdate) onUpdate();
   };
 
   const isCut = rushee.cut_status === 'cut';

@@ -344,6 +344,7 @@ export default function RusheeModal({
         {!isPhotoEnlarged &&
           <div className="h-3/4">
             <RusheeCommentsCard
+              key={rushee.id}
               rushee={rushee}
               uniqname={uniqname}
               isAdmin={isAdmin}
