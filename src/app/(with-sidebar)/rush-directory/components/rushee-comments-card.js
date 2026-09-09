@@ -199,7 +199,6 @@ export default function RusheeCommentsCard({
                 const originalCommentBody = commentBody;
                 const tempId = `${Date.now()}`;
 
-                const postAnonymous = isAdmin && anonymousMode;
                 setClientComments(prev => [
                   {
                     id: tempId,
@@ -208,7 +207,6 @@ export default function RusheeCommentsCard({
                     created_at: new Date().toISOString(),
                     deleted_at: null,
                     isMine: true,
-                    is_anonymous: postAnonymous,
                   }, ...prev]);
                 setCommentBody("");
                 try {
@@ -216,7 +214,6 @@ export default function RusheeCommentsCard({
                     rushee_id: rushee.id,
                     author_uniqname: uniqname,
                     body: commentBody,
-                    is_anonymous: postAnonymous,
                   });
                   onUpdate();
                 } catch (error) {

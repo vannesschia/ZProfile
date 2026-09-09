@@ -39,7 +39,6 @@ function transformArchiveData(data, uniqname) {
       rushee_id: r.id,
       deleted_at: null,
       isMine: c.author_uniqname === uniqname,
-      is_anonymous: false,
     }))
   );
   const notes = data.map((r) => ({ rushee_id: r.id, body: r.note ?? "" }));

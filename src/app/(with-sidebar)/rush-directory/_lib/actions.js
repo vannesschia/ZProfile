@@ -11,10 +11,17 @@ export async function sendRusheeComment(commentData) {
       rushee_id: commentData.rushee_id,
       author_uniqname: commentData.author_uniqname,
       body: commentData.body,
-      is_anonymous: commentData.is_anonymous ?? false,
     });
 
-  if (error) throw error;
+  if (error) {
+    console.error("sendRusheeComment insert failed:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw error;
+  }
 }
 
 export async function deleteRusheeComment(id) {
