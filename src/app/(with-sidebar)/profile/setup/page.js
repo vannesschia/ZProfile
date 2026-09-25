@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import { ProfileForm } from "./_components/profile-form";
 import { termCodeToWords } from "../../course-directory/_util/term-functions";
+import { classesThrough } from "@/lib/greek-classes";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,16 @@ export default async function ProfilePage() {
     }));
   };
 
+  const { data: requirements } = await supabase
+    .from("requirements")
+    .select("current_class")
+    .single();
+
+  const classOptions = classesThrough(requirements?.current_class);
+  if (member?.current_class_number && !classOptions.includes(member.current_class_number)) {
+    classOptions.push(member.current_class_number);
+  }
+
   const initialData = {
     ...member,
     brother_classes: initialCourses(member.brother_classes)
@@ -76,7 +87,7 @@ export default async function ProfilePage() {
     <main className="p-0 sm:p-8">
       <h1 className="mb-6 text-2xl font-bold">Profile Setup</h1>
       <Card className="max-w-8xl">
-        {initialData ? <ProfileForm initialData={initialData || null} userEmail={email} /> : <p>Loading</p>}
+        {initialData ? <ProfileForm initialData={initialData || null} userEmail={email} classOptions={classOptions} /> : <p>Loading</p>}
       </Card>
     </main>
   );

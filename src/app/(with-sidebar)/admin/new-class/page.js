@@ -6,7 +6,7 @@ export default async function NewClassPage({searchParams,}) {
   const supabase = await getServerClient()
   const shouldPrefill = searchParams.prefill === "true";
   console.log(shouldPrefill)
-  let prefillData = []
+  let prefillData = null
   if (shouldPrefill){
     prefillData = await getActiveRushees(supabase)
     console.log(prefillData)

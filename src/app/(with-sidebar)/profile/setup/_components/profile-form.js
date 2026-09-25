@@ -61,7 +61,7 @@ const formSchema = z.object({
   )
 });
 
-export function ProfileForm({ initialData, userEmail }) {
+export function ProfileForm({ initialData, userEmail, classOptions }) {
   const router = useRouter();
   const supabase = getBrowserClient();
 
@@ -516,12 +516,9 @@ export function ProfileForm({ initialData, userEmail }) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Alpha">Alpha</SelectItem>
-                      <SelectItem value="Beta">Beta</SelectItem>
-                      <SelectItem value="Gamma">Gamma</SelectItem>
-                      <SelectItem value="Delta">Delta</SelectItem>
-                      <SelectItem value="Epsilon">Epsilon</SelectItem>
-                      <SelectItem value="Zeta">Zeta</SelectItem>
+                      {classOptions.map((className) => (
+                        <SelectItem key={className} value={className}>{className}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

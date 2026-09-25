@@ -47,7 +47,7 @@ export default function NewClassForm({prefill}) {
     )
   });
 
-  const membersDefault = prefill
+  const membersDefault = prefill?.length
     ? prefill.map((m) => ({ name: m.name ?? "", uniqname: m.uniqname ?? "" }))
     : Array(20).fill(null).map(() => ({ name: "", uniqname: "" }));
 
@@ -67,10 +67,10 @@ export default function NewClassForm({prefill}) {
 
   async function onSubmit(values) {
     const supabase = getBrowserClient()
-    const error = prefill 
+    const error = prefill?.length
       ? await setRusheeToPledges(supabase) 
       : await addNewClass(values.members.filter(
-          member => member.name !== "" && member.name !== ""
+          member => member.name !== "" && member.uniqname !== ""
         ));
     console.log(error)
 
