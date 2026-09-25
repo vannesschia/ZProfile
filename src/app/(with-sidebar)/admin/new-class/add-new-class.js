@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerClient } from "@/lib/supabaseServer";
-import { getNextClass, setCurrentClass } from "@/lib/greek-classes";
+import { ensureClassExists, getNextClass, setCurrentClass } from "@/lib/greek-classes";
 
 export async function addNewClass(values) {
   const supabase = await getServerClient();
@@ -11,6 +11,9 @@ export async function addNewClass(values) {
     console.error("Failed to determine next class.", nextError);
     return nextError.message;
   }
+
+  const classError = await ensureClassExists(supabase, next);
+  if (classError) return classError.message;
 
   const { error: insertError } =
     await supabase

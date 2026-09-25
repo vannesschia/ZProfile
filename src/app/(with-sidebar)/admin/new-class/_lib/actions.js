@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabaseServer";
-import { getNextClass, setCurrentClass } from "@/lib/greek-classes";
+import { ensureClassExists, getNextClass, setCurrentClass } from "@/lib/greek-classes";
 import { archiveRushClass } from "@/lib/rush-archive";
 
 // Archives the rush directory under the next class letter, promotes active
@@ -16,7 +16,13 @@ export async function importRushClass() {
     return nextError.message;
   }
 
-  // Archive first: promotion may clear rushee data.
+  const classError = await ensureClassExists(supabase, next);
+  if (classError) {
+    console.error("Failed to add class to class_order.", classError);
+    return classError.message;
+  }
+
+  // Archive before promoting so the snapshot reflects the rush as it ended.
   const { error: archiveError } = await archiveRushClass(supabase, next);
   if (archiveError) {
     console.error("Failed to archive rush class.", archiveError);

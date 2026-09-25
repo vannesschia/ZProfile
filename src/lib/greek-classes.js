@@ -48,6 +48,15 @@ export async function getNextClass(supabase) {
   return { next };
 }
 
+// members.current_class_number and requirements.current_class are foreign keys
+// to class_order, so a class must have a row there before anyone is put in it.
+export async function ensureClassExists(supabase, className) {
+  const { error } = await supabase
+    .from("class_order")
+    .upsert({ class_name: className }, { onConflict: "class_name", ignoreDuplicates: true });
+  return error;
+}
+
 // Records `className` as the current class so the next import advances past it.
 export async function setCurrentClass(supabase, className) {
   const { error } = await supabase
