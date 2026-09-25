@@ -70,11 +70,9 @@ export default function NewClassForm({prefill}) {
       : await addNewClass(values.members.filter(
           member => member.name !== "" && member.uniqname !== ""
         ));
-    console.log(error)
-
     if (error) {
-      console.error("Failed to add new class.");
-      toast.error("Failed to add new class.");
+      console.error("Failed to add new class.", error);
+      toast.error(typeof error === "string" ? error : "Failed to add new class.");
       return;
     }
 
