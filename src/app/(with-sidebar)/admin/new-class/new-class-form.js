@@ -30,8 +30,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { addNewClass } from "./add-new-class";
-import { getBrowserClient } from "@/lib/supbaseClient";
-import { setRusheeToPledges } from "./_lib/queries";
+import { importRushClass } from "./_lib/actions";
 
 export default function NewClassForm({prefill}) {
 
@@ -66,9 +65,8 @@ export default function NewClassForm({prefill}) {
   });
 
   async function onSubmit(values) {
-    const supabase = getBrowserClient()
     const error = prefill?.length
-      ? await setRusheeToPledges(supabase) 
+      ? await importRushClass()
       : await addNewClass(values.members.filter(
           member => member.name !== "" && member.uniqname !== ""
         ));
