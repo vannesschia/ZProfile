@@ -45,6 +45,11 @@ const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
 const GRAD_YEAR = [2025, 2026, 2027, 2028, 2029]
 
+// Promoted rushees (given a bid by Import New Class) are shown with the active ones.
+function displayStatus(rushee) {
+  return rushee.cut_status === "promoted" ? "active" : rushee.cut_status;
+}
+
 export default function ClientMembersView({ rushees, comments, notes, uniqname, isAdmin, userReactions = {}, userStars = new Set(), archiveMode = false, showExportData = false }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -230,7 +235,7 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
   const filteredRushees = safeRushees
     .filter((rushee) => {
       // Filter by cut status
-      if (cutStatusFilter !== "all" && rushee.cut_status !== cutStatusFilter) {
+      if (cutStatusFilter !== "all" && displayStatus(rushee) !== cutStatusFilter) {
         return false;
       }
       // Filter by search and other criteria
@@ -244,8 +249,8 @@ export default function ClientMembersView({ rushees, comments, notes, uniqname, 
     })
     .sort((a, b) => {
       // First priority: active vs cut (active first)
-      const aCutStatus = a.cut_status === "active" ? 0 : 1;
-      const bCutStatus = b.cut_status === "active" ? 0 : 1;
+      const aCutStatus = displayStatus(a) === "active" ? 0 : 1;
+      const bCutStatus = displayStatus(b) === "active" ? 0 : 1;
       if (aCutStatus !== bCutStatus) {
         return aCutStatus - bCutStatus;
       }
