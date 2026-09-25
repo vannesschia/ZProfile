@@ -6,13 +6,13 @@ import { ensureClassExists, getNextClass, setCurrentClass } from "@/lib/greek-cl
 export async function addNewClass(values) {
   const supabase = await getServerClient();
 
-  const { next, error: nextError } = await getNextClass(supabase);
+  const { next, current, error: nextError } = await getNextClass(supabase);
   if (nextError) {
     console.error("Failed to determine next class.", nextError);
     return nextError.message;
   }
 
-  const classError = await ensureClassExists(supabase, next);
+  const classError = await ensureClassExists(supabase, next, current);
   if (classError) return classError.message;
 
   const { error: insertError } =

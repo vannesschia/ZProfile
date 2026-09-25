@@ -10,13 +10,13 @@ import { archiveRushClass } from "@/lib/rush-archive";
 export async function importRushClass() {
   const supabase = await getServerClient();
 
-  const { next, error: nextError } = await getNextClass(supabase);
+  const { next, current, error: nextError } = await getNextClass(supabase);
   if (nextError) {
     console.error("Failed to determine next class.", nextError);
     return nextError.message;
   }
 
-  const classError = await ensureClassExists(supabase, next);
+  const classError = await ensureClassExists(supabase, next, current);
   if (classError) {
     console.error("Failed to add class to class_order.", classError);
     return classError.message;

@@ -45,16 +45,30 @@ export async function getNextClass(supabase) {
   if (!next) {
     return { error: new Error(`Unrecognized current class "${data.current_class}".`) };
   }
-  return { next };
+  return { next, current: data.current_class };
 }
 
 // members.current_class_number and requirements.current_class are foreign keys
 // to class_order, so a class must have a row there before anyone is put in it.
-export async function ensureClassExists(supabase, className) {
-  const { error } = await supabase
+// get_attendance_requirements subtracts class_order ids to tell how many classes
+// apart two classes are, so the new row's id must be exactly one past the
+// previous class's id.
+export async function ensureClassExists(supabase, className, previousClass) {
+  const { data: rows, error } = await supabase
     .from("class_order")
-    .upsert({ class_name: className }, { onConflict: "class_name", ignoreDuplicates: true });
-  return error;
+    .select("id, class_name")
+    .in("class_name", [className, previousClass]);
+  if (error) return error;
+
+  if (rows.some((r) => r.class_name === className)) return null;
+
+  const previous = rows.find((r) => r.class_name === previousClass);
+  if (!previous) return new Error(`Class "${previousClass}" is missing from class_order.`);
+
+  const { error: insertError } = await supabase
+    .from("class_order")
+    .insert({ id: previous.id + 1, class_name: className });
+  return insertError;
 }
 
 // Records `className` as the current class so the next import advances past it.
