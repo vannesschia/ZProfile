@@ -6,6 +6,14 @@ export async function updateSession(request) {
   const { pathname, searchParams } = request.nextUrl;
   const method = request.method;
 
+  // Isolated local-database preview; never bypass authentication in production.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    (pathname === '/family-tree-preview' || pathname.startsWith('/family-tree-preview/'))
+  ) {
+    return NextResponse.next({ request });
+  }
+
   // 1. Always pass through non-GET/HEAD requests without any checks.
   // This is crucial for handling POST requests to API routes.
   if (method !== 'GET' && method !== 'HEAD') {

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # md files
 CLAUDE.md
+
+# Private local Family Tree preview data and credentials
+/.local/
+/supabase/.temp/
