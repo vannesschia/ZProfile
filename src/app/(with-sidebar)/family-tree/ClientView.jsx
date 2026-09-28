@@ -603,30 +603,72 @@ export default function FamilyTree({
           </DialogHeader>
           {editingEdge ? (
             <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="family-replacement">
-                  New {replaceBig ? "big" : "little"}
-                </Label>
-                <MemberPicker
-                  id="family-replacement"
-                  label={`New ${replaceBig ? "big" : "little"}`}
-                  members={people}
-                  classOptions={classOptions}
-                  value={replaceBig ? big : little}
-                  onChange={replaceBig ? setBig : setLittle}
-                  onCreatePerson={createPerson}
-                  disabled={pending}
-                  exclude={replaceBig ? little : big}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Keeping {replaceBig ? "little" : "big"}: {memberMap.get(
-                  replaceBig ? editingEdge.little_uniqname : editingEdge.big_uniqname,
-                )?.name ||
-                  (replaceBig
-                    ? editingEdge.little_uniqname
-                    : editingEdge.big_uniqname)}
-              </p>
+              {[
+                {
+                  label: "Big",
+                  id: replaceBig ? big : editingEdge.big_uniqname,
+                  editable: replaceBig,
+                  set: setBig,
+                  exclude: replaceBig ? little : editingEdge.little_uniqname,
+                },
+                {
+                  label: "Little",
+                  id: replaceBig ? editingEdge.little_uniqname : little,
+                  editable: !replaceBig,
+                  set: setLittle,
+                  exclude: replaceBig ? editingEdge.big_uniqname : big,
+                },
+              ].map(({ label, id, editable, set, exclude }) => {
+                const person = memberMap.get(id) || { uniqname: id };
+                return (
+                  <div key={label} className="space-y-2">
+                    <Label
+                      htmlFor={
+                        editable
+                          ? `family-replacement-${label.toLowerCase()}`
+                          : undefined
+                      }
+                    >
+                      {label}
+                    </Label>
+                    {editable ? (
+                      <MemberPicker
+                        id={`family-replacement-${label.toLowerCase()}`}
+                        label={label}
+                        members={people}
+                        classOptions={classOptions}
+                        value={id}
+                        onChange={set}
+                        onCreatePerson={createPerson}
+                        disabled={pending}
+                        exclude={exclude}
+                      />
+                    ) : (
+                      <div
+                        className={styles.relationshipEndpoint}
+                        role="group"
+                        aria-label={`${label}: ${person.name || person.uniqname}`}
+                      >
+                        <MemberAvatar
+                          member={person}
+                          className={styles.relationshipEndpointAvatar}
+                        />
+                        <span className={styles.relationshipEndpointText}>
+                          <strong>{person.name || person.uniqname}</strong>
+                          <small>
+                            {person.current_class_number
+                              ? `${person.current_class_number} class`
+                              : "Class not listed"}
+                          </small>
+                        </span>
+                        <span className={styles.relationshipEndpointStatus}>
+                          Unchanged
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             [

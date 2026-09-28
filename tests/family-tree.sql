@@ -24,7 +24,6 @@ insert into public.members (uniqname, name, email_address, admin, current_class_
   ('c', 'C Member', 'c@example.com', false, null),
   ('d', 'D Member', 'd@example.com', false, null),
   ('e', 'Unconnected Member', 'e@example.com', false, null),
-  ('sohank', 'Sohan K', 'sohank@umich.edu', false, null),
   ('__family_tree_person__:00000000-0000-0000-0000-000000000099', 'Reserved Key Member', 'reserved@example.com', false, null);
 grant select on public.members to authenticated;
 \ir ../supabase/migrations/202609270001_family_tree.sql
@@ -34,6 +33,9 @@ grant select on public.members to authenticated;
 \ir ../supabase/migrations/202609280002_delete_family_tree_person.sql
 \ir ../supabase/migrations/202609280003_family_tree_member_class.sql
 \ir ../supabase/migrations/202609280004_replace_family_relationship.sql
+-- Ensure editor access is provisioned even before the roster row is synced.
+insert into public.members (uniqname, name, email_address, admin, current_class_number)
+values ('sohank', 'Sohan K', 'sohank@umich.edu', false, null);
 set role authenticated;
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"admin@example.com"}';
 select public.change_family_relationship('a','c');

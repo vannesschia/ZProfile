@@ -2,21 +2,18 @@
 begin;
 
 create table public.family_tree_editors (
+  -- Keep the allowlist key independent of the roster row so deployments can
+  -- provision the editor before that row is present. Authorization still
+  -- requires can_edit_family_tree() to match an authenticated member.
   member_uniqname text primary key
-    references public.members(uniqname) on delete cascade
 );
 alter table public.family_tree_editors enable row level security;
 revoke all on table public.family_tree_editors
   from public, anon, authenticated, service_role;
 
-do $$ begin
-  if not exists (select 1 from public.members where uniqname = 'sohank') then
-    raise exception 'Cannot grant family-tree access: member uniqname sohank does not exist.';
-  end if;
-end $$;
-
 insert into public.family_tree_editors(member_uniqname)
-values ('sohank');
+values ('sohank')
+on conflict (member_uniqname) do nothing;
 
 create function public.can_edit_family_tree()
 returns boolean

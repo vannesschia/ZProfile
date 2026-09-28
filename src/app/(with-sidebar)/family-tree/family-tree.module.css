@@ -503,6 +503,53 @@
 .relationshipDialog [role="combobox"] {
   cursor: pointer;
 }
+.relationshipEndpoint {
+  display: flex;
+  min-height: 48px;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+}
+.relationshipEndpointAvatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.relationshipEndpointAvatar > span {
+  border-radius: 5px;
+}
+.relationshipEndpointText {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.relationshipEndpointText strong,
+.relationshipEndpointText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.relationshipEndpointText strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.relationshipEndpointText small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.relationshipEndpointStatus {
+  flex: 0 0 auto;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
 .familyPickerList [data-slot="command-item"] {
   cursor: pointer;
   transition: color 140ms ease, background-color 140ms ease;
