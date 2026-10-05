@@ -19,15 +19,19 @@ export async function addNewClass(values) {
     await supabase
       .from("members")
       .insert(
-        values.map(member => ({
-          uniqname: member.uniqname,
-          name: member.name,
-          email_address: `${member.uniqname}@umich.edu`,
-          current_class_number: next,
-          role: "pledge",
-          active: true,
-          admin: false
-        }))
+        values.map(member => {
+          // Sign-in matches on the lowercased email local part, so store uniqnames lowercase.
+          const uniqname = member.uniqname.trim().toLowerCase();
+          return {
+            uniqname,
+            name: member.name,
+            email_address: `${uniqname}@umich.edu`,
+            current_class_number: next,
+            role: "pledge",
+            active: true,
+            admin: false
+          };
+        })
       );
 
   if (insertError) return insertError.message;
