@@ -94,9 +94,10 @@ function normalizeGrade(value) {
 
 function normalizeRow(raw) {
   return {
-    uniqname: String(raw?.uniqname ?? "").trim(),
+    // Sign-in matches on the lowercased email local part, so store uniqnames lowercase.
+    uniqname: String(raw?.uniqname ?? "").trim().toLowerCase(),
     name: String(raw?.name ?? "").trim(),
-    email_address: String(raw?.email_address ?? "").trim() || null,
+    email_address: String(raw?.email_address ?? "").trim().toLowerCase() || null,
     major: parseBraceListToArray(raw?.major),
     minor: parseBraceListToArray(raw?.minor),
     grade: normalizeGrade(raw?.grade),

@@ -73,9 +73,13 @@ export async function ensureClassExists(supabase, className, previousClass) {
 
 // Records `className` as the current class so the next import advances past it.
 export async function setCurrentClass(supabase, className) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("requirements")
     .update({ current_class: className })
-    .eq("id", true);
-  return error;
+    .eq("id", true)
+    .select("current_class");
+  if (error) return error;
+  // A row-level security block updates nothing without reporting an error.
+  if (data.length === 0) return new Error("Could not update requirements.current_class.");
+  return null;
 }
