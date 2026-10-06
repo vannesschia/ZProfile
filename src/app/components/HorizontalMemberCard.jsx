@@ -3,21 +3,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormatPhoneNumber } from "./phone-number/format-phone-number";
 import Image from "next/image";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-export default function HorizontalMemberCard({ member }) {
+export default function HorizontalMemberCard({
+    member,
+    showClass = false,
+    showImageFallback = false,
+    className,
+}) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const imageUrl = member.profile_picture_url;
+    const initials = (member.name || member.uniqname || "?")
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+
     return (
-        <Card className="flex flex-row gap-3 p-2.5 items-start shadow-sm rounded-xl border min-h-[175px] max-h-[195px] min-w-[340px] max-w-[340px]">
-            {member.profile_picture_url ? (
+        <Card className={cn(
+            "flex min-h-[175px] max-h-[195px] min-w-[340px] max-w-[340px] flex-row items-start gap-3 rounded-xl border p-2.5 shadow-sm",
+            className,
+        )}>
+            {imageUrl && !(showImageFallback && imageFailed) ? (
                 <Image
-                    src={member.profile_picture_url}
+                    src={imageUrl}
                     alt={`${member.name}'s profile picture`}
                     width={105}
                     height={151}
+                    onError={showImageFallback ? () => setImageFailed(true) : undefined}
                     className="max-w-[105px] min-w-[105px] max-h-[150.75px] min-h-[150.75px] rounded-lg object-cover "
                 />
             ) : (
                 <div className="min-w-[105px] max-w-[105px] max-h-[150.75px] min-h-[150.75px] bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
-                    
+                    {showImageFallback ? initials : null}
                 </div>
             )}
 
@@ -30,6 +50,11 @@ export default function HorizontalMemberCard({ member }) {
 
                 {/* description badges */}
                 <div className="flex flex-wrap gap-1.5 pt-1 height-full justify-start w-full">
+                    {showClass && member.current_class_number && (
+                        <Badge className="bg-secondary text-secondary-foreground text-[9.5px]">
+                            {member.current_class_number}
+                        </Badge>
+                    )}
                     {member.major?.map((m, i) => (
                         <Badge key={`major-${i}`} className="bg-blue-100 text-blue-900 text-[9.5px]">
                             {m.trim()}

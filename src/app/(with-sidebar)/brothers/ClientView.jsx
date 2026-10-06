@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator";
+import { matchesMemberName } from "@/lib/member-search.mjs";
 
 const GRADES = ["freshman", "sophomore", "junior", "senior", "graduate_student"]
 
@@ -272,7 +273,7 @@ export default function ClientMembersView({ members }) {
         .sort(sectionComparator) // α → β → γ → …
         .map(([className, classMembers]) => {
           const filtered = classMembers.filter((m) =>
-            m.name.toLowerCase().includes(search.toLowerCase()) &&
+            matchesMemberName(m, search) &&
             majorFilter.every(maj => m.major.includes(maj)) &&
             minorFilter.every(min => m.minor.includes(min)) &&
             (gradeFilter.length === 0 || gradeFilter.includes(m.grade)) &&

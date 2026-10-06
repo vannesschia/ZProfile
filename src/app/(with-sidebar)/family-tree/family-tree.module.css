@@ -1,0 +1,644 @@
+/* ZProfile tokens and member cards; only the graph geometry is feature-specific. */
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: calc(100dvh - 96px);
+  min-height: 0;
+  color: var(--foreground);
+}
+.root :global(button:not(:disabled)) {
+  cursor: pointer;
+}
+.root :global(button:disabled) {
+  cursor: not-allowed;
+}
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  height: 100dvh;
+  min-height: 0;
+  padding: 12px;
+  background: var(--background);
+}
+.mobileSearchAnchor {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.graphToolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.graphToolbar h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+.graphTools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.graphTools button {
+  width: 40px;
+  height: 40px;
+}
+.memberResults {
+  max-height: 320px;
+  overflow: auto;
+  padding-top: 6px;
+}
+.memberResults button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.memberResults button:hover {
+  background: var(--accent);
+}
+.memberResults button > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.memberResults strong {
+  font-weight: 500;
+}
+.memberResults small,
+.memberResults p {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.createPersonAction {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid var(--border);
+}
+.createPersonAction p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.createPersonAction [role="alert"] {
+  color: var(--destructive);
+}
+.canvasWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  overflow: hidden;
+}
+.flowZone {
+  flex: 1;
+  min-height: 0;
+}
+.canvasWrap :global(.react-flow) {
+  --xy-background-color: var(--background);
+  --xy-edge-stroke: var(--border);
+  --xy-edge-stroke-selected: var(--primary);
+  --xy-attribution-background-color: var(--background);
+}
+.canvasWrap :global(.react-flow__attribution) {
+  font-size: 9px;
+  color: var(--muted-foreground);
+}
+.canvasWrap :global(.react-flow__node) {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+.canvasFooter {
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 16px;
+}
+.canvasHint {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.emptyState {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.node {
+  position: relative;
+  width: 340px;
+  height: 195px;
+  cursor: pointer;
+}
+.memberCard {
+  color: var(--foreground);
+  background: var(--card);
+}
+.memberCard:hover {
+  border-color: var(--ring);
+  background: var(--accent);
+}
+.selectedNode :global([data-slot="card"]) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+.dimNode {
+  opacity: 0.35;
+}
+.profileAvatar img,
+.relativeAvatar img {
+  object-fit: cover;
+}
+.connectionAnchor:global(.react-flow__handle) {
+  width: 4px;
+  height: 4px;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 3px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px #00000008;
+}
+.zoomControls button {
+  height: 36px;
+  width: 36px;
+}
+.zoomControls svg {
+  width: 15px;
+  height: 15px;
+}
+.zoomValue {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: center;
+}
+.controlDivider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 3px;
+}
+.details {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  min-width: 0;
+}
+.desktopDetails {
+  height: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px #00000008;
+  overflow: hidden;
+}
+.memberProfile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+.memberIdentity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.memberIdentityText {
+  flex: 1;
+  min-width: 0;
+  padding-right: 28px;
+}
+.profileAvatar {
+  flex: 0 0 64px;
+  height: 84px;
+  width: 64px;
+  border-radius: 8px;
+  font-size: 24px;
+  margin: 0;
+}
+.profileAvatar > span {
+  border-radius: 8px;
+  color: var(--muted-foreground);
+}
+.memberProfile h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.memberProfile p {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.profileMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted-foreground);
+  margin-top: 8px;
+  font-size: 12px;
+}
+.profileMeta > span:first-child {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.relationshipSections {
+  padding: 0 14px;
+}
+.relationshipSection {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding-left: 6px;
+}
+.sectionHeading h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sectionHeading h3 svg {
+  color: var(--muted-foreground);
+}
+.sectionHeading h3 span {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  margin-left: 3px;
+}
+.relativeRow {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+.relativeRow:hover {
+  background: var(--muted);
+}
+.relativeActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 1px;
+}
+.editRelationshipButton,
+.removeButton {
+  width: 36px;
+  height: 36px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+.editRelationshipButton:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+.relativeLink {
+  padding: 9px 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.relativeAvatar {
+  height: 40px;
+  width: 34px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.relativeAvatar > span {
+  border-radius: 5px;
+}
+.relativeLink > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.relativeLink strong {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.relativeLink small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.relativeLink:focus-visible {
+  outline: 2px solid var(--ring);
+}
+.removeButton:hover {
+  color: var(--destructive);
+  background: color-mix(in srgb, var(--destructive) 10%, transparent);
+}
+.emptyRelation {
+  padding: 9px 6px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.zoomControls {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+.node:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.detailsSheet {
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  padding: 24px 0 0;
+  overflow-y: auto;
+}
+.mobileSheet {
+  max-height: 80dvh;
+  overflow-y: auto;
+  padding: 16px 0 0;
+  margin: 0;
+  border-radius: 12px 12px 0 0;
+}
+.mobileSheet > button:last-child,
+.detailsSheet > button:last-child {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  top: 4px;
+  right: 4px;
+}
+@media (max-width: 767px) {
+  .root {
+    height: calc(100dvh - 96px);
+    gap: 4px;
+  }
+  .expanded {
+    height: 100dvh;
+    padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .expanded .mobileSearchAnchor {
+    top: calc(52px + env(safe-area-inset-top));
+  }
+  .graphToolbar {
+    gap: 4px;
+  }
+  .graphToolbar h1 {
+    font-size: 18px;
+  }
+  .graphTools {
+    gap: 0;
+  }
+  .graphTools button {
+    width: 36px;
+    height: 44px;
+  }
+  .canvasFooter {
+    padding: 0 4px 0 10px;
+  }
+  .canvasHint {
+    font-size: 10px;
+    max-width: 120px;
+  }
+  .zoomControls button {
+    width: 40px;
+    height: 44px;
+  }
+  .zoomValue {
+    min-width: 36px;
+  }
+  .removeButton,
+  .editRelationshipButton,
+  .sectionHeading button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.relationshipDialog {
+  width: min(480px, calc(100vw - 32px));
+  max-width: 480px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  gap: 24px;
+}
+.relationshipDialog [data-slot="dialog-header"] {
+  text-align: left;
+  padding-right: 24px;
+}
+.relationshipDialog [data-slot="dialog-description"] {
+  line-height: 1.6;
+}
+.relationshipDialog [data-slot="dialog-footer"] {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.relationshipDialog [data-slot="button"] {
+  cursor: pointer;
+}
+.relationshipDialog [data-slot="button"]:disabled {
+  cursor: not-allowed;
+}
+.relationshipDialog [data-slot="dialog-close"] {
+  cursor: pointer;
+}
+.relationshipDialog [data-slot="dialog-close"] {
+  width: 36px;
+  height: 36px;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+}
+.relationshipDialog [role="combobox"] {
+  cursor: pointer;
+}
+.relationshipEndpoint {
+  display: flex;
+  min-height: 48px;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+}
+.relationshipEndpointAvatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.relationshipEndpointAvatar > span {
+  border-radius: 5px;
+}
+.relationshipEndpointText {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.relationshipEndpointText strong,
+.relationshipEndpointText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.relationshipEndpointText strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.relationshipEndpointText small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.relationshipEndpointStatus {
+  flex: 0 0 auto;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.familyPickerList [data-slot="command-item"] {
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+.familyPickerList [data-slot="command-item"]:hover,
+.familyPickerList [data-slot="command-item"][data-selected="true"] {
+  color: var(--accent-foreground);
+  background-color: var(--accent);
+}
+.relativeLink {
+  height: auto;
+  justify-content: flex-start;
+  white-space: normal;
+}
+.graphTools button,
+.zoomControls button {
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+.graphTools button:hover,
+.zoomControls button:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.graphTools button:active,
+.zoomControls button:active {
+  background: var(--secondary);
+}
+.detailsSheet {
+  width: 380px;
+  padding: 16px 0 0;
+  gap: 0;
+}
+.mobileSheet {
+  gap: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.emptyState h2 {
+  color: var(--foreground);
+  font-size: 18px;
+  font-weight: 600;
+}
+.familyPickerList {
+  max-height: min(260px, calc(100dvh - 190px));
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+}
+.detailsSheet > button:last-child,
+.mobileSheet > button:last-child {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  opacity: 1;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  transition: color 140ms ease, background-color 140ms ease;
+  cursor: pointer;
+}
+.detailsSheet > button:last-child:hover,
+.mobileSheet > button:last-child:hover {
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+.detailsSheet > button:last-child:focus-visible,
+.mobileSheet > button:last-child:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.sectionHeading button {
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+.sectionHeading button:hover {
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+.sectionHeading button:focus-visible,
+.editRelationshipButton:focus-visible,
+.removeButton:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.relativeLink:hover {
+  color: var(--accent-foreground);
+  background-color: var(--accent);
+}

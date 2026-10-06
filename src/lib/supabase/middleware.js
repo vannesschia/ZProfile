@@ -1,9 +1,8 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { getServerClient } from '../supabaseServer';
 
 export async function updateSession(request) {
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
   const method = request.method;
 
   // 1. Always pass through non-GET/HEAD requests without any checks.
