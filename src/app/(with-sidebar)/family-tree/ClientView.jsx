@@ -46,7 +46,6 @@ import { matchesMemberName } from "@/lib/member-search.mjs";
 import {
   createFamilyTreePerson,
   deleteFamilyTreePerson,
-  replaceFamilyRelationship,
   updateFamilyTreeMemberClass,
   updateFamilyTreePerson,
 } from "./_lib/actions";
@@ -58,12 +57,11 @@ export default function FamilyTree({
   classOrder = [],
   canEdit = false,
   onChangeRelationship,
-  preview = false,
+  onReplaceRelationship,
 }) {
   const router = useRouter();
   const [people, setPeople] = useState(members);
-  const [previewEdges, setPreviewEdges] = useState(relationships);
-  const edges = preview ? previewEdges : relationships;
+  const edges = relationships;
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [focusRevision, setFocusRevision] = useState(0);
@@ -158,47 +156,19 @@ export default function FamilyTree({
     }
     setPending(true);
     try {
-      if (preview) {
-        const response = await fetch("/family-tree-preview/save?role=admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            replacement
-              ? {
-                  action: "replace_relationship",
-                  old_big_uniqname: replacement.big_uniqname,
-                  old_little_uniqname: replacement.little_uniqname,
-                  big_uniqname: bigId,
-                  little_uniqname: littleId,
-                }
-              : {
-                  big_uniqname: bigId,
-                  little_uniqname: littleId,
-                  remove,
-                },
-          ),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          setError(result.error || "Could not save the relationship.");
-          return;
-        }
-        setPreviewEdges(result.relationships);
-      } else {
-        const result = replacement
-          ? await replaceFamilyRelationship(
-              replacement.big_uniqname,
-              replacement.little_uniqname,
-              bigId,
-              littleId,
-            )
-          : await onChangeRelationship(bigId, littleId, remove);
-        if (result.error) {
-          setError(result.error);
-          return;
-        }
-        router.refresh();
+      const result = replacement
+        ? await onReplaceRelationship(
+            replacement.big_uniqname,
+            replacement.little_uniqname,
+            bigId,
+            littleId,
+          )
+        : await onChangeRelationship(bigId, littleId, remove);
+      if (result.error) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
       setEditing(false);
       setEditingEdge(null);
       setReplaceBig(false);
@@ -223,21 +193,9 @@ export default function FamilyTree({
     if (creatingPerson || pending) throw new Error("Please wait for the current change to finish.");
     setCreatingPerson(true);
     try {
-      let person;
-      if (preview) {
-        const response = await fetch("/family-tree-preview/save?role=admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "create_person", name, className }),
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Could not add this person.");
-        person = result.person;
-      } else {
-        const result = await createFamilyTreePerson(name, className);
-        if (result.error) throw new Error(result.error);
-        person = result.person;
-      }
+      const result = await createFamilyTreePerson(name, className);
+      if (result.error) throw new Error(result.error);
+      const person = result.person;
       if (!person?.uniqname || !person.name)
         throw new Error("The new person could not be loaded. Please try again.");
       setPeople((current) =>
@@ -259,27 +217,9 @@ export default function FamilyTree({
       throw new Error("Please wait for the current change to finish.");
     setUpdatingPerson(true);
     try {
-      let person;
-      if (preview) {
-        const response = await fetch("/family-tree-preview/save?role=admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "update_person",
-            personKey,
-            name,
-            className,
-          }),
-        });
-        const result = await response.json();
-        if (!response.ok)
-          throw new Error(result.error || "Could not update this person.");
-        person = result.person;
-      } else {
-        const result = await updateFamilyTreePerson(personKey, name, className);
-        if (result.error) throw new Error(result.error);
-        person = result.person;
-      }
+      const result = await updateFamilyTreePerson(personKey, name, className);
+      if (result.error) throw new Error(result.error);
+      const person = result.person;
       if (!person?.uniqname || !person.name)
         throw new Error("The updated person could not be loaded. Please try again.");
       setPeople((current) =>
@@ -287,7 +227,7 @@ export default function FamilyTree({
           member.uniqname === person.uniqname ? { ...member, ...person } : member,
         ),
       );
-      if (!preview) router.refresh();
+      router.refresh();
       toast.success("Family-tree person updated");
       return person;
     } finally {
@@ -300,24 +240,8 @@ export default function FamilyTree({
       throw new Error("Please wait for the current change to finish.");
     setUpdatingPerson(true);
     try {
-      let result;
-      if (preview) {
-        const response = await fetch("/family-tree-preview/save?role=admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "update_member_class",
-            memberKey,
-            className,
-          }),
-        });
-        result = await response.json();
-        if (!response.ok)
-          throw new Error(result.error || "Could not update this class.");
-      } else {
-        result = await updateFamilyTreeMemberClass(memberKey, className);
-        if (result.error) throw new Error(result.error);
-      }
+      const result = await updateFamilyTreeMemberClass(memberKey, className);
+      if (result.error) throw new Error(result.error);
       const member = result.member;
       if (!member?.uniqname || !member.current_class_number)
         throw new Error("The updated class could not be loaded. Please try again.");
@@ -328,7 +252,7 @@ export default function FamilyTree({
             : person,
         ),
       );
-      if (!preview) router.refresh();
+      router.refresh();
       toast.success("Class updated");
       return member;
     } finally {
@@ -347,38 +271,12 @@ export default function FamilyTree({
     setDeletingFamilyPerson(true);
     setError("");
     try {
-      let result;
-      if (preview) {
-        const response = await fetch("/family-tree-preview/save?role=admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "delete_person",
-            personKey: person.uniqname,
-          }),
-        });
-        result = await response.json();
-        if (!response.ok)
-          throw new Error(result.error || "Could not delete this person.");
-      } else {
-        result = await deleteFamilyTreePerson(person.uniqname);
-        if (result.error) throw new Error(result.error);
-      }
+      const result = await deleteFamilyTreePerson(person.uniqname);
+      if (result.error) throw new Error(result.error);
       setPeople((current) =>
         current.filter((member) => member.uniqname !== person.uniqname),
       );
-      if (preview) {
-        setPreviewEdges(
-          result.relationships ||
-            edges.filter(
-              (edge) =>
-                edge.big_uniqname !== person.uniqname &&
-                edge.little_uniqname !== person.uniqname,
-            ),
-        );
-      } else {
-        router.refresh();
-      }
+      router.refresh();
       setSelectedId((current) => current === person.uniqname ? null : current);
       setDetailsOpen(false);
       setPersonToDelete(null);

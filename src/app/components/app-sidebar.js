@@ -88,7 +88,7 @@ const admin_items = [
   },
 ]
 
-export function AppSidebar({ user, hasAttendedRushEvent, showArchive = false, previewHref }) {
+export function AppSidebar({ user, hasAttendedRushEvent, showArchive = false }) {
   // Show Rush Directory for admins OR users who have attended a rush event
   // Archive is shown only when showArchive (hardcoded allowlist), independent of admin
   const isAdmin = user?.admin === true;
@@ -120,11 +120,8 @@ export function AppSidebar({ user, hasAttendedRushEvent, showArchive = false, pr
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={Boolean(previewHref && item.title === "Family Tree")}
-                  >
-                    <a href={previewHref && item.title === "Family Tree" ? previewHref : item.url || "#"}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url || "#"}>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
@@ -176,21 +173,17 @@ export function AppSidebar({ user, hasAttendedRushEvent, showArchive = false, pr
       </SidebarContent>
       <SidebarSeparator className="!w-auto" />
       <SidebarFooter>
-        {!previewHref && (
-          <>
-            <SidebarMenuButton size="lg" asChild>
-              <NavUser user={user} />
+        <SidebarMenuButton size="lg" asChild>
+          <NavUser user={user} />
+        </SidebarMenuButton>
+        <form action="/auth/sign-out" method="POST">
+          <SidebarMenuItem>
+            <SidebarMenuButton type="submit" className="w-full cursor-pointer">
+              <LogOut />
+              <span>Log out</span>
             </SidebarMenuButton>
-            <form action="/auth/sign-out" method="POST">
-              <SidebarMenuItem>
-                <SidebarMenuButton type="submit" className="w-full cursor-pointer">
-                  <LogOut />
-                  <span>Log out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </form>
-          </>
-        )}
+          </SidebarMenuItem>
+        </form>
       </SidebarFooter>
     </Sidebar>
   )

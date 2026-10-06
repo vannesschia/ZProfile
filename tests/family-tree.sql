@@ -11,6 +11,11 @@ create function auth.uid() returns uuid language sql stable as $$ select (auth.j
 grant usage on schema auth to authenticated, anon;
 create table public.class_order (id integer primary key, class_name text unique not null);
 insert into public.class_order values (1, 'Alpha'), (2, 'Beta'), (3, 'Gamma'), (4, 'Theta');
+create table public.requirements (
+  id boolean primary key,
+  current_class text references public.class_order(class_name)
+);
+insert into public.requirements values (true, 'Theta');
 create table public.members (
   uniqname text primary key,
   name text,
@@ -26,18 +31,9 @@ insert into public.members (uniqname, name, email_address, admin, current_class_
   ('e', 'Unconnected Member', 'e@example.com', false, null),
   ('__family_tree_person__:00000000-0000-0000-0000-000000000099', 'Reserved Key Member', 'reserved@example.com', false, null);
 grant select on public.members to authenticated;
-\ir ../supabase/migrations/202609270001_family_tree.sql
-\ir ../supabase/migrations/202609270002_family_tree_editor_access.sql
-\ir ../supabase/migrations/202609270003_family_tree_only_people.sql
-\ir ../supabase/migrations/202609280001_family_tree_person_class.sql
-\ir ../supabase/migrations/202609280002_delete_family_tree_person.sql
-\ir ../supabase/migrations/202609280003_family_tree_member_class.sql
-\ir ../supabase/migrations/202609280004_replace_family_relationship.sql
--- Ensure editor access is provisioned even before the roster row is synced.
-insert into public.members (uniqname, name, email_address, admin, current_class_number)
-values ('sohank', 'Sohan K', 'sohank@umich.edu', false, null);
+\ir ../supabase/migrations/20261006155845_family_tree.sql
 set role authenticated;
-set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"admin@example.com"}';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"a@example.com"}';
 select public.change_family_relationship('a','c');
 select public.change_family_relationship('b','c');
 select public.change_family_relationship('c','d');
@@ -49,34 +45,24 @@ do $$ begin
   begin perform public.change_family_relationship('a','missing'); raise exception 'Unknown member accepted'; exception when foreign_key_violation then null; end;
   begin insert into public.family_relationships(big_uniqname, little_uniqname) values ('a','d'); raise exception 'Direct write accepted'; exception when insufficient_privilege then null; end;
 end $$;
-set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002","email":"member@example.com"}';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002","email":"b@example.com"}';
 do $$ begin
   if (select count(*) from public.family_relationships) <> 3 then raise exception 'Member read failed'; end if;
   begin perform public.change_family_relationship('a','d'); raise exception 'Non-admin add accepted'; exception when insufficient_privilege then null; end;
   begin perform public.change_family_relationship('a','c',true); raise exception 'Non-admin removal accepted'; exception when insufficient_privilege then null; end;
-  begin perform public.create_family_tree_person('Unauthorized Person'); raise exception 'Non-editor created a person'; exception when insufficient_privilege then null; end;
-  begin perform public.update_family_tree_person('missing','Unauthorized Person','Beta'); raise exception 'Non-editor updated a person'; exception when insufficient_privilege then null; end;
-  begin perform public.delete_family_tree_person('missing'); raise exception 'Non-editor deleted a person'; exception when insufficient_privilege then null; end;
-  begin perform public.set_family_tree_member_class('c', 'Gamma'); raise exception 'Non-editor updated a member class'; exception when insufficient_privilege then null; end;
-  begin perform public.replace_family_relationship('a', 'c', 'a', 'd'); raise exception 'Non-editor replaced a relationship'; exception when insufficient_privilege then null; end;
+  begin perform public.create_family_tree_person('Unauthorized Person'); raise exception 'Non-admin created a person'; exception when insufficient_privilege then null; end;
+  begin perform public.update_family_tree_person('missing','Unauthorized Person','Beta'); raise exception 'Non-admin updated a person'; exception when insufficient_privilege then null; end;
+  begin perform public.delete_family_tree_person('missing'); raise exception 'Non-admin deleted a person'; exception when insufficient_privilege then null; end;
+  begin perform public.set_family_tree_member_class('c', 'Gamma'); raise exception 'Non-admin updated a member class'; exception when insufficient_privilege then null; end;
+  begin perform public.replace_family_relationship('a', 'c', 'a', 'd'); raise exception 'Non-admin replaced a relationship'; exception when insufficient_privilege then null; end;
 end $$;
-set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000005","email":"sohank@umich.edu"}';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"a@example.com"}';
 do $$ begin
-  if (select admin from public.members where uniqname = 'sohank') then
-    raise exception 'Tree editor was incorrectly granted site-wide admin.';
-  end if;
   if not public.can_edit_family_tree() then
-    raise exception 'Family-tree editor grant was not recognized.';
-  end if;
-  perform public.change_family_relationship('sohank','c');
-  if public.set_family_tree_member_class('sohank', 'Beta') <> 'Beta' then
-    raise exception 'Family-tree editor could not assign a missing member class.';
-  end if;
-  if (select current_class_number from public.members where uniqname = 'sohank') <> 'Beta' then
-    raise exception 'Assigned class was not saved to the roster member.';
+    raise exception 'Admin edit access was not recognized.';
   end if;
   if public.set_family_tree_member_class('b', 'Gamma') <> 'Gamma' then
-    raise exception 'Family-tree editor could not correct an existing member class.';
+    raise exception 'Admin could not correct an existing member class.';
   end if;
   if (select current_class_number from public.members where uniqname = 'b') <> 'Gamma' then
     raise exception 'Corrected class was not saved to the roster member.';
@@ -93,21 +79,21 @@ do $$ begin
     select 1 from public.family_relationships
     where big_uniqname = 'a' and little_uniqname = 'c'
   ) then raise exception 'Failed replacement changed the original link.'; end if;
-  perform public.replace_family_relationship('sohank', 'c', 'sohank', 'd');
+  perform public.replace_family_relationship('a', 'c', 'a', 'd');
   if exists (
     select 1 from public.family_relationships
-    where big_uniqname = 'sohank' and little_uniqname = 'c'
+    where big_uniqname = 'a' and little_uniqname = 'c'
   ) or not exists (
     select 1 from public.family_relationships
-    where big_uniqname = 'sohank' and little_uniqname = 'd'
+    where big_uniqname = 'a' and little_uniqname = 'd'
   ) then raise exception 'Relationship replacement did not update the selected endpoint.'; end if;
-  perform public.replace_family_relationship('sohank', 'd', 'sohank', 'c');
-  perform public.replace_family_relationship('sohank', 'c', 'e', 'c');
+  perform public.replace_family_relationship('a', 'd', 'a', 'c');
+  perform public.replace_family_relationship('a', 'c', 'e', 'c');
   if not exists (
     select 1 from public.family_relationships
     where big_uniqname = 'e' and little_uniqname = 'c'
   ) then raise exception 'Replacing the big endpoint failed.'; end if;
-  perform public.replace_family_relationship('e', 'c', 'sohank', 'c');
+  perform public.replace_family_relationship('e', 'c', 'a', 'c');
   begin
     perform public.set_family_tree_member_class('e', 'Gamma');
     raise exception 'Unconnected roster member class was edited';
@@ -122,12 +108,12 @@ do $$ begin
     );
     raise exception 'Reserved-looking member key accepted as a roster update';
   exception when invalid_parameter_value then null; end;
-  perform public.change_family_relationship('sohank','c');
+  perform public.change_family_relationship('a','c');
   if not exists (
     select 1 from public.family_relationships
-    where big_uniqname = 'sohank' and little_uniqname = 'c'
-  ) then raise exception 'Tree editor could not add a relationship.'; end if;
-  perform public.change_family_relationship('sohank','c',true);
+    where big_uniqname = 'a' and little_uniqname = 'c'
+  ) then raise exception 'Admin could not add a relationship.'; end if;
+  perform public.change_family_relationship('a','c',true);
   perform public.change_family_relationship(
     'a', '__family_tree_person__:00000000-0000-0000-0000-000000000099'
   );
@@ -150,22 +136,15 @@ do $$ begin
   perform public.change_family_relationship(
     'a', '__family_tree_person__:00000000-0000-0000-0000-000000000099', true
   );
-  if (select admin from public.members where uniqname = 'sohank') then
-    raise exception 'Tree editor was granted site-wide admin access.';
-  end if;
   if exists (
     select 1 from public.members where name = 'Family Tree Only Person'
   ) then
     raise exception 'Family-tree-only people were inserted into the ZProfile roster.';
   end if;
-  begin
-    insert into public.family_tree_editors values ('b');
-    raise exception 'Tree editor could grant access to another member.';
-  exception when insufficient_privilege then null; end;
 end $$;
 select public.create_family_tree_person('Family Tree Only Person', 'Gamma') as external_person_key \gset
 select set_config('test.external_person_key', :'external_person_key', false);
-select public.change_family_relationship('sohank', :'external_person_key');
+select public.change_family_relationship('a', :'external_person_key');
 select public.change_family_relationship('a', :'external_person_key');
 do $$ begin
   if not exists (
@@ -238,7 +217,7 @@ set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000003","email":
 do $$ begin
   if (select count(*) from public.family_relationships) <> 0 then raise exception 'Outsider read accepted'; end if;
 end $$;
-set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"admin@example.com"}';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","email":"a@example.com"}';
 select public.change_family_relationship('a','c',true);
 do $$ begin
   if (select count(*) from public.family_relationships) <> 2 then raise exception 'Removal changed other edges'; end if;

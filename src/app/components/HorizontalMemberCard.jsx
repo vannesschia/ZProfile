@@ -32,7 +32,6 @@ export default function HorizontalMemberCard({
                     alt={`${member.name}'s profile picture`}
                     width={105}
                     height={151}
-                    unoptimized={imageUrl.startsWith("/family-tree-preview/images/")}
                     onError={showImageFallback ? () => setImageFailed(true) : undefined}
                     className="max-w-[105px] min-w-[105px] max-h-[150.75px] min-h-[150.75px] rounded-lg object-cover "
                 />

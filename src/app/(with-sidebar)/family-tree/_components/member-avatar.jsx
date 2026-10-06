@@ -22,7 +22,6 @@ export default function MemberAvatar({ member, className = "" }) {
           alt=""
           fill
           sizes="(max-width: 768px) 88px, 105px"
-          unoptimized={src.startsWith("/family-tree-preview/images/")}
           className="z-10 object-cover"
           onError={() => setFailed(true)}
         />
