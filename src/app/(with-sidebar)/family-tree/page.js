@@ -1,10 +1,6 @@
 import { getServerClient } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
 import FamilyTree from "./ClientView";
-import {
-  changeRelationship,
-  replaceFamilyRelationship,
-} from "./_lib/actions";
 
 export default async function FamilyTreePage() {
   const supabase = await getServerClient();
@@ -95,8 +91,6 @@ export default async function FamilyTreePage() {
       classOptions={classOptions}
       classOrder={orderedClasses}
       canEdit={viewer.admin === true}
-      onChangeRelationship={changeRelationship}
-      onReplaceRelationship={replaceFamilyRelationship}
     />
   );
 }

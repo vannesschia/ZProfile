@@ -44,8 +44,10 @@ import { Label } from "@/components/ui/label";
 import { layoutFamily, wouldCreateCycle } from "@/lib/family-tree.mjs";
 import { matchesMemberName } from "@/lib/member-search.mjs";
 import {
+  changeRelationship,
   createFamilyTreePerson,
   deleteFamilyTreePerson,
+  replaceFamilyRelationship,
   updateFamilyTreeMemberClass,
   updateFamilyTreePerson,
 } from "./_lib/actions";
@@ -56,8 +58,6 @@ export default function FamilyTree({
   classOptions = [],
   classOrder = [],
   canEdit = false,
-  onChangeRelationship,
-  onReplaceRelationship,
 }) {
   const router = useRouter();
   const [people, setPeople] = useState(members);
@@ -157,13 +157,13 @@ export default function FamilyTree({
     setPending(true);
     try {
       const result = replacement
-        ? await onReplaceRelationship(
+        ? await replaceFamilyRelationship(
             replacement.big_uniqname,
             replacement.little_uniqname,
             bigId,
             littleId,
           )
-        : await onChangeRelationship(bigId, littleId, remove);
+        : await changeRelationship(bigId, littleId, remove);
       if (result.error) {
         setError(result.error);
         return;
